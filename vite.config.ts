@@ -10,7 +10,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: resolve(__dirname, "../serve.public"),
+    outDir: 'dist',
     emptyOutDir: true
   },
   server: {
