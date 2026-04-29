@@ -4,6 +4,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 const props = defineProps({
   messenger: { type: Object, required: true }
 });
+const emit = defineEmits(["conversation-selected"]);
 
 const composeRef = ref(null);
 const statusMenuOpen = ref(false);
@@ -43,6 +44,11 @@ function removeConversation(event, roomId) {
   event.preventDefault();
   if (!confirm(`Remove conversation "${props.messenger.displayRoomName(roomId)}" and its messages?`)) return;
   props.messenger.removeRoom(roomId);
+}
+
+function openConversation(roomId) {
+  props.messenger.selectConversation(roomId);
+  emit("conversation-selected", roomId);
 }
 
 function openSettings() {
@@ -123,8 +129,8 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
           :class="{ 'is-active': c.active }"
           role="button"
           tabindex="0"
-          @click="messenger.selectConversation(c.roomId)"
-          @keydown.enter.prevent="messenger.selectConversation(c.roomId)"
+          @click="openConversation(c.roomId)"
+          @keydown.enter.prevent="openConversation(c.roomId)"
         >
           <span class="avatar avatar--lg" :class="`avatar--${c.accent}`">
             {{ initialsOf(c.name) }}

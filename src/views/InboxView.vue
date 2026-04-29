@@ -39,6 +39,10 @@ function showConversationList() {
   mobileThreadOpen.value = false;
 }
 
+function showConversationThread() {
+  mobileThreadOpen.value = true;
+}
+
 function goToCallRoom() {
   if (callRoom.value && callRoom.value !== messenger.state.activeRoom) {
     messenger.selectConversation(callRoom.value);
@@ -50,7 +54,7 @@ function goToCallRoom() {
   <OnboardingScreen v-if="needsOnboarding" :messenger="messenger" />
 
   <div v-else class="app" :class="{ 'is-thread': hasActive && mobileThreadOpen }">
-    <MessengerSidebar :messenger="messenger" />
+    <MessengerSidebar :messenger="messenger" @conversation-selected="showConversationThread" />
 
     <Transition name="toast">
       <div v-if="messenger.state.toastMessage" class="toast" role="status" aria-live="polite">
