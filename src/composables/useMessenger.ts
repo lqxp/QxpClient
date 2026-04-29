@@ -2,6 +2,7 @@ import { computed, nextTick, reactive } from "vue";
 import { EMPTY_CALL_MEDIA, normalizeCallMedia } from "@/calls/callTypes";
 import type { CallMediaState, CallSignalPayload, RemoteCallMedia } from "@/calls/callTypes";
 import { WebRtcCallManager, relayCallsConfigured, relayCallsRequirementMessage } from "@/calls/WebRtcCallManager";
+import { apiUrl, appRuntimeConfig } from "@/config/runtime";
 import {
   cryptoAvailable,
   decryptRoomPayload,
@@ -34,8 +35,7 @@ const LINK_PREVIEW_URL_RE = /https?:\/\/[^\s<>"'`\\]+/i;
 const pendingLinkPreviewRequests = new Set<string>();
 
 function inferWebSocketUrl() {
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${protocol}//${window.location.host}/ws`;
+  return appRuntimeConfig.wsUrl;
 }
 
 function sanitizeUsername(value) {
@@ -833,7 +833,7 @@ export function useMessenger() {
       ...(state.authToken ? { authorization: `Bearer ${state.authToken}` } : {}),
       ...(options.headers || {})
     };
-    const response = await fetch(path, { ...options, headers });
+    const response = await fetch(apiUrl(path), { ...options, headers });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data?.ok === false) {
       throw new Error(data?.error || `Request failed (${response.status})`);

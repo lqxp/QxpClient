@@ -10,6 +10,9 @@ interface QxpRtcRuntimeConfig {
 }
 
 interface QxpRuntimeConfig {
+  serverOrigin?: string;
+  apiBaseUrl?: string;
+  wsUrl?: string;
   rtc?: QxpRtcRuntimeConfig;
 }
 
