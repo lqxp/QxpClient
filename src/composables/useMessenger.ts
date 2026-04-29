@@ -111,6 +111,11 @@ function profileImageSrc(image) {
   return normalized ? `data:${normalized.mimeType};base64,${normalized.dataB64}` : "";
 }
 
+function isAndroidWebViewRuntime() {
+  const ua = typeof navigator === "undefined" ? "" : String(navigator.userAgent || "").toLowerCase();
+  return ua.includes("android") && (ua.includes("; wv") || ua.includes(" version/4."));
+}
+
 function sanitizeRoomId(value) {
   return String(value || "").trim().slice(0, ROOM_ID_MAX_LENGTH);
 }
@@ -763,6 +768,12 @@ export function useMessenger() {
   const roomTitle = computed(() => state.activeRoom ? displayRoomName(state.activeRoom) : "No conversation");
   const callsAvailable = computed(() => relayCallsConfigured());
   const callsUnavailableReason = computed(() => callsAvailable.value ? "" : relayCallsRequirementMessage());
+  const screenShareUnavailableReason = computed(() => {
+    if (isAndroidWebViewRuntime()) return "Screen sharing is not supported by Android WebView.";
+    if (!navigator.mediaDevices?.getDisplayMedia) return "Screen sharing is not available in this browser.";
+    return "";
+  });
+  const screenShareAvailable = computed(() => !screenShareUnavailableReason.value);
 
   const connectionLabel = computed(() => {
     if (state.connected && state.identified) return presenceStatusLabel(state.status).toLowerCase();
@@ -2134,8 +2145,10 @@ export function useMessenger() {
     }
 
     try {
-      if (!navigator.mediaDevices?.getDisplayMedia) {
-        state.lastError = "Screen sharing is not available in this browser.";
+      if (!screenShareAvailable.value || !navigator.mediaDevices?.getDisplayMedia) {
+        const message = screenShareUnavailableReason.value || "Screen sharing is not available in this browser.";
+        state.lastError = message;
+        showToast(message);
         return;
       }
       const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
@@ -2955,6 +2968,8 @@ export function useMessenger() {
     connectionLabel,
     callsAvailable,
     callsUnavailableReason,
+    screenShareAvailable,
+    screenShareUnavailableReason,
     onlineCount,
     canSend,
     sortedMessages,

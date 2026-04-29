@@ -16,6 +16,11 @@ onBeforeUnmount(() => {
 });
 
 const callRoom = computed(() => props.messenger.state.callRoom);
+const screenShareTitle = computed(() =>
+  props.messenger.state.callScreenEnabled
+    ? "Stop screen share"
+    : props.messenger.screenShareUnavailableReason.value || "Share screen"
+);
 
 const members = computed(() => {
   const roomId = callRoom.value;
@@ -197,6 +202,7 @@ function bindRemoteAudio(el, username) {
           :class="{ 'icon-btn--active': messenger.state.callScreenEnabled }"
           type="button"
           :aria-label="messenger.state.callScreenEnabled ? 'Stop screen share' : 'Share screen'"
+          :title="screenShareTitle"
           @click="messenger.toggleScreenShare"
         >
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="m9 10 3-3 3 3"/><path d="M12 7v7"/></svg>
