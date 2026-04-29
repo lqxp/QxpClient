@@ -13,6 +13,9 @@ const avatarInputRef = ref(null);
 const bannerInputRef = ref(null);
 const firstInputRef = ref(null);
 const activeSection = ref("profile");
+const mobileSectionOpen = ref(false);
+const settingsSearch = ref("");
+const isMobileSettings = ref(false);
 
 const isOpen = computed(() => props.messenger.state.settingsOpen);
 
@@ -39,15 +42,23 @@ const allSections = [
   { id: "about", label: "About" }
 ];
 const sections = computed(() => allSections.filter((section) => section.id !== "admin" || props.messenger.state.admin));
+const filteredSections = computed(() => {
+  const query = settingsSearch.value.trim().toLowerCase();
+  if (!query) return sections.value;
+  return sections.value.filter((section) => section.label.toLowerCase().includes(query));
+});
+const activeSectionLabel = computed(() => sections.value.find((section) => section.id === activeSection.value)?.label || "Settings");
 
 watch(isOpen, async (v) => {
   if (v) {
+    mobileSectionOpen.value = false;
+    settingsSearch.value = "";
     draftName.value = props.messenger.state.username || "";
     draftDescription.value = props.messenger.state.profile?.description || "";
     draftPronouns.value = props.messenger.state.profile?.pronouns || "";
     props.messenger.refreshAudioDevices();
     await nextTick();
-    if (activeSection.value === "profile") {
+    if (!isMobileSettings.value && activeSection.value === "profile") {
       firstInputRef.value?.focus();
       firstInputRef.value?.select();
     }
@@ -67,7 +78,18 @@ watch(activeSection, async (section) => {
 
 function close() {
   props.messenger.stopMicTest();
+  mobileSectionOpen.value = false;
   props.messenger.state.settingsOpen = false;
+}
+
+function selectSection(sectionId: string) {
+  activeSection.value = sectionId;
+  if (isMobileSettings.value) mobileSectionOpen.value = true;
+}
+
+function backToSettingsList() {
+  props.messenger.stopMicTest();
+  mobileSectionOpen.value = false;
 }
 
 async function saveName() {
@@ -143,15 +165,35 @@ function initialsOf(name) {
 
 function onKey(event) {
   if (!isOpen.value) return;
-  if (event.key === "Escape") close();
+  if (event.key !== "Escape") return;
+  if (isMobileSettings.value && mobileSectionOpen.value) backToSettingsList();
+  else close();
 }
 
-onMounted(() => document.addEventListener("keydown", onKey));
-onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
+function syncMobileSettings() {
+  isMobileSettings.value = window.matchMedia("(max-width: 820px)").matches;
+}
+
+onMounted(() => {
+  syncMobileSettings();
+  window.addEventListener("resize", syncMobileSettings, { passive: true });
+  document.addEventListener("keydown", onKey);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", syncMobileSettings);
+  document.removeEventListener("keydown", onKey);
+});
 </script>
 
 <template>
-  <div v-if="isOpen" class="settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <div
+    v-if="isOpen"
+    class="settings"
+    :class="{ 'settings--section-open': mobileSectionOpen }"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="settings-title"
+  >
     <aside class="settings__side">
       <header class="settings__side-head">
         <h2 id="settings-title">Settings</h2>
@@ -159,6 +201,11 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
           <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
       </header>
+
+      <label class="settings__search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input v-model="settingsSearch" type="search" placeholder="Search" autocomplete="off" />
+      </label>
 
       <button class="settings__card" type="button" @click="activeSection = 'profile'">
         <span class="avatar avatar--md" :class="`avatar--${meAccent}`">{{ meInitials }}</span>
@@ -168,14 +215,16 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
         </span>
       </button>
 
+      <div class="settings__mobile-label">Account Settings</div>
+
       <nav class="settings__nav" aria-label="Settings sections">
         <button
-          v-for="section in sections"
+          v-for="section in filteredSections"
           :key="section.id"
           type="button"
           class="settings__nav-item"
           :class="{ 'is-active': activeSection === section.id }"
-          @click="activeSection = section.id"
+          @click="selectSection(section.id)"
         >
           <svg v-if="section.id === 'profile'" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
           <svg v-else-if="section.id === 'privacy'" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 2.9 8.5 7 10 4.1-1.5 7-5.5 7-10V6l-7-3Z"/><path d="M9.5 12.5 11 14l3.5-4"/></svg>
@@ -184,13 +233,17 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
           <svg v-else-if="section.id === 'backups'" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m6 9 6-6 6 6"/><path d="M5 21h14"/></svg>
           <svg v-else viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
           <span>{{ section.label }}</span>
+          <svg class="settings__chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
         </button>
       </nav>
     </aside>
 
     <main class="settings__main">
       <header class="settings__main-head">
-        <h3>{{ sections.find((section) => section.id === activeSection)?.label }}</h3>
+        <button class="icon-btn settings__back" type="button" aria-label="Back to settings" @click="backToSettingsList">
+          <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <h3>{{ activeSectionLabel }}</h3>
       </header>
 
       <section v-if="activeSection === 'profile'" class="settings-page">
