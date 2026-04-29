@@ -7,6 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "build:tauri": "vite build && node ./scripts/sync-runtime-config.mjs --out dist/runtime-config.js",
+    "tauri": "tauri",
+    "ios:init": "tauri ios init --skip-targets-install",
+    "ios:dev": "tauri ios dev",
+    "ios:build": "tauri ios build",
     "sync:runtime": "node ./scripts/sync-runtime-config.mjs",
     "typecheck": "vue-tsc --noEmit",
     "preview": "vite preview"
@@ -16,6 +20,7 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.10.1",
     "@types/node": "^25.6.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "typescript": "^5.8.3",
