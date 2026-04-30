@@ -37,6 +37,7 @@ const allSections = [
   { id: "privacy", label: "Privacy" },
   { id: "notifications", label: "Notifications" },
   { id: "calls", label: "Calls" },
+  { id: "advanced", label: "Advanced" },
   { id: "admin", label: "Admin" },
   { id: "backups", label: "Backups" },
   { id: "about", label: "About" }
@@ -446,22 +447,11 @@ onBeforeUnmount(() => {
               :checked="messenger.state.androidNotificationsEnabled"
               @change="messenger.setAndroidNotificationsEnabled(targetChecked($event))"
             />
-            <span>Show Android notifications for background messages</span>
+            <span>Show notifications for background messages</span>
           </label>
           <p class="settings-hint">Permission: {{ messenger.notificationPermission() }}</p>
         </div>
 
-        <div class="settings-group">
-          <h4>Connection</h4>
-          <label class="settings-check">
-            <input
-              type="checkbox"
-              :checked="messenger.state.autoReconnectEnabled"
-              @change="messenger.setAutoReconnectEnabled(targetChecked($event))"
-            />
-            <span>Reconnect automatically to chat</span>
-          </label>
-        </div>
       </section>
 
       <section v-else-if="activeSection === 'calls'" class="settings-page">
@@ -546,6 +536,20 @@ onBeforeUnmount(() => {
           >
             {{ messenger.state.micTestLoading ? "Starting..." : messenger.state.micTestActive ? "Stop listening" : "Listen and test mic" }}
           </button>
+        </div>
+      </section>
+
+      <section v-else-if="activeSection === 'advanced'" class="settings-page">
+        <div class="settings-group">
+          <h4>Connection</h4>
+          <label class="settings-check">
+            <input
+              type="checkbox"
+              :checked="messenger.state.autoReconnectEnabled"
+              @change="messenger.setAutoReconnectEnabled(targetChecked($event))"
+            />
+            <span>Reconnect automatically to chat</span>
+          </label>
         </div>
       </section>
 
