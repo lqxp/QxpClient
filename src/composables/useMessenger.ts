@@ -1,4 +1,5 @@
 import { computed, nextTick, reactive } from "vue";
+import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 import { EMPTY_CALL_MEDIA, normalizeCallMedia } from "@/calls/callTypes";
 import type { CallMediaState, CallSignalPayload, RemoteCallMedia } from "@/calls/callTypes";
 import { WebRtcCallManager, relayCallsConfigured, relayCallsRequirementMessage } from "@/calls/WebRtcCallManager";
@@ -26,6 +27,11 @@ const MAX_PROFILE_AVATAR_BYTES = 2 * 1024 * 1024;
 const MAX_PROFILE_BANNER_BYTES = 5 * 1024 * 1024;
 const MAX_PROFILE_DESCRIPTION_LENGTH = 512;
 const MAX_PROFILE_PRONOUNS_LENGTH = 24;
+const RECONNECT_DEFAULTS = {
+  enabled: true,
+  minDelayMs: 1000,
+  maxDelayMs: 30000
+};
 const PROFILE_IMAGE_MIME_TYPES = new Set(["image/png", "image/apng", "image/gif", "image/jpeg", "image/jpg"]);
 const PRESENCE_STATUSES = ["online", "invisible", "dnd"];
 const DUPLICATE_MESSAGE_WINDOW_MS = 10 * 60 * 1000;
@@ -114,6 +120,10 @@ function profileImageSrc(image) {
 function isAndroidWebViewRuntime() {
   const ua = typeof navigator === "undefined" ? "" : String(navigator.userAgent || "").toLowerCase();
   return ua.includes("android") && (ua.includes("; wv") || ua.includes(" version/4."));
+}
+
+function isTauriRuntime() {
+  return typeof window !== "undefined" && Boolean((window as any).__TAURI_INTERNALS__);
 }
 
 function sanitizeRoomId(value) {
@@ -296,6 +306,10 @@ function loadPersisted() {
       deleteMessagesOnLeave: Boolean(raw.deleteMessagesOnLeave),
       streamerMode: Boolean(raw.streamerMode),
       messageSoundEnabled: Boolean(raw.messageSoundEnabled),
+      androidNotificationsEnabled: raw.androidNotificationsEnabled !== false,
+      autoReconnectEnabled: raw.autoReconnectEnabled !== false,
+      reconnectMinDelayMs: Math.max(250, Math.min(60000, Number(raw.reconnectMinDelayMs) || RECONNECT_DEFAULTS.minDelayMs)),
+      reconnectMaxDelayMs: Math.max(1000, Math.min(120000, Number(raw.reconnectMaxDelayMs) || RECONNECT_DEFAULTS.maxDelayMs)),
       callUserVolumes: sanitizeCallUserVolumes(raw.callUserVolumes),
       profile
     };
@@ -318,6 +332,10 @@ function loadPersisted() {
       deleteMessagesOnLeave: false,
       streamerMode: false,
       messageSoundEnabled: false,
+      androidNotificationsEnabled: true,
+      autoReconnectEnabled: RECONNECT_DEFAULTS.enabled,
+      reconnectMinDelayMs: RECONNECT_DEFAULTS.minDelayMs,
+      reconnectMaxDelayMs: RECONNECT_DEFAULTS.maxDelayMs,
       callUserVolumes: {},
       profile: loadPersistedProfile()
     };
@@ -378,6 +396,10 @@ function savePersisted(state) {
         deleteMessagesOnLeave: state.deleteMessagesOnLeave,
         streamerMode: state.streamerMode,
         messageSoundEnabled: state.messageSoundEnabled,
+        androidNotificationsEnabled: state.androidNotificationsEnabled,
+        autoReconnectEnabled: state.autoReconnectEnabled,
+        reconnectMinDelayMs: state.reconnectMinDelayMs,
+        reconnectMaxDelayMs: state.reconnectMaxDelayMs,
         callUserVolumes: sanitizeCallUserVolumes(state.callUserVolumes)
       })
     );
@@ -659,6 +681,8 @@ export function useMessenger() {
     heartbeatInterval: 3000,
     heartbeatTimer: null,
     manualClose: false,
+    reconnectTimer: null,
+    reconnectAttempts: 0,
 
     authToken: persisted.authToken,
     userId: persisted.userId,
@@ -703,6 +727,10 @@ export function useMessenger() {
     deleteMessagesOnLeave: persisted.deleteMessagesOnLeave,
     streamerMode: persisted.streamerMode,
     messageSoundEnabled: persisted.messageSoundEnabled,
+    androidNotificationsEnabled: persisted.androidNotificationsEnabled,
+    autoReconnectEnabled: persisted.autoReconnectEnabled,
+    reconnectMinDelayMs: persisted.reconnectMinDelayMs,
+    reconnectMaxDelayMs: Math.max(persisted.reconnectMinDelayMs, persisted.reconnectMaxDelayMs),
     callUserVolumes: persisted.callUserVolumes,
     audioDevicesLoading: false,
     audioDevicesPermission: "unknown",
@@ -1162,6 +1190,26 @@ export function useMessenger() {
     persist();
   }
 
+  function setAndroidNotificationsEnabled(value) {
+    state.androidNotificationsEnabled = Boolean(value);
+    if (state.androidNotificationsEnabled) requestNotificationPermission();
+    persist();
+  }
+
+  function setAutoReconnectEnabled(value) {
+    state.autoReconnectEnabled = Boolean(value);
+    if (!state.autoReconnectEnabled) clearReconnectTimer();
+    persist();
+  }
+
+  function setReconnectDelays(minDelayMs, maxDelayMs) {
+    const min = Math.max(250, Math.min(60000, Math.round(Number(minDelayMs) || RECONNECT_DEFAULTS.minDelayMs)));
+    const max = Math.max(min, Math.min(120000, Math.round(Number(maxDelayMs) || RECONNECT_DEFAULTS.maxDelayMs)));
+    state.reconnectMinDelayMs = min;
+    state.reconnectMaxDelayMs = max;
+    persist();
+  }
+
   function setPresenceStatus(value) {
     const next = sanitizePresenceStatus(value);
     if (state.status === next) return;
@@ -1270,6 +1318,67 @@ export function useMessenger() {
       oscillator.stop(now + 0.2);
     } catch {
       /* notification audio is best-effort */
+    }
+  }
+
+  function notificationPermission() {
+    if (isTauriRuntime()) return "native";
+    return typeof Notification === "undefined" ? "unsupported" : Notification.permission;
+  }
+
+  async function requestNotificationPermission() {
+    if (isTauriRuntime()) {
+      try {
+        if (await isPermissionGranted()) return "granted";
+        return await requestPermission();
+      } catch {
+        return "unsupported";
+      }
+    }
+    if (typeof Notification === "undefined") return "unsupported";
+    if (Notification.permission !== "default") return Notification.permission;
+    try {
+      return await Notification.requestPermission();
+    } catch {
+      return Notification.permission;
+    }
+  }
+
+  function showAndroidMessageNotification(message, roomId) {
+    if (document.visibilityState === "visible" && roomId === state.activeRoom) return;
+    if (!state.androidNotificationsEnabled) return;
+    const title = `${message.username || "New message"} in ${displayRoomName(roomId) || "QxChat"}`;
+    const body = messagePreviewLabel(message) || "New message";
+    if (isTauriRuntime()) {
+      isPermissionGranted()
+        .then((granted) => {
+          if (granted) {
+            sendNotification({
+              title,
+              body,
+              group: `qxchat-${roomId}`,
+              autoCancel: true,
+              silent: !state.messageSoundEnabled
+            });
+          }
+        })
+        .catch(() => {});
+      return;
+    }
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    try {
+      const notification = new Notification(title, {
+        body,
+        tag: `qxchat-${roomId}`,
+        silent: !state.messageSoundEnabled
+      });
+      notification.onclick = () => {
+        window.focus();
+        selectConversation(roomId);
+        notification.close();
+      };
+    } catch {
+      /* Android notification support depends on the WebView/runtime build. */
     }
   }
 
@@ -1766,15 +1875,18 @@ export function useMessenger() {
     }
     state.lastError = "";
     state.manualClose = false;
+    clearReconnectTimer();
     try {
       state.ws = new WebSocket(inferWebSocketUrl());
     } catch (error) {
       state.lastError = `Connection failed: ${error.message}`;
       state.ws = null;
+      scheduleReconnect();
       return;
     }
     state.ws.addEventListener("open", () => {
       state.connected = true;
+      state.reconnectAttempts = 0;
       state.systemBanner = "";
       send({
         op: 2,
@@ -1799,15 +1911,52 @@ export function useMessenger() {
       }
     });
     state.ws.addEventListener("close", () => {
-      teardownConnection(state.manualClose ? "" : "Connection lost");
+      const shouldReconnect = !state.manualClose;
+      teardownConnection(shouldReconnect ? "Connection lost" : "");
+      if (shouldReconnect) scheduleReconnect();
     });
     state.ws.addEventListener("error", () => {
       state.lastError = "WebSocket error.";
     });
   }
 
+  function clearReconnectTimer() {
+    if (!state.reconnectTimer) return;
+    clearTimeout(state.reconnectTimer);
+    state.reconnectTimer = null;
+  }
+
+  function scheduleReconnect() {
+    if (!state.autoReconnectEnabled || state.manualClose || !state.authToken || !sanitizeUsername(state.username)) return;
+    if (state.reconnectTimer || state.ws || state.connected) return;
+    const minDelay = Math.max(250, Number(state.reconnectMinDelayMs) || RECONNECT_DEFAULTS.minDelayMs);
+    const maxDelay = Math.max(minDelay, Number(state.reconnectMaxDelayMs) || RECONNECT_DEFAULTS.maxDelayMs);
+    const attempt = Math.max(0, Number(state.reconnectAttempts) || 0);
+    const delay = Math.min(maxDelay, minDelay * (2 ** Math.min(attempt, 6)));
+    state.reconnectAttempts = attempt + 1;
+    state.reconnectTimer = setTimeout(() => {
+      state.reconnectTimer = null;
+      if (!state.connected && !state.ws && !state.manualClose) connect();
+    }, delay);
+  }
+
+  function reconnectNow() {
+    if (!state.autoReconnectEnabled || state.manualClose) return;
+    if (state.connected || state.ws) return;
+    clearReconnectTimer();
+    connect();
+  }
+
+  function installRealtimeLifecycleHandlers() {
+    window.addEventListener("online", reconnectNow);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") reconnectNow();
+    });
+  }
+
   function disconnect() {
     state.manualClose = true;
+    clearReconnectTimer();
     if (state.ws && state.ws.readyState < WebSocket.CLOSING) state.ws.close();
     teardownConnection("");
   }
@@ -2584,6 +2733,7 @@ export function useMessenger() {
 
     const mine = isOwnMessage(normalized);
     if (added && !mine) playMessageNotificationSound();
+    if (added && !mine) showAndroidMessageNotification(normalized, roomId);
     if (!mine && roomId !== state.activeRoom) {
       state.unreadByRoom[roomId] = (state.unreadByRoom[roomId] || 0) + 1;
     }
@@ -2860,6 +3010,10 @@ export function useMessenger() {
       deleteMessagesOnLeave: state.deleteMessagesOnLeave,
       streamerMode: state.streamerMode,
       messageSoundEnabled: state.messageSoundEnabled,
+      androidNotificationsEnabled: state.androidNotificationsEnabled,
+      autoReconnectEnabled: state.autoReconnectEnabled,
+      reconnectMinDelayMs: state.reconnectMinDelayMs,
+      reconnectMaxDelayMs: state.reconnectMaxDelayMs,
       callUserVolumes: sanitizeCallUserVolumes(state.callUserVolumes)
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -2939,6 +3093,9 @@ export function useMessenger() {
         if (typeof data.deleteMessagesOnLeave === "boolean") state.deleteMessagesOnLeave = data.deleteMessagesOnLeave;
         if (typeof data.streamerMode === "boolean") state.streamerMode = data.streamerMode;
         if (typeof data.messageSoundEnabled === "boolean") state.messageSoundEnabled = data.messageSoundEnabled;
+        if (typeof data.androidNotificationsEnabled === "boolean") state.androidNotificationsEnabled = data.androidNotificationsEnabled;
+        if (typeof data.autoReconnectEnabled === "boolean") state.autoReconnectEnabled = data.autoReconnectEnabled;
+        setReconnectDelays(data.reconnectMinDelayMs, data.reconnectMaxDelayMs);
         state.callUserVolumes = sanitizeCallUserVolumes(data.callUserVolumes);
 
         persist();
@@ -2955,6 +3112,8 @@ export function useMessenger() {
     };
     reader.readAsText(file);
   }
+
+  installRealtimeLifecycleHandlers();
 
   singleton = {
     QUICK_REACTIONS,
@@ -3017,6 +3176,11 @@ export function useMessenger() {
     setDeleteMessagesOnLeave,
     setStreamerMode,
     setMessageSoundEnabled,
+    setAndroidNotificationsEnabled,
+    setAutoReconnectEnabled,
+    setReconnectDelays,
+    requestNotificationPermission,
+    notificationPermission,
     setPresenceStatus,
     setProfileText,
     setProfileImageFromFile,

@@ -9,7 +9,13 @@ function syncViewportHeight() {
   document.documentElement.style.setProperty("--app-viewport-height", `${height}px`);
 }
 
+function syncPlatformChromeOffset() {
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  document.documentElement.classList.toggle("is-android-runtime", isAndroid);
+}
+
 syncViewportHeight();
+syncPlatformChromeOffset();
 window.addEventListener("resize", syncViewportHeight, { passive: true });
 window.visualViewport?.addEventListener("resize", syncViewportHeight, { passive: true });
 window.visualViewport?.addEventListener("scroll", syncViewportHeight, { passive: true });

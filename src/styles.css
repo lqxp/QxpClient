@@ -39,6 +39,11 @@
   --row-h: 72px;
   --header-h: 64px;
   --app-viewport-height: 100dvh;
+  --mobile-status-offset: 0px;
+}
+
+:root.is-android-runtime {
+  --mobile-status-offset: 24px;
 }
 
 * {
@@ -4179,8 +4184,9 @@ textarea {
 
   .app {
     width: 100%;
-    height: var(--app-viewport-height);
+    height: calc(var(--app-viewport-height) - var(--mobile-status-offset));
     grid-template-columns: minmax(0, 1fr);
+    margin-top: var(--mobile-status-offset);
   }
 
   .side,

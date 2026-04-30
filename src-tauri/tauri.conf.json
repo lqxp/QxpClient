@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "QxProtocol",
+  "productName": "QxChat",
   "version": "0.1.0",
   "identifier": "com.kisakay.qxprotocol",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "QxProtocol",
+        "title": "QxChat",
         "width": 1100,
         "height": 760,
         "minWidth": 360,
@@ -27,7 +27,7 @@
   "bundle": {
     "active": true,
     "category": "SocialNetworking",
-    "copyright": "Copyright (c) QxProtocol",
+    "copyright": "Copyright (c) QxChat",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

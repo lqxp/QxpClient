@@ -169,6 +169,7 @@ function toggleMobileActions() {
 }
 
 async function insertEmoji(emoji: string) {
+  pickerOpen.value = false;
   const input = inputRef.value;
   const current = props.messenger.state.messageInput || "";
 
