@@ -307,7 +307,6 @@ function loadPersisted() {
       streamerMode: Boolean(raw.streamerMode),
       messageSoundEnabled: Boolean(raw.messageSoundEnabled),
       androidNotificationsEnabled: raw.androidNotificationsEnabled !== false,
-      serverClearsLocalMessages: raw.serverClearsLocalMessages !== false,
       autoReconnectEnabled: raw.autoReconnectEnabled !== false,
       reconnectMinDelayMs: Math.max(250, Math.min(60000, Number(raw.reconnectMinDelayMs) || RECONNECT_DEFAULTS.minDelayMs)),
       reconnectMaxDelayMs: Math.max(1000, Math.min(120000, Number(raw.reconnectMaxDelayMs) || RECONNECT_DEFAULTS.maxDelayMs)),
@@ -334,7 +333,6 @@ function loadPersisted() {
       streamerMode: false,
       messageSoundEnabled: false,
       androidNotificationsEnabled: true,
-      serverClearsLocalMessages: true,
       autoReconnectEnabled: RECONNECT_DEFAULTS.enabled,
       reconnectMinDelayMs: RECONNECT_DEFAULTS.minDelayMs,
       reconnectMaxDelayMs: RECONNECT_DEFAULTS.maxDelayMs,
@@ -399,7 +397,6 @@ function savePersisted(state) {
         streamerMode: state.streamerMode,
         messageSoundEnabled: state.messageSoundEnabled,
         androidNotificationsEnabled: state.androidNotificationsEnabled,
-        serverClearsLocalMessages: state.serverClearsLocalMessages,
         autoReconnectEnabled: state.autoReconnectEnabled,
         reconnectMinDelayMs: state.reconnectMinDelayMs,
         reconnectMaxDelayMs: state.reconnectMaxDelayMs,
@@ -731,7 +728,6 @@ export function useMessenger() {
     streamerMode: persisted.streamerMode,
     messageSoundEnabled: persisted.messageSoundEnabled,
     androidNotificationsEnabled: persisted.androidNotificationsEnabled,
-    serverClearsLocalMessages: persisted.serverClearsLocalMessages,
     autoReconnectEnabled: persisted.autoReconnectEnabled,
     reconnectMinDelayMs: persisted.reconnectMinDelayMs,
     reconnectMaxDelayMs: Math.max(persisted.reconnectMinDelayMs, persisted.reconnectMaxDelayMs),
@@ -1203,11 +1199,6 @@ export function useMessenger() {
   function setAutoReconnectEnabled(value) {
     state.autoReconnectEnabled = Boolean(value);
     if (!state.autoReconnectEnabled) clearReconnectTimer();
-    persist();
-  }
-
-  function setServerClearsLocalMessages(value) {
-    state.serverClearsLocalMessages = Boolean(value);
     persist();
   }
 
@@ -2988,33 +2979,15 @@ export function useMessenger() {
     if (!d?.ok) return;
     const roomId = sanitizeRoomId(d.roomId);
     if (!roomId) return;
-    const serverMessages = Array.isArray(d.messages)
+    const messages = Array.isArray(d.messages)
       ? await Promise.all(d.messages.map((m) => hydrateIncomingMessage(m, roomId)))
       : [];
-    const messages = state.serverClearsLocalMessages
-      ? serverMessages
-      : mergeRoomHistory(state.messagesByRoom[roomId] || [], serverMessages, roomId);
     state.messagesByRoom[roomId] = messages;
     const last = messages[messages.length - 1];
     if (last) touchRoom(roomId, last);
-    for (const message of serverMessages) requestEncryptedLinkPreview(message);
+    for (const message of messages) requestEncryptedLinkPreview(message);
     if (roomId === state.activeRoom) scrollToBottom();
     persist();
-  }
-
-  function mergeRoomHistory(localMessages, serverMessages, roomId) {
-    const byId = new Map();
-    for (const message of localMessages || []) {
-      const normalized = normalizeMessage(message, roomId);
-      if (normalized.messageId) byId.set(normalized.messageId, normalized);
-    }
-    for (const message of serverMessages || []) {
-      const normalized = normalizeMessage(message, roomId);
-      if (normalized.messageId) byId.set(normalized.messageId, normalized);
-    }
-    return [...byId.values()]
-      .sort((a, b) => (Number(a.timestamp) || 0) - (Number(b.timestamp) || 0))
-      .slice(-MAX_HISTORY_PER_ROOM);
   }
 
   function isOwnMessage(message) {
@@ -3038,7 +3011,6 @@ export function useMessenger() {
       streamerMode: state.streamerMode,
       messageSoundEnabled: state.messageSoundEnabled,
       androidNotificationsEnabled: state.androidNotificationsEnabled,
-      serverClearsLocalMessages: state.serverClearsLocalMessages,
       autoReconnectEnabled: state.autoReconnectEnabled,
       reconnectMinDelayMs: state.reconnectMinDelayMs,
       reconnectMaxDelayMs: state.reconnectMaxDelayMs,
@@ -3123,7 +3095,6 @@ export function useMessenger() {
         if (typeof data.messageSoundEnabled === "boolean") state.messageSoundEnabled = data.messageSoundEnabled;
         if (typeof data.androidNotificationsEnabled === "boolean") state.androidNotificationsEnabled = data.androidNotificationsEnabled;
         if (typeof data.autoReconnectEnabled === "boolean") state.autoReconnectEnabled = data.autoReconnectEnabled;
-        if (typeof data.serverClearsLocalMessages === "boolean") state.serverClearsLocalMessages = data.serverClearsLocalMessages;
         setReconnectDelays(data.reconnectMinDelayMs, data.reconnectMaxDelayMs);
         state.callUserVolumes = sanitizeCallUserVolumes(data.callUserVolumes);
 
@@ -3207,7 +3178,6 @@ export function useMessenger() {
     setMessageSoundEnabled,
     setAndroidNotificationsEnabled,
     setAutoReconnectEnabled,
-    setServerClearsLocalMessages,
     setReconnectDelays,
     requestNotificationPermission,
     notificationPermission,
