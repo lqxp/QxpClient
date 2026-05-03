@@ -4035,6 +4035,15 @@ textarea {
   padding-bottom: 1px;
 }
 
+.callpanel__audio--hidden {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .calltile__volume {
   display: inline-flex;
   align-items: center;

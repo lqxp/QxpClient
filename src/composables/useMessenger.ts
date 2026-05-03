@@ -2526,7 +2526,8 @@ export function useMessenger() {
   function handleCallSignal(d) {
     if (!state.inCall || !callManager) return;
     const from = sanitizeUsername(d?.from);
-    if (from && from === sanitizeUsername(state.username)) return;
+    const fromClientId = sanitizeClientId(d?.fromClientId);
+    if (from && from === sanitizeUsername(state.username) && (!fromClientId || fromClientId === localClientId)) return;
     if (d?.toClientId && sanitizeClientId(d.toClientId) !== localClientId) return;
     if (d?.fromPlatform) rememberClientPlatform(from, d.fromPlatform);
     callManager.handleSignal({
@@ -2534,7 +2535,7 @@ export function useMessenger() {
       to: sanitizeUsername(d?.to),
       from,
       toClientId: sanitizeClientId(d?.toClientId),
-      fromClientId: sanitizeClientId(d?.fromClientId),
+      fromClientId,
       fromPlatform: sanitizePlatform(d?.fromPlatform),
       type: d?.type,
       sdp: typeof d?.sdp === "string" ? d.sdp : undefined,

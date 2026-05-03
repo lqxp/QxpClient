@@ -285,4 +285,18 @@ function bindRemoteAudio(el, username) {
       </label>
     </div>
   </section>
+
+  <div
+    v-if="messenger.state.inCall && messenger.state.callRoom !== messenger.state.activeRoom && remoteMembers.length"
+    class="callpanel__audio callpanel__audio--hidden"
+    aria-hidden="true"
+  >
+    <audio
+      v-for="u in remoteMembers"
+      :key="`hidden-audio-${u}`"
+      :ref="(el) => bindRemoteAudio(el, u)"
+      autoplay
+      playsinline
+    ></audio>
+  </div>
 </template>
