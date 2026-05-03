@@ -146,7 +146,7 @@ function bindLocalPreview(el, kind) {
 function bindRemoteVideo(el, username, trackIndex = 0) {
   if (!el) return;
   const stream = props.messenger.remoteVideoStream(username);
-  const tracks = (stream?.getVideoTracks?.() || []).filter((track) => track.readyState === "live");
+  const tracks = (stream?.getVideoTracks?.() || []).filter((track) => track.readyState === "live" && !track.muted);
   const track = tracks[trackIndex] || tracks[0];
   if (!track) {
     el.srcObject = null;

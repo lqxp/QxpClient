@@ -2162,9 +2162,13 @@ export function useMessenger() {
     const key = sanitizeUsername(username);
     if (!key) return;
     state.remoteCallStreamsByUser[key] = remote.stream;
+    const existing = state.remoteCallMediaByUser[key] || EMPTY_CALL_MEDIA;
+    const inferred = normalizeCallMedia(remote.media || EMPTY_CALL_MEDIA);
     state.remoteCallMediaByUser[key] = normalizeCallMedia({
-      ...(state.remoteCallMediaByUser[key] || EMPTY_CALL_MEDIA),
-      audio: Boolean(remote.media?.audio)
+      ...existing,
+      audio: Boolean(remote.media?.audio),
+      camera: existing.screen && !existing.camera && inferred.camera ? false : inferred.camera ?? existing.camera,
+      screen: existing.screen
     });
   }
 
@@ -2187,7 +2191,7 @@ export function useMessenger() {
 
   function remoteVideoStream(username) {
     const stream = remoteCallStream(username);
-    if (!stream?.getVideoTracks().some((track) => track.readyState === "live")) return null;
+    if (!stream?.getVideoTracks().some((track) => track.readyState === "live" && !track.muted)) return null;
     return stream;
   }
 
@@ -2387,10 +2391,14 @@ export function useMessenger() {
     if (!roomId || !user) return;
 
     const members = new Set(state.voiceMembersByRoom[roomId] || []);
+    const wasKnownMember = members.has(user);
     if (d.isVoiceChat === true) {
       members.add(user);
       updateRemoteMedia(user, d.media || { audio: true });
-      if (state.inCall && state.callRoom === roomId) callManager?.connectPeer(user);
+      if (state.inCall && state.callRoom === roomId) {
+        callManager?.connectPeer(user);
+        if (!wasKnownMember && user !== sanitizeUsername(state.username)) publishCallState(true);
+      }
     } else {
       members.delete(user);
       callManager?.removePeer(user);

@@ -140,14 +140,12 @@ export class WebRtcCallManager {
     for (const peer of this.peers.values()) {
       const sender = peer.senders[role];
       if (!sender) continue;
-      sender.replaceTrack(null).catch(() => {
-        try {
-          peer.pc.removeTrack(sender);
-        } catch {
-          /* sender already detached */
-        }
-        delete peer.senders[role];
-      });
+      try {
+        peer.pc.removeTrack(sender);
+      } catch {
+        /* sender already detached */
+      }
+      delete peer.senders[role];
     }
   }
 
@@ -242,11 +240,16 @@ export class WebRtcCallManager {
       } else if (!stream.getTracks().some((existing) => existing.id === track.id)) {
         stream.addTrack(track);
       }
-      track.onended = () => {
-        stream.removeTrack(track);
+      const emitRemoteMedia = () => {
         this.onRemoteMedia(peerName, { stream, media: this.inferRemoteMedia(stream) });
       };
-      this.onRemoteMedia(peerName, { stream, media: this.inferRemoteMedia(stream) });
+      track.onended = () => {
+        stream.removeTrack(track);
+        emitRemoteMedia();
+      };
+      track.onmute = emitRemoteMedia;
+      track.onunmute = emitRemoteMedia;
+      emitRemoteMedia();
     };
 
     pc.onconnectionstatechange = () => {
@@ -311,9 +314,13 @@ export class WebRtcCallManager {
   }
 
   private inferRemoteMedia(stream: MediaStream): CallMediaState {
+    const hasLiveVideo = stream.getVideoTracks().some((track) => track.readyState === "live" && !track.muted);
     return {
-      audio: stream.getAudioTracks().some((track) => track.readyState === "live"),
-      camera: false,
+      audio: stream.getAudioTracks().some((track) => track.readyState === "live" && !track.muted),
+      // WebRTC track events do not carry our app-level role (camera vs screen).
+      // Treat bare video arrival as camera so late joiners render an already-active camera
+      // even before/without a fresh call-state broadcast. Screen state is still provided by op 110.
+      camera: hasLiveVideo,
       screen: false
     };
   }
