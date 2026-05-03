@@ -563,6 +563,18 @@ onBeforeUnmount(() => {
             server history is empty after a protocol refresh.
           </p>
         </div>
+
+        <div class="settings-group">
+          <h4>Uploads</h4>
+          <label class="settings-check">
+            <input type="checkbox" :checked="messenger.state.autoArchiveUploads"
+              @change="messenger.setAutoArchiveUploads(targetChecked($event))" />
+            <span>Automatically archive files in .zip when upload</span>
+          </label>
+          <p class="settings-note">
+            Disabled by default. When enabled, uploaded attachments are wrapped in a ZIP file before sending. Upload limit: 25 MB.
+          </p>
+        </div>
       </section>
 
       <section v-else-if="activeSection === 'admin'" class="settings-page">

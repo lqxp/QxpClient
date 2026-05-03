@@ -23,7 +23,7 @@ const MAX_HISTORY_PER_ROOM = 500;
 const ROOM_ID_MIN_LENGTH = 8;
 const ROOM_ID_MAX_LENGTH = 64;
 const MESSAGE_LIMIT = 2000;
-const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
 const MAX_PROFILE_AVATAR_BYTES = 2 * 1024 * 1024;
 const MAX_PROFILE_BANNER_BYTES = 5 * 1024 * 1024;
 const MAX_PROFILE_DESCRIPTION_LENGTH = 512;
@@ -362,6 +362,7 @@ function loadPersisted() {
       selectedAudioOutputId: String(raw.selectedAudioOutputId || ""),
       microphoneThreshold: Math.max(0, Math.min(100, Number(raw.microphoneThreshold) || 0)),
       deleteMessagesOnLeave: Boolean(raw.deleteMessagesOnLeave),
+      autoArchiveUploads: Boolean(raw.autoArchiveUploads),
       streamerMode: Boolean(raw.streamerMode),
       messageSoundEnabled: Boolean(raw.messageSoundEnabled),
       androidNotificationsEnabled: raw.androidNotificationsEnabled !== false,
@@ -389,6 +390,7 @@ function loadPersisted() {
       selectedAudioOutputId: "",
       microphoneThreshold: 0,
       deleteMessagesOnLeave: false,
+      autoArchiveUploads: false,
       streamerMode: false,
       messageSoundEnabled: false,
       androidNotificationsEnabled: true,
@@ -454,6 +456,7 @@ function savePersisted(state) {
         selectedAudioOutputId: state.selectedAudioOutputId,
         microphoneThreshold: state.microphoneThreshold,
         deleteMessagesOnLeave: state.deleteMessagesOnLeave,
+        autoArchiveUploads: state.autoArchiveUploads,
         streamerMode: state.streamerMode,
         messageSoundEnabled: state.messageSoundEnabled,
         androidNotificationsEnabled: state.androidNotificationsEnabled,
@@ -651,6 +654,100 @@ function blobToBase64(blob) {
   });
 }
 
+let crc32Table: Uint32Array | null = null;
+
+function crc32(bytes: Uint8Array) {
+  if (!crc32Table) {
+    crc32Table = new Uint32Array(256);
+    for (let i = 0; i < 256; i += 1) {
+      let c = i;
+      for (let k = 0; k < 8; k += 1) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+      crc32Table[i] = c >>> 0;
+    }
+  }
+  let crc = 0xffffffff;
+  for (const byte of bytes) crc = crc32Table[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function zipDateTime(date = new Date()) {
+  const year = Math.max(1980, date.getFullYear());
+  const dosTime = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
+  const dosDate = ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
+  return { dosTime, dosDate };
+}
+
+function zipSafeFilename(name) {
+  const clean = String(name || "file")
+    .replace(/[\\/\u0000-\u001f\u007f]+/g, "_")
+    .replace(/^\.+$/, "file")
+    .slice(0, 120);
+  return clean || "file";
+}
+
+async function archiveFileAsZip(file: File) {
+  const filename = zipSafeFilename(file.name || "file");
+  const zipName = filename.toLowerCase().endsWith(".zip") ? filename : `${filename}.zip`;
+  const nameBytes = new TextEncoder().encode(filename);
+  const data = new Uint8Array(await file.arrayBuffer());
+  const size = data.byteLength;
+  const crc = crc32(data);
+  const { dosTime, dosDate } = zipDateTime(new Date(file.lastModified || Date.now()));
+  const localHeaderSize = 30 + nameBytes.length;
+  const centralHeaderSize = 46 + nameBytes.length;
+  const totalSize = localHeaderSize + size + centralHeaderSize + 22;
+  const zip = new Uint8Array(totalSize);
+  const view = new DataView(zip.buffer);
+  let offset = 0;
+  const writeBytes = (bytes: Uint8Array) => { zip.set(bytes, offset); offset += bytes.length; };
+
+  view.setUint32(offset, 0x04034b50, true); offset += 4;
+  view.setUint16(offset, 20, true); offset += 2;
+  view.setUint16(offset, 0x0800, true); offset += 2;
+  view.setUint16(offset, 0, true); offset += 2;
+  view.setUint16(offset, dosTime, true); offset += 2;
+  view.setUint16(offset, dosDate, true); offset += 2;
+  view.setUint32(offset, crc, true); offset += 4;
+  view.setUint32(offset, size, true); offset += 4;
+  view.setUint32(offset, size, true); offset += 4;
+  view.setUint16(offset, nameBytes.length, true); offset += 2;
+  view.setUint16(offset, 0, true); offset += 2;
+  writeBytes(nameBytes);
+  writeBytes(data);
+
+  const centralOffset = offset;
+  view.setUint32(offset, 0x02014b50, true); offset += 4;
+  view.setUint16(offset, 20, true); offset += 2;
+  view.setUint16(offset, 20, true); offset += 2;
+  view.setUint16(offset, 0x0800, true); offset += 2;
+  view.setUint16(offset, 0, true); offset += 2;
+  view.setUint16(offset, dosTime, true); offset += 2;
+  view.setUint16(offset, dosDate, true); offset += 2;
+  view.setUint32(offset, crc, true); offset += 4;
+  view.setUint32(offset, size, true); offset += 4;
+  view.setUint32(offset, size, true); offset += 4;
+  view.setUint16(offset, nameBytes.length, true); offset += 2;
+  view.setUint16(offset, 0, true); offset += 2;
+  view.setUint16(offset, 0, true); offset += 2;
+  view.setUint16(offset, 0, true); offset += 2;
+  view.setUint16(offset, 0, true); offset += 2;
+  view.setUint32(offset, 0, true); offset += 4;
+  view.setUint32(offset, 0, true); offset += 4;
+  writeBytes(nameBytes);
+
+  const centralSize = offset - centralOffset;
+  view.setUint32(offset, 0x06054b50, true); offset += 4;
+  view.setUint16(offset, 0, true); offset += 2;
+  view.setUint16(offset, 0, true); offset += 2;
+  view.setUint16(offset, 1, true); offset += 2;
+  view.setUint16(offset, 1, true); offset += 2;
+  view.setUint32(offset, centralSize, true); offset += 4;
+  view.setUint32(offset, centralOffset, true); offset += 4;
+  view.setUint16(offset, 0, true);
+
+  return new File([zip], zipName, { type: "application/zip", lastModified: Date.now() });
+}
+
 function base64ToBlob(b64, mimeType) {
   const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
   return new Blob([bytes], { type: mimeType || "application/octet-stream" });
@@ -789,6 +886,7 @@ export function useMessenger() {
     selectedAudioOutputId: persisted.selectedAudioOutputId,
     microphoneThreshold: persisted.microphoneThreshold,
     deleteMessagesOnLeave: persisted.deleteMessagesOnLeave,
+    autoArchiveUploads: persisted.autoArchiveUploads,
     streamerMode: persisted.streamerMode,
     messageSoundEnabled: persisted.messageSoundEnabled,
     androidNotificationsEnabled: persisted.androidNotificationsEnabled,
@@ -1271,6 +1369,11 @@ export function useMessenger() {
 
   function setServerClearsLocalMessages(value) {
     state.serverClearsLocalMessages = Boolean(value);
+    persist();
+  }
+
+  function setAutoArchiveUploads(value) {
+    state.autoArchiveUploads = Boolean(value);
     persist();
   }
 
@@ -2073,18 +2176,24 @@ export function useMessenger() {
       return;
     }
     if (file.size > MAX_ATTACHMENT_BYTES) {
-      state.lastError = `File too large: ${file.name} (${formatSize(file.size)} > 10 MB)`;
+      state.lastError = `File too large: ${file.name} (${formatSize(file.size)} > ${formatSize(MAX_ATTACHMENT_BYTES)})`;
       return;
     }
 
     try {
-      const dataB64 = await blobToBase64(file);
+      const shouldArchive = state.autoArchiveUploads && !String(caption || "").startsWith("[voice:");
+      const uploadFile = shouldArchive ? await archiveFileAsZip(file) : file;
+      if (uploadFile.size > MAX_ATTACHMENT_BYTES) {
+        state.lastError = `File too large after zip archive: ${uploadFile.name} (${formatSize(uploadFile.size)} > ${formatSize(MAX_ATTACHMENT_BYTES)})`;
+        return;
+      }
+      const dataB64 = await blobToBase64(uploadFile);
       const encrypted = await buildEncryptedOutgoingMessage(roomId, {
         text: caption ? String(caption).trim().slice(0, MESSAGE_LIMIT) : "",
         attachment: {
-          filename: String(file.name || "file").slice(0, 128),
-          mimeType: file.type || "application/octet-stream",
-          size: file.size,
+          filename: String(uploadFile.name || "file").slice(0, 128),
+          mimeType: uploadFile.type || "application/octet-stream",
+          size: uploadFile.size,
           dataB64
         }
       });
@@ -3184,6 +3293,7 @@ export function useMessenger() {
       unreadByRoom: state.unreadByRoom,
       roomKeysByRoom: sanitizeRoomKeys(state.roomKeysByRoom),
       deleteMessagesOnLeave: state.deleteMessagesOnLeave,
+      autoArchiveUploads: state.autoArchiveUploads,
       streamerMode: state.streamerMode,
       messageSoundEnabled: state.messageSoundEnabled,
       androidNotificationsEnabled: state.androidNotificationsEnabled,
@@ -3271,6 +3381,7 @@ export function useMessenger() {
         if (typeof data.streamerMode === "boolean") state.streamerMode = data.streamerMode;
         if (typeof data.messageSoundEnabled === "boolean") state.messageSoundEnabled = data.messageSoundEnabled;
         if (typeof data.androidNotificationsEnabled === "boolean") state.androidNotificationsEnabled = data.androidNotificationsEnabled;
+        if (typeof data.autoArchiveUploads === "boolean") state.autoArchiveUploads = data.autoArchiveUploads;
         if (typeof data.autoReconnectEnabled === "boolean") state.autoReconnectEnabled = data.autoReconnectEnabled;
         if (typeof data.serverClearsLocalMessages === "boolean") state.serverClearsLocalMessages = data.serverClearsLocalMessages;
         setReconnectDelays(data.reconnectMinDelayMs, data.reconnectMaxDelayMs);
@@ -3360,6 +3471,7 @@ export function useMessenger() {
     setAndroidNotificationsEnabled,
     setAutoReconnectEnabled,
     setServerClearsLocalMessages,
+    setAutoArchiveUploads,
     setReconnectDelays,
     requestNotificationPermission,
     notificationPermission,
