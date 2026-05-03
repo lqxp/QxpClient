@@ -1,4 +1,5 @@
 import { computed, nextTick, reactive } from "vue";
+import { zipSync } from "fflate";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 import { EMPTY_CALL_MEDIA, normalizeCallMedia } from "@/calls/callTypes";
 import type { CallMediaState, CallSignalPayload, RemoteCallMedia } from "@/calls/callTypes";
@@ -654,29 +655,6 @@ function blobToBase64(blob) {
   });
 }
 
-let crc32Table: Uint32Array | null = null;
-
-function crc32(bytes: Uint8Array) {
-  if (!crc32Table) {
-    crc32Table = new Uint32Array(256);
-    for (let i = 0; i < 256; i += 1) {
-      let c = i;
-      for (let k = 0; k < 8; k += 1) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
-      crc32Table[i] = c >>> 0;
-    }
-  }
-  let crc = 0xffffffff;
-  for (const byte of bytes) crc = crc32Table[(crc ^ byte) & 0xff] ^ (crc >>> 8);
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function zipDateTime(date = new Date()) {
-  const year = Math.max(1980, date.getFullYear());
-  const dosTime = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
-  const dosDate = ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
-  return { dosTime, dosDate };
-}
-
 function zipSafeFilename(name) {
   const clean = String(name || "file")
     .replace(/[\\/\u0000-\u001f\u007f]+/g, "_")
@@ -688,64 +666,11 @@ function zipSafeFilename(name) {
 async function archiveFileAsZip(file: File) {
   const filename = zipSafeFilename(file.name || "file");
   const zipName = filename.toLowerCase().endsWith(".zip") ? filename : `${filename}.zip`;
-  const nameBytes = new TextEncoder().encode(filename);
   const data = new Uint8Array(await file.arrayBuffer());
-  const size = data.byteLength;
-  const crc = crc32(data);
-  const { dosTime, dosDate } = zipDateTime(new Date(file.lastModified || Date.now()));
-  const localHeaderSize = 30 + nameBytes.length;
-  const centralHeaderSize = 46 + nameBytes.length;
-  const totalSize = localHeaderSize + size + centralHeaderSize + 22;
-  const zip = new Uint8Array(totalSize);
-  const view = new DataView(zip.buffer);
-  let offset = 0;
-  const writeBytes = (bytes: Uint8Array) => { zip.set(bytes, offset); offset += bytes.length; };
-
-  view.setUint32(offset, 0x04034b50, true); offset += 4;
-  view.setUint16(offset, 20, true); offset += 2;
-  view.setUint16(offset, 0x0800, true); offset += 2;
-  view.setUint16(offset, 0, true); offset += 2;
-  view.setUint16(offset, dosTime, true); offset += 2;
-  view.setUint16(offset, dosDate, true); offset += 2;
-  view.setUint32(offset, crc, true); offset += 4;
-  view.setUint32(offset, size, true); offset += 4;
-  view.setUint32(offset, size, true); offset += 4;
-  view.setUint16(offset, nameBytes.length, true); offset += 2;
-  view.setUint16(offset, 0, true); offset += 2;
-  writeBytes(nameBytes);
-  writeBytes(data);
-
-  const centralOffset = offset;
-  view.setUint32(offset, 0x02014b50, true); offset += 4;
-  view.setUint16(offset, 20, true); offset += 2;
-  view.setUint16(offset, 20, true); offset += 2;
-  view.setUint16(offset, 0x0800, true); offset += 2;
-  view.setUint16(offset, 0, true); offset += 2;
-  view.setUint16(offset, dosTime, true); offset += 2;
-  view.setUint16(offset, dosDate, true); offset += 2;
-  view.setUint32(offset, crc, true); offset += 4;
-  view.setUint32(offset, size, true); offset += 4;
-  view.setUint32(offset, size, true); offset += 4;
-  view.setUint16(offset, nameBytes.length, true); offset += 2;
-  view.setUint16(offset, 0, true); offset += 2;
-  view.setUint16(offset, 0, true); offset += 2;
-  view.setUint16(offset, 0, true); offset += 2;
-  view.setUint16(offset, 0, true); offset += 2;
-  view.setUint32(offset, 0, true); offset += 4;
-  view.setUint32(offset, 0, true); offset += 4;
-  writeBytes(nameBytes);
-
-  const centralSize = offset - centralOffset;
-  view.setUint32(offset, 0x06054b50, true); offset += 4;
-  view.setUint16(offset, 0, true); offset += 2;
-  view.setUint16(offset, 0, true); offset += 2;
-  view.setUint16(offset, 1, true); offset += 2;
-  view.setUint16(offset, 1, true); offset += 2;
-  view.setUint32(offset, centralSize, true); offset += 4;
-  view.setUint32(offset, centralOffset, true); offset += 4;
-  view.setUint16(offset, 0, true);
-
-  return new File([zip], zipName, { type: "application/zip", lastModified: Date.now() });
+  const zipped = zipSync({ [filename]: data }, { level: 6 });
+  const zipBytes = new Uint8Array(zipped.byteLength);
+  zipBytes.set(zipped);
+  return new File([zipBytes], zipName, { type: "application/zip", lastModified: Date.now() });
 }
 
 function base64ToBlob(b64, mimeType) {
