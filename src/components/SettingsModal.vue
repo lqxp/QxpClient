@@ -187,24 +187,23 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="settings"
-    :class="{ 'settings--section-open': mobileSectionOpen }"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="settings-title"
-  >
+  <div v-if="isOpen" class="settings" :class="{ 'settings--section-open': mobileSectionOpen }" role="dialog"
+    aria-modal="true" aria-labelledby="settings-title">
     <aside class="settings__side">
       <header class="settings__side-head">
         <h2 id="settings-title">Settings</h2>
         <button class="icon-btn settings__close" type="button" aria-label="Close settings" @click="close">
-          <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
         </button>
       </header>
 
       <label class="settings__search">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <svg viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
         <input v-model="settingsSearch" type="search" placeholder="Search" autocomplete="off" />
       </label>
 
@@ -222,25 +221,57 @@ onBeforeUnmount(() => {
       <div class="settings__mobile-label">Account Settings</div>
 
       <nav class="settings__nav" aria-label="Settings sections">
-        <button
-          v-for="section in filteredSections"
-          :key="section.id"
-          type="button"
-          class="settings__nav-item"
-          :class="{ 'is-active': activeSection === section.id }"
-          @click="selectSection(section.id)"
-        >
-          <svg v-if="section.id === 'profile'" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-          <svg v-else-if="section.id === 'security'" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v2.5"/></svg>
-          <svg v-else-if="section.id === 'privacy'" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 2.9 8.5 7 10 4.1-1.5 7-5.5 7-10V6l-7-3Z"/><path d="M9.5 12.5 11 14l3.5-4"/></svg>
-          <svg v-else-if="section.id === 'notifications'" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg>
-          <svg v-else-if="section.id === 'calls'" viewBox="0 0 24 24"><path d="M7.6 10.8a14.5 14.5 0 0 0 5.6 5.6l1.9-1.9a1.5 1.5 0 0 1 1.5-.37c1.03.34 2.1.52 3.2.52.83 0 1.5.67 1.5 1.5v3.05c0 .83-.67 1.5-1.5 1.5C10.45 20.7 3.3 13.55 3.3 4.2c0-.83.67-1.5 1.5-1.5h3.05c.83 0 1.5.67 1.5 1.5 0 1.1.18 2.17.52 3.2.17.53.03 1.1-.37 1.5l-1.9 1.9Z"/></svg>
-          <svg v-else-if="section.id === 'advanced'" viewBox="0 0 24 24"><path d="M4 7h5"/><path d="M15 7h5"/><circle cx="12" cy="7" r="3"/><path d="M4 17h8"/><path d="M18 17h2"/><circle cx="15" cy="17" r="3"/><path d="M12 10v4"/></svg>
-          <svg v-else-if="section.id === 'admin'" viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.05.05a2 2 0 0 1-2.83 2.83l-.05-.05a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.1 1.65V21a2 2 0 0 1-4 0v-.1a1.8 1.8 0 0 0-1.1-1.65 1.8 1.8 0 0 0-1.98.36l-.05.05a2 2 0 0 1-2.83-2.83l.05-.05A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-1.65-1.1H3a2 2 0 0 1 0-4h.1A1.8 1.8 0 0 0 4.75 8.8a1.8 1.8 0 0 0-.36-1.98l-.05-.05A2 2 0 0 1 7.17 3.94l.05.05a1.8 1.8 0 0 0 1.98.36A1.8 1.8 0 0 0 10.3 2.7V2.6a2 2 0 0 1 4 0v.1a1.8 1.8 0 0 0 1.1 1.65 1.8 1.8 0 0 0 1.98-.36l.05-.05a2 2 0 0 1 2.83 2.83l-.05.05a1.8 1.8 0 0 0-.36 1.98 1.8 1.8 0 0 0 1.65 1.1h.1a2 2 0 0 1 0 4h-.1A1.8 1.8 0 0 0 19.4 15Z"/></svg>
-          <svg v-else-if="section.id === 'backups'" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m6 9 6-6 6 6"/><path d="M5 21h14"/></svg>
-          <svg v-else viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        <button v-for="section in filteredSections" :key="section.id" type="button" class="settings__nav-item"
+          :class="{ 'is-active': activeSection === section.id }" @click="selectSection(section.id)">
+          <svg v-if="section.id === 'profile'" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21a8 8 0 0 1 16 0" />
+          </svg>
+          <svg v-else-if="section.id === 'security'" viewBox="0 0 24 24">
+            <rect x="5" y="10" width="14" height="10" rx="2" />
+            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            <path d="M12 14v2.5" />
+          </svg>
+          <svg v-else-if="section.id === 'privacy'" viewBox="0 0 24 24">
+            <path d="M12 3 5 6v5c0 4.5 2.9 8.5 7 10 4.1-1.5 7-5.5 7-10V6l-7-3Z" />
+            <path d="M9.5 12.5 11 14l3.5-4" />
+          </svg>
+          <svg v-else-if="section.id === 'notifications'" viewBox="0 0 24 24">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" />
+            <path d="M10 21h4" />
+          </svg>
+          <svg v-else-if="section.id === 'calls'" viewBox="0 0 24 24">
+            <path
+              d="M7.6 10.8a14.5 14.5 0 0 0 5.6 5.6l1.9-1.9a1.5 1.5 0 0 1 1.5-.37c1.03.34 2.1.52 3.2.52.83 0 1.5.67 1.5 1.5v3.05c0 .83-.67 1.5-1.5 1.5C10.45 20.7 3.3 13.55 3.3 4.2c0-.83.67-1.5 1.5-1.5h3.05c.83 0 1.5.67 1.5 1.5 0 1.1.18 2.17.52 3.2.17.53.03 1.1-.37 1.5l-1.9 1.9Z" />
+          </svg>
+          <svg v-else-if="section.id === 'advanced'" viewBox="0 0 24 24">
+            <path d="M4 7h5" />
+            <path d="M15 7h5" />
+            <circle cx="12" cy="7" r="3" />
+            <path d="M4 17h8" />
+            <path d="M18 17h2" />
+            <circle cx="15" cy="17" r="3" />
+            <path d="M12 10v4" />
+          </svg>
+          <svg v-else-if="section.id === 'admin'" viewBox="0 0 24 24">
+            <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" />
+            <path
+              d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.05.05a2 2 0 0 1-2.83 2.83l-.05-.05a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.1 1.65V21a2 2 0 0 1-4 0v-.1a1.8 1.8 0 0 0-1.1-1.65 1.8 1.8 0 0 0-1.98.36l-.05.05a2 2 0 0 1-2.83-2.83l.05-.05A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-1.65-1.1H3a2 2 0 0 1 0-4h.1A1.8 1.8 0 0 0 4.75 8.8a1.8 1.8 0 0 0-.36-1.98l-.05-.05A2 2 0 0 1 7.17 3.94l.05.05a1.8 1.8 0 0 0 1.98.36A1.8 1.8 0 0 0 10.3 2.7V2.6a2 2 0 0 1 4 0v.1a1.8 1.8 0 0 0 1.1 1.65 1.8 1.8 0 0 0 1.98-.36l.05-.05a2 2 0 0 1 2.83 2.83l-.05.05a1.8 1.8 0 0 0-.36 1.98 1.8 1.8 0 0 0 1.65 1.1h.1a2 2 0 0 1 0 4h-.1A1.8 1.8 0 0 0 19.4 15Z" />
+          </svg>
+          <svg v-else-if="section.id === 'backups'" viewBox="0 0 24 24">
+            <path d="M12 3v12" />
+            <path d="m6 9 6-6 6 6" />
+            <path d="M5 21h14" />
+          </svg>
+          <svg v-else viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+          </svg>
           <span>{{ section.label }}</span>
-          <svg class="settings__chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          <svg class="settings__chevron" viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg>
         </button>
       </nav>
     </aside>
@@ -248,7 +279,9 @@ onBeforeUnmount(() => {
     <main class="settings__main">
       <header class="settings__main-head">
         <button class="icon-btn settings__back" type="button" aria-label="Back to settings" @click="backToSettingsList">
-          <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
         </button>
         <h3>{{ activeSectionLabel }}</h3>
       </header>
@@ -263,31 +296,27 @@ onBeforeUnmount(() => {
           </span>
           <span v-else class="avatar settings-profile__avatar" :class="`avatar--${meAccent}`">{{ meInitials }}</span>
           <div class="settings-profile__actions">
-            <button type="button" class="btn settings-profile__photo" @click="avatarInputRef?.click()">Profile image</button>
+            <button type="button" class="btn settings-profile__photo" @click="avatarInputRef?.click()">Profile
+              image</button>
             <button type="button" class="btn settings-profile__photo" @click="bannerInputRef?.click()">Banner</button>
-            <button v-if="profile.avatar" type="button" class="btn settings-profile__photo" @click="messenger.clearProfileImage('avatar')">Clear image</button>
-            <button v-if="profile.banner" type="button" class="btn settings-profile__photo" @click="messenger.clearProfileImage('banner')">Clear banner</button>
+            <button v-if="profile.avatar" type="button" class="btn settings-profile__photo"
+              @click="messenger.clearProfileImage('avatar')">Clear image</button>
+            <button v-if="profile.banner" type="button" class="btn settings-profile__photo"
+              @click="messenger.clearProfileImage('banner')">Clear banner</button>
           </div>
-          <input
-            ref="avatarInputRef"
-            type="file"
-            accept="image/png,image/apng,image/gif,image/jpeg,.apng"
-            style="display: none"
-            @change="onAvatarPicked"
-          />
-          <input
-            ref="bannerInputRef"
-            type="file"
-            accept="image/png,image/apng,image/gif,image/jpeg,.apng"
-            style="display: none"
-            @change="onBannerPicked"
-          />
+          <input ref="avatarInputRef" type="file" accept="image/png,image/apng,image/gif,image/jpeg,.apng"
+            style="display: none" @change="onAvatarPicked" />
+          <input ref="bannerInputRef" type="file" accept="image/png,image/apng,image/gif,image/jpeg,.apng"
+            style="display: none" @change="onBannerPicked" />
         </div>
 
         <div class="settings-group">
           <label class="settings-field">
             <span class="settings-field__icon">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
             </span>
             <span class="settings-field__body">
               <span class="settings-field__label">Display name</span>
@@ -295,30 +324,26 @@ onBeforeUnmount(() => {
             </span>
           </label>
           <div class="settings-inline">
-            <input
-              ref="firstInputRef"
-              v-model="draftName"
-              type="text"
-              maxlength="32"
-              autocomplete="off"
-              spellcheck="false"
-              placeholder="e.g. echo"
-              class="settings-input"
-              @keydown.enter.prevent="saveName"
-            />
-            <button
-              type="button"
-              class="btn btn--primary settings-btn"
-              :disabled="!nameValid || !nameChanged"
-              @click="saveName"
-            >Save</button>
+            <input ref="firstInputRef" v-model="draftName" type="text" maxlength="32" autocomplete="off"
+              spellcheck="false" placeholder="e.g. echo" class="settings-input" @keydown.enter.prevent="saveName" />
+            <button type="button" class="btn btn--primary settings-btn" :disabled="!nameValid || !nameChanged"
+              @click="saveName">Save</button>
           </div>
         </div>
 
         <div class="settings-group">
           <label class="settings-field">
             <span class="settings-field__icon">
-              <svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/></svg>
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2v4" />
+                <path d="M12 18v4" />
+                <path d="m4.93 4.93 2.83 2.83" />
+                <path d="m16.24 16.24 2.83 2.83" />
+                <path d="M2 12h4" />
+                <path d="M18 12h4" />
+                <path d="m4.93 19.07 2.83-2.83" />
+                <path d="m16.24 7.76 2.83-2.83" />
+              </svg>
             </span>
             <span class="settings-field__body">
               <span class="settings-field__label">Status</span>
@@ -338,50 +363,45 @@ onBeforeUnmount(() => {
         <div class="settings-group">
           <label class="settings-field">
             <span class="settings-field__icon">
-              <svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h13"/><path d="M4 18h9"/></svg>
+              <svg viewBox="0 0 24 24">
+                <path d="M4 6h16" />
+                <path d="M4 12h13" />
+                <path d="M4 18h9" />
+              </svg>
             </span>
             <span class="settings-field__body">
               <span class="settings-field__label">Description</span>
-              <span class="settings-field__hint">{{ draftDescription.length }}/{{ messenger.MAX_PROFILE_DESCRIPTION_LENGTH }}</span>
+              <span class="settings-field__hint">{{ draftDescription.length }}/{{
+                messenger.MAX_PROFILE_DESCRIPTION_LENGTH }}</span>
             </span>
           </label>
-          <textarea
-            v-model="draftDescription"
-            class="settings-input settings-textarea"
-            :maxlength="messenger.MAX_PROFILE_DESCRIPTION_LENGTH"
-            spellcheck="true"
-            rows="4"
-            placeholder="Write a short profile description"
-          ></textarea>
+          <textarea v-model="draftDescription" class="settings-input settings-textarea"
+            :maxlength="messenger.MAX_PROFILE_DESCRIPTION_LENGTH" spellcheck="true" rows="4"
+            placeholder="Write a short profile description"></textarea>
         </div>
 
         <div class="settings-group">
           <label class="settings-field">
             <span class="settings-field__icon">
-              <svg viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M8 7v10"/><path d="M16 7v10"/><path d="M4 17h16"/></svg>
+              <svg viewBox="0 0 24 24">
+                <path d="M5 7h14" />
+                <path d="M8 7v10" />
+                <path d="M16 7v10" />
+                <path d="M4 17h16" />
+              </svg>
             </span>
             <span class="settings-field__body">
               <span class="settings-field__label">Pronouns</span>
-              <span class="settings-field__hint">{{ draftPronouns.length }}/{{ messenger.MAX_PROFILE_PRONOUNS_LENGTH }}</span>
+              <span class="settings-field__hint">{{ draftPronouns.length }}/{{ messenger.MAX_PROFILE_PRONOUNS_LENGTH
+                }}</span>
             </span>
           </label>
           <div class="settings-inline">
-            <input
-              v-model="draftPronouns"
-              type="text"
-              :maxlength="messenger.MAX_PROFILE_PRONOUNS_LENGTH"
-              autocomplete="off"
-              spellcheck="false"
-              placeholder="e.g. they/them"
-              class="settings-input"
-              @keydown.enter.prevent="saveProfileText"
-            />
-            <button
-              type="button"
-              class="btn btn--primary settings-btn"
-              :disabled="!profileTextChanged"
-              @click="saveProfileText"
-            >Save</button>
+            <input v-model="draftPronouns" type="text" :maxlength="messenger.MAX_PROFILE_PRONOUNS_LENGTH"
+              autocomplete="off" spellcheck="false" placeholder="e.g. they/them" class="settings-input"
+              @keydown.enter.prevent="saveProfileText" />
+            <button type="button" class="btn btn--primary settings-btn" :disabled="!profileTextChanged"
+              @click="saveProfileText">Save</button>
           </div>
         </div>
 
@@ -394,8 +414,14 @@ onBeforeUnmount(() => {
         <div class="settings-group">
           <h4>Account</h4>
           <dl class="settings-kv">
-            <div><dt>User ID</dt><dd>{{ messenger.state.userId || "—" }}</dd></div>
-            <div><dt>Username</dt><dd>{{ messenger.state.username || "—" }}</dd></div>
+            <div>
+              <dt>User ID</dt>
+              <dd>{{ messenger.state.userId || "—" }}</dd>
+            </div>
+            <div>
+              <dt>Username</dt>
+              <dd>{{ messenger.state.username || "—" }}</dd>
+            </div>
           </dl>
           <div class="settings-actions">
             <button type="button" class="btn settings-btn" @click="messenger.downloadRecoveryWords">
@@ -415,19 +441,13 @@ onBeforeUnmount(() => {
         <div class="settings-group">
           <h4>Privacy</h4>
           <label class="settings-check">
-            <input
-              type="checkbox"
-              :checked="messenger.state.deleteMessagesOnLeave"
-              @change="messenger.setDeleteMessagesOnLeave(targetChecked($event))"
-            />
+            <input type="checkbox" :checked="messenger.state.deleteMessagesOnLeave"
+              @change="messenger.setDeleteMessagesOnLeave(targetChecked($event))" />
             <span>Delete local room messages when leaving</span>
           </label>
           <label class="settings-check">
-            <input
-              type="checkbox"
-              :checked="messenger.state.streamerMode"
-              @change="messenger.setStreamerMode(targetChecked($event))"
-            />
+            <input type="checkbox" :checked="messenger.state.streamerMode"
+              @change="messenger.setStreamerMode(targetChecked($event))" />
             <span>Streamer mode</span>
           </label>
           <p class="settings-note">
@@ -440,19 +460,13 @@ onBeforeUnmount(() => {
         <div class="settings-group">
           <h4>Notifications</h4>
           <label class="settings-check">
-            <input
-              type="checkbox"
-              :checked="messenger.state.messageSoundEnabled"
-              @change="messenger.setMessageSoundEnabled(targetChecked($event))"
-            />
+            <input type="checkbox" :checked="messenger.state.messageSoundEnabled"
+              @change="messenger.setMessageSoundEnabled(targetChecked($event))" />
             <span>Play a sound for new messages</span>
           </label>
           <label class="settings-check">
-            <input
-              type="checkbox"
-              :checked="messenger.state.androidNotificationsEnabled"
-              @change="messenger.setAndroidNotificationsEnabled(targetChecked($event))"
-            />
+            <input type="checkbox" :checked="messenger.state.androidNotificationsEnabled"
+              @change="messenger.setAndroidNotificationsEnabled(targetChecked($event))" />
             <span>Show notifications for background messages</span>
           </label>
           <p class="settings-hint">Permission: {{ messenger.notificationPermission() }}</p>
@@ -477,9 +491,11 @@ onBeforeUnmount(() => {
           <h4>Devices</h4>
           <label class="settings-select">
             <span>Microphone</span>
-            <select :value="messenger.state.selectedAudioInputId" @change="messenger.setAudioInput(targetValue($event))">
+            <select :value="messenger.state.selectedAudioInputId"
+              @change="messenger.setAudioInput(targetValue($event))">
               <option value="">System default</option>
-              <option v-for="(device, index) in microphones" :key="device.deviceId || `mic-${index}`" :value="device.deviceId">
+              <option v-for="(device, index) in microphones" :key="device.deviceId || `mic-${index}`"
+                :value="device.deviceId">
                 {{ deviceLabel(device, `Microphone ${index + 1}`) }}
               </option>
             </select>
@@ -487,23 +503,22 @@ onBeforeUnmount(() => {
 
           <label class="settings-select">
             <span>Speakers</span>
-            <select :value="messenger.state.selectedAudioOutputId" @change="messenger.setAudioOutput(targetValue($event))">
+            <select :value="messenger.state.selectedAudioOutputId"
+              @change="messenger.setAudioOutput(targetValue($event))">
               <option value="">System default</option>
-              <option v-for="(device, index) in headphones" :key="device.deviceId || `speaker-${index}`" :value="device.deviceId">
+              <option v-for="(device, index) in headphones" :key="device.deviceId || `speaker-${index}`"
+                :value="device.deviceId">
                 {{ deviceLabel(device, `Output ${index + 1}`) }}
               </option>
             </select>
           </label>
 
           <p class="settings-note" v-if="messenger.state.audioDevicesPermission !== 'granted'">
-            Allow microphone access to reveal the real device names and available inputs/outputs. This does not start a call.
+            Allow microphone access to reveal the real device names and available inputs/outputs. This does not start a
+            call.
           </p>
-          <button
-            type="button"
-            class="btn settings-btn"
-            :disabled="messenger.state.audioDevicesLoading"
-            @click="messenger.unlockAudioDevices"
-          >
+          <button type="button" class="btn settings-btn" :disabled="messenger.state.audioDevicesLoading"
+            @click="messenger.unlockAudioDevices">
             {{ messenger.state.audioDevicesLoading ? "Checking..." : "Allow and refresh devices" }}
           </button>
         </div>
@@ -514,33 +529,18 @@ onBeforeUnmount(() => {
             <span>Microphone noise threshold</span>
             <small>Raise it to avoid sending background noise.</small>
             <div class="settings-meter">
-              <span
-                class="settings-meter__bar"
-                :style="{ width: `${messenger.state.micTestLevel}%` }"
-              ></span>
-              <span
-                class="settings-meter__threshold"
-                :style="{ left: `${messenger.state.microphoneThreshold}%` }"
-              ></span>
+              <span class="settings-meter__bar" :style="{ width: `${messenger.state.micTestLevel}%` }"></span>
+              <span class="settings-meter__threshold"
+                :style="{ left: `${messenger.state.microphoneThreshold}%` }"></span>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              :value="messenger.state.microphoneThreshold"
-              @input="messenger.setMicrophoneThreshold(targetValue($event))"
-            />
+            <input type="range" min="0" max="100" step="1" :value="messenger.state.microphoneThreshold"
+              @input="messenger.setMicrophoneThreshold(targetValue($event))" />
             <strong>{{ messenger.state.microphoneThreshold }}</strong>
           </label>
-          <button
-            type="button"
-            class="btn settings-btn"
-            :class="{ 'icon-btn--active': messenger.state.micTestActive }"
-            :disabled="messenger.state.micTestLoading"
-            @click="messenger.startMicTest"
-          >
-            {{ messenger.state.micTestLoading ? "Starting..." : messenger.state.micTestActive ? "Stop listening" : "Listen and test mic" }}
+          <button type="button" class="btn settings-btn" :class="{ 'icon-btn--active': messenger.state.micTestActive }"
+            :disabled="messenger.state.micTestLoading" @click="messenger.startMicTest">
+            {{ messenger.state.micTestLoading ? "Starting..." : messenger.state.micTestActive ? "Stop listening" :
+            "Listen and test mic" }}
           </button>
         </div>
       </section>
@@ -549,23 +549,18 @@ onBeforeUnmount(() => {
         <div class="settings-group">
           <h4>Connection</h4>
           <label class="settings-check">
-            <input
-              type="checkbox"
-              :checked="messenger.state.autoReconnectEnabled"
-              @change="messenger.setAutoReconnectEnabled(targetChecked($event))"
-            />
+            <input type="checkbox" :checked="messenger.state.autoReconnectEnabled"
+              @change="messenger.setAutoReconnectEnabled(targetChecked($event))" />
             <span>Reconnect automatically to chat</span>
           </label>
           <label class="settings-check">
-            <input
-              type="checkbox"
-              :checked="messenger.state.serverClearsLocalMessages"
-              @change="messenger.setServerClearsLocalMessages(targetChecked($event))"
-            />
+            <input type="checkbox" :checked="messenger.state.serverClearsLocalMessages"
+              @change="messenger.setServerClearsLocalMessages(targetChecked($event))" />
             <span>Let the server clear local message cache</span>
           </label>
           <p class="settings-note">
-            Enabled by default. When disabled, reconnecting keeps Android/browser cached room messages even if the server history is empty after a protocol refresh.
+            Enabled by default. When disabled, reconnecting keeps Android/browser cached room messages even if the
+            server history is empty after a protocol refresh.
           </p>
         </div>
       </section>
@@ -573,32 +568,36 @@ onBeforeUnmount(() => {
       <section v-else-if="activeSection === 'admin'" class="settings-page">
         <div class="settings-group">
           <h4>Admin</h4>
-          <button type="button" class="btn settings-btn" :disabled="messenger.state.adminLoading" @click="messenger.loadAdminOverview">
+          <button type="button" class="btn settings-btn" :disabled="messenger.state.adminLoading"
+            @click="messenger.loadAdminOverview">
             {{ messenger.state.adminLoading ? "Loading..." : "Refresh" }}
           </button>
           <dl class="settings-kv" v-if="messenger.state.adminOverview">
-            <div><dt>Online</dt><dd>{{ messenger.state.adminOverview.onlineCount }}</dd></div>
-            <div><dt>Users</dt><dd>{{ messenger.state.adminOverview.users?.length || 0 }}</dd></div>
-            <div><dt>Rooms</dt><dd>{{ messenger.state.adminOverview.rooms?.length || 0 }}</dd></div>
+            <div>
+              <dt>Online</dt>
+              <dd>{{ messenger.state.adminOverview.onlineCount }}</dd>
+            </div>
+            <div>
+              <dt>Users</dt>
+              <dd>{{ messenger.state.adminOverview.users?.length || 0 }}</dd>
+            </div>
+            <div>
+              <dt>Rooms</dt>
+              <dd>{{ messenger.state.adminOverview.rooms?.length || 0 }}</dd>
+            </div>
           </dl>
         </div>
 
         <div class="settings-group" v-if="messenger.state.adminOverview?.features">
           <h4>Features</h4>
           <label class="settings-check">
-            <input
-              type="checkbox"
-              :checked="messenger.state.adminOverview.features.registerEnabled"
-              @change="messenger.setAdminFeature('registerEnabled', targetChecked($event))"
-            />
+            <input type="checkbox" :checked="messenger.state.adminOverview.features.registerEnabled"
+              @change="messenger.setAdminFeature('registerEnabled', targetChecked($event))" />
             <span>Registrations</span>
           </label>
           <label class="settings-check">
-            <input
-              type="checkbox"
-              :checked="messenger.state.adminOverview.features.callsEnabled"
-              @change="messenger.setAdminFeature('callsEnabled', targetChecked($event))"
-            />
+            <input type="checkbox" :checked="messenger.state.adminOverview.features.callsEnabled"
+              @change="messenger.setAdminFeature('callsEnabled', targetChecked($event))" />
             <span>Calls</span>
           </label>
         </div>
@@ -616,12 +615,8 @@ onBeforeUnmount(() => {
                   <template v-else> · {{ messenger.presenceStatusLabel(user.status) }}</template>
                 </small>
               </div>
-              <button
-                type="button"
-                class="btn settings-btn"
-                :class="{ 'settings-btn--danger': !user.disabled }"
-                @click="messenger.setAdminUserDisabled(user.id, !user.disabled)"
-              >
+              <button type="button" class="btn settings-btn" :class="{ 'settings-btn--danger': !user.disabled }"
+                @click="messenger.setAdminUserDisabled(user.id, !user.disabled)">
                 {{ user.disabled ? "Enable" : "Disable" }}
               </button>
             </div>
@@ -635,7 +630,8 @@ onBeforeUnmount(() => {
               <div>
                 <strong>{{ messenger.displayRoomName(room.roomId) }}</strong>
                 <small>
-                  {{ room.messageCount }} messages · {{ room.onlineCount || 0 }} online · {{ room.voiceCount || 0 }} voice
+                  {{ room.messageCount }} messages · {{ room.onlineCount || 0 }} online · {{ room.voiceCount || 0 }}
+                  voice
                   <template v-if="room.active"> · active</template>
                 </small>
               </div>
@@ -654,36 +650,58 @@ onBeforeUnmount(() => {
           </p>
           <div class="settings-actions">
             <button type="button" class="btn settings-btn" @click="onExport">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m6 9 6-6 6 6"/><path d="M5 21h14"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v12" />
+                <path d="m6 9 6-6 6 6" />
+                <path d="M5 21h14" />
+              </svg>
               Export JSON
             </button>
             <button type="button" class="btn settings-btn" @click="onImport">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="m6 15 6 6 6-6"/><path d="M5 3h14"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 21V9" />
+                <path d="m6 15 6 6 6-6" />
+                <path d="M5 3h14" />
+              </svg>
               Import JSON
             </button>
             <button type="button" class="btn settings-btn settings-btn--danger" @click="onClear">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="m5 6 1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18" />
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <path d="m5 6 1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14" />
+              </svg>
               Clear all
             </button>
           </div>
         </div>
-        <input
-          ref="fileInputRef"
-          type="file"
-          accept="application/json,.json"
-          style="display: none"
-          @change="onFilePicked"
-        />
+        <input ref="fileInputRef" type="file" accept="application/json,.json" style="display: none"
+          @change="onFilePicked" />
       </section>
 
       <section v-else class="settings-page">
         <div class="settings-group">
           <h4>About</h4>
           <dl class="settings-kv">
-            <div><dt>Session</dt><dd>{{ messenger.state.uuid || "—" }}</dd></div>
-            <div><dt>Status</dt><dd>{{ messenger.connectionLabel.value }}</dd></div>
-            <div><dt>Joined rooms</dt><dd>{{ messenger.state.joinedRooms.length }}</dd></div>
-            <div><dt>Saved rooms</dt><dd>{{ messenger.state.rooms.length }}</dd></div>
+            <div>
+              <dt>Session</dt>
+              <dd>{{ messenger.state.uuid || "—" }}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{{ messenger.connectionLabel.value }}</dd>
+            </div>
+            <div>
+              <dt>Joined rooms</dt>
+              <dd>{{ messenger.state.joinedRooms.length }}</dd>
+            </div>
+            <div>
+              <dt>Saved rooms</dt>
+              <dd>{{ messenger.state.rooms.length }}</dd>
+            </div>
           </dl>
         </div>
       </section>
