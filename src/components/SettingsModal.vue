@@ -550,6 +550,17 @@ onBeforeUnmount(() => {
             />
             <span>Reconnect automatically to chat</span>
           </label>
+          <label class="settings-check">
+            <input
+              type="checkbox"
+              :checked="messenger.state.serverClearsLocalMessages"
+              @change="messenger.setServerClearsLocalMessages(targetChecked($event))"
+            />
+            <span>Let the server clear local message cache</span>
+          </label>
+          <p class="settings-note">
+            Enabled by default. When disabled, reconnecting keeps Android/browser cached room messages even if the server history is empty after a protocol refresh.
+          </p>
         </div>
       </section>
 
