@@ -16,6 +16,9 @@ const cameraOpen = ref(false);
 const cameraBusy = ref(false);
 const cameraError = ref("");
 const mobileActionsOpen = ref(false);
+const cursorPosition = ref(0);
+const mentionIndex = ref(0);
+const mentionSuppressedStart = ref(-1);
 let cameraStream: MediaStream | null = null;
 
 const canSend = computed(() => props.messenger.state.messageInput.trim().length > 0 && !!props.messenger.state.activeRoom);
@@ -23,6 +26,37 @@ const disabled = computed(() => !props.messenger.state.activeRoom);
 const editing = computed(() => !!props.messenger.state.editingMessage);
 const mediaDisabled = computed(() => disabled.value || editing.value);
 const recording = computed(() => !!props.messenger.state.recording);
+const mentionSearch = computed(() => {
+  const input = inputRef.value;
+  const cursor = input?.selectionStart ?? cursorPosition.value ?? 0;
+  const beforeCursor = String(props.messenger.state.messageInput || "").slice(0, cursor);
+  const match = /(^|[^a-zA-Z0-9_.])@([a-z0-9_.]{0,32})$/i.exec(beforeCursor);
+  if (!match) return null;
+  return {
+    start: beforeCursor.length - match[2].length - 1,
+    query: match[2].toLowerCase()
+  };
+});
+const mentionOptions = computed<string[]>(() => {
+  if (disabled.value || !mentionSearch.value) return [];
+  const query = mentionSearch.value.query;
+  const rawRoster = Array.isArray(props.messenger.memberRoster.value)
+    ? props.messenger.memberRoster.value
+    : [];
+  const members = [...new Set<string>(rawRoster
+    .map((name: unknown) => String(name || "").trim().toLowerCase())
+    .filter((name: string) => Boolean(name)))];
+  return members
+    .filter((name: string) => !query || name.startsWith(query) || name.includes(query))
+    .sort((a: string, b: string) => {
+      const aStarts = a.startsWith(query) ? 0 : 1;
+      const bStarts = b.startsWith(query) ? 0 : 1;
+      return aStarts - bStarts || a.localeCompare(b);
+    })
+    .slice(0, 8);
+});
+const mentionOpen = computed(() => mentionOptions.value.length > 0 && mentionSearch.value?.start !== mentionSuppressedStart.value);
+const selectedMention = computed<string>(() => mentionOptions.value[Math.min(mentionIndex.value, mentionOptions.value.length - 1)] || "");
 
 // Curated emoji palette — intentionally compact (80 glyphs) so it fits one screenful
 // without needing tabs/search.
@@ -115,6 +149,58 @@ function send() {
   props.messenger.sendChat();
 }
 
+function syncCursor() {
+  const input = inputRef.value;
+  cursorPosition.value = input?.selectionStart ?? String(props.messenger.state.messageInput || "").length;
+  mentionIndex.value = 0;
+  mentionSuppressedStart.value = -1;
+}
+
+async function insertMention(username: string) {
+  const target = String(username || "").trim().toLowerCase();
+  const search = mentionSearch.value;
+  if (!target || !search) return;
+
+  const input = inputRef.value;
+  const current = String(props.messenger.state.messageInput || "");
+  const cursor = input?.selectionEnd ?? cursorPosition.value ?? current.length;
+  const before = current.slice(0, search.start);
+  const after = current.slice(cursor);
+  const spacer = after && !/^\s/.test(after) ? " " : "";
+  const next = `${before}@${target} ${spacer}${after}`.slice(0, props.messenger.MESSAGE_LIMIT || 2000);
+  const nextCursor = Math.min(next.length, before.length + target.length + 2);
+
+  props.messenger.state.messageInput = next;
+  mentionIndex.value = 0;
+  mentionSuppressedStart.value = -1;
+  await nextTick();
+  inputRef.value?.focus();
+  try { inputRef.value?.setSelectionRange(nextCursor, nextCursor); } catch { /* ignore */ }
+  cursorPosition.value = nextCursor;
+}
+
+function onComposerKeydown(event: KeyboardEvent) {
+  if (mentionOpen.value && ["ArrowDown", "ArrowUp", "Enter", "Tab", "Escape"].includes(event.key)) {
+    event.preventDefault();
+    if (event.key === "ArrowDown") {
+      mentionIndex.value = (mentionIndex.value + 1) % mentionOptions.value.length;
+    } else if (event.key === "ArrowUp") {
+      mentionIndex.value = (mentionIndex.value - 1 + mentionOptions.value.length) % mentionOptions.value.length;
+    } else if (event.key === "Enter" || event.key === "Tab") {
+      insertMention(selectedMention.value);
+    } else if (event.key === "Escape") {
+      mentionIndex.value = 0;
+      mentionSuppressedStart.value = mentionSearch.value?.start ?? -1;
+    }
+    return;
+  }
+
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    send();
+  }
+}
+
 function pickFile() {
   if (mediaDisabled.value) return;
   mobileActionsOpen.value = false;
@@ -198,6 +284,10 @@ function onDocPointerDown(event: PointerEvent) {
   if (!(event.target instanceof Node)) return;
   if (pickerOpen.value && emojiWrapRef.value && !emojiWrapRef.value.contains(event.target)) {
     pickerOpen.value = false;
+  }
+  if (composerRef.value && !composerRef.value.contains(event.target)) {
+    mentionIndex.value = 0;
+    mentionSuppressedStart.value = mentionSearch.value?.start ?? -1;
   }
   if (mobileActionsOpen.value && composerRef.value && !composerRef.value.contains(event.target)) {
     mobileActionsOpen.value = false;
@@ -378,8 +468,26 @@ onBeforeUnmount(() => {
           :disabled="disabled"
           autocomplete="off"
           spellcheck="false"
-          @keydown.enter.exact.prevent="send"
+          @input="syncCursor"
+          @click="syncCursor"
+          @keyup="syncCursor"
+          @keydown="onComposerKeydown"
         ></textarea>
+        <div v-if="mentionOpen" class="mention-picker" role="listbox" aria-label="Mention suggestions">
+          <button
+            v-for="(username, index) in mentionOptions"
+            :key="username"
+            type="button"
+            class="mention-picker__item"
+            :class="{ 'is-active': index === mentionIndex }"
+            role="option"
+            :aria-selected="index === mentionIndex"
+            @mousedown.prevent="insertMention(username)"
+          >
+            <span class="mention-picker__avatar" :class="`avatar--${messenger.accentFor(username)}`">{{ username.slice(0, 2).toUpperCase() }}</span>
+            <span class="mention-picker__name">@{{ username }}</span>
+          </button>
+        </div>
         <span class="composer__emoji-wrap" ref="emojiWrapRef">
           <button
             class="icon-btn"

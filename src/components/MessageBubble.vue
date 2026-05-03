@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import AudioPlayer from "@/components/AudioPlayer.vue";
 import ImageViewer from "@/components/ImageViewer.vue";
+import ProfileCard from "@/components/ProfileCard.vue";
 import VideoPlayer from "@/components/VideoPlayer.vue";
 
 const props = defineProps({
@@ -45,8 +46,20 @@ const deleted = computed(() => props.message.deleted);
 const preview = computed(() => props.message.preview);
 const edited = computed(() => Number(props.message.editedAt || 0) > 0 && !props.message.deleted);
 const canEdit = computed(() => props.messenger.canEditMessage?.(props.message));
+const validMentionUsers = computed(() => new Set(
+  (props.messenger.state.usersByRoom?.[props.message.roomId || props.messenger.state.activeRoom] || [])
+    .map((name) => String(name || "").trim().toLowerCase())
+    .filter(Boolean)
+));
+const effectiveMentioned = computed(() => {
+  const me = String(props.messenger.state.username || "").trim().toLowerCase();
+  if (!me || !validMentionUsers.value.has(me) || props.messenger.isOwnMessage(props.message)) return false;
+  const mentionRegex = new RegExp(`(^|[^a-z0-9_.])@${me.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}(?=$|[^a-z0-9_.])`, "i");
+  return Boolean(props.message.mentioned) && mentionRegex.test(String(props.message.text || ""));
+});
 const imageViewerOpen = ref(false);
 const expandedText = ref(false);
+const selectedProfile = ref("");
 const repliedMessage = computed(() =>
   props.messenger.findMessageById(props.message.roomId, props.message.replyToMessageId)
 );
@@ -91,6 +104,10 @@ function safeHref(value) {
 function codeBlockLabel(value) {
   const label = String(value || "").trim().replace(/^```+/, "").replace(/[`<>]/g, "");
   return label.slice(0, 40);
+}
+
+function isKnownMention(username) {
+  return validMentionUsers.value.has(String(username || "").trim().toLowerCase());
 }
 
 function renderMarkdownLists(value) {
@@ -155,7 +172,7 @@ function markdown(value) {
   };
 
   let html = escapeHtml(value);
-  html = html.replace(/```([^\n`]*)\n([\s\S]*?)```/g, (_, rawLabel, code) => {
+  html = html.replace(/```([^\n`]*)\n?([\s\S]*?)```/g, (_, rawLabel, code) => {
     const label = codeBlockLabel(rawLabel);
     const title = label ? `<span class="codeblock__label">${escapeHtml(label)}</span>` : "<span></span>";
     const copyIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
@@ -166,14 +183,17 @@ function markdown(value) {
     `<h${marks.length} class="markdown__h markdown__h${marks.length}">${title.trim()}</h${marks.length}>`
   ));
   html = renderMarkdownLists(html);
-  html = html.replace(/`([^`\n]+)`/g, (_, code) => hold(`<code>${code}</code>`));
+  html = html.replace(/``([^`\n]*)``/g, (_, code) => hold(`<code>${code}</code>`));
+  html = html.replace(/`([^`\n]*)`/g, (_, code) => hold(`<code>${code}</code>`));
   html = html.replace(/\[([^\]\n]+)\]\(([^)\s]+)\)/g, (match, label, href) => {
     const safe = safeHref(href);
     if (!safe) return match;
     return hold(`<a href="${safe}" target="_blank" rel="noopener noreferrer">${label}</a>`);
   });
   html = html
-    .replace(/(^|[^a-zA-Z0-9_.])@([a-z0-9_.]{2,32})(?=$|[^a-zA-Z0-9_.])/gi, '$1<span class="mention">@$2</span>')
+    .replace(/(^|[^a-zA-Z0-9_.])@([a-z0-9_.]{2,32})(?=$|[^a-zA-Z0-9_.])/gi, (match, prefix, username) => (
+      isKnownMention(username) ? `${prefix}<span class="mention" data-mention="${escapeHtml(username)}" role="button" tabindex="0">@${username}</span>` : match
+    ))
     .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
     .replace(/__([^_\n]+)__/g, "<strong>$1</strong>")
     .replace(/~~([^~\n]+)~~/g, "<del>$1</del>")
@@ -205,17 +225,17 @@ async function copyText(text) {
 
 async function onCodeCopyClick(event) {
   const button = event.target?.closest?.("[data-code-copy]");
-  if (!button) return;
+  if (!button) return false;
 
   event.preventDefault();
   event.stopPropagation();
 
   const block = button.closest(".codeblock");
   const text = block?.querySelector("code")?.textContent || "";
-  if (!text) return;
+  if (!text) return true;
 
   const copied = await copyText(text);
-  if (!copied) return;
+  if (!copied) return true;
 
   const label = button.querySelector("span");
   if (!label) return;
@@ -225,6 +245,24 @@ async function onCodeCopyClick(event) {
     label.textContent = "Copy";
     button.classList.remove("is-copied");
   }, 1200);
+  return true;
+}
+
+async function onMarkdownClick(event) {
+  const mention = event.target?.closest?.("[data-mention]");
+  const username = String(mention?.getAttribute?.("data-mention") || "").trim().toLowerCase();
+  if (username && isKnownMention(username)) {
+    event.preventDefault();
+    event.stopPropagation();
+    selectedProfile.value = username;
+    return;
+  }
+
+  await onCodeCopyClick(event);
+}
+
+function closeProfile() {
+  selectedProfile.value = "";
 }
 
 function download() {
@@ -254,7 +292,7 @@ function onDelete() {
     class="msg"
     :class="[
       { 'is-own': isOwn, 'is-jumbo': jumbo, 'is-deleted': deleted },
-      { 'is-mentioned': message.mentioned },
+      { 'is-mentioned': effectiveMentioned },
       { 'has-reactions': message.reactions.length && !deleted },
       runClass
     ]"
@@ -405,7 +443,7 @@ function onDelete() {
           v-if="message.text"
           class="bubble__text markdown"
           :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-          @click="onCodeCopyClick"
+          @click="onMarkdownClick"
           v-html="markdown(message.text)"
         ></div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
@@ -423,7 +461,7 @@ function onDelete() {
           v-if="message.text"
           class="bubble__text markdown"
           :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-          @click="onCodeCopyClick"
+          @click="onMarkdownClick"
           v-html="markdown(message.text)"
         ></div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
@@ -443,7 +481,7 @@ function onDelete() {
           v-if="message.text && !message.text.startsWith('[voice:')"
           class="bubble__text markdown"
           :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-          @click="onCodeCopyClick"
+          @click="onMarkdownClick"
           v-html="markdown(message.text)"
         ></div>
         <button v-if="isTextCollapsible && message.text && !message.text.startsWith('[voice:')" type="button" class="bubble__more" @click="expandedText = !expandedText">
@@ -471,7 +509,7 @@ function onDelete() {
           v-if="message.text"
           class="bubble__text markdown"
           :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-          @click="onCodeCopyClick"
+          @click="onMarkdownClick"
           v-html="markdown(message.text)"
         ></div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
@@ -483,7 +521,7 @@ function onDelete() {
         <div
           class="bubble__text markdown"
           :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-          @click="onCodeCopyClick"
+          @click="onMarkdownClick"
           v-html="markdown(message.text)"
         ></div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
@@ -520,6 +558,15 @@ function onDelete() {
       </div>
     </div>
   </article>
+
+  <Teleport to="body">
+    <ProfileCard
+      v-if="selectedProfile"
+      :messenger="messenger"
+      :username="selectedProfile"
+      @close="closeProfile"
+    />
+  </Teleport>
 </template>
 
 <style scoped>
@@ -533,5 +580,14 @@ function onDelete() {
   height: 100%;
   display: block;
   object-fit: cover;
+}
+
+:global(.mention[data-mention]) {
+  cursor: pointer;
+}
+
+:global(.mention[data-mention]:hover) {
+  filter: brightness(1.15);
+  text-decoration: underline;
 }
 </style>

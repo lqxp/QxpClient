@@ -86,6 +86,16 @@ function seek(event) {
   currentTime.value = nextTime;
 }
 
+function downloadAudio() {
+  if (!props.src) return;
+  const a = document.createElement("a");
+  a.href = props.src;
+  a.download = props.filename || "audio";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 function onLoadedMetadata() {
   props.messenger?.applyAudioOutput?.(audioRef.value);
   canPlay.value = true;
@@ -175,7 +185,13 @@ onBeforeUnmount(() => {
         />
       </label>
 
-      <div v-if="sizeLabel" class="audio-player__meta">{{ sizeLabel }}</div>
+      <div class="audio-player__bottom">
+        <span v-if="sizeLabel" class="audio-player__meta">{{ sizeLabel }}</span>
+        <button class="audio-player__download" type="button" aria-label="Download audio" @click="downloadAudio">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          <span>Save</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>

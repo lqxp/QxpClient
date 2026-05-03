@@ -2059,6 +2059,7 @@ textarea {
 }
 
 .composer__input {
+  position: relative;
   flex: 1 1 180px;
   display: flex;
   align-items: center;
@@ -2631,10 +2632,51 @@ textarea {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
 }
 
-.audio-player__meta {
+.audio-player__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   margin-top: 3px;
+}
+
+.audio-player__meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 11px;
   opacity: 0.7;
+}
+
+.audio-player__download {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.78;
+  transition: opacity 120ms ease, background 120ms ease, transform 120ms ease;
+}
+
+.audio-player__download:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.audio-player__download svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .att-file {
@@ -2806,6 +2848,56 @@ textarea {
 .emoji-picker__cell:hover {
   background: rgba(255, 255, 255, 0.08);
   transform: scale(1.15);
+}
+
+.mention-picker {
+  position: absolute;
+  left: 8px;
+  bottom: calc(100% + 10px);
+  width: min(280px, calc(100vw - 32px));
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--line-strong);
+  z-index: 28;
+}
+
+.mention-picker__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: 10px;
+  color: var(--text);
+  text-align: left;
+}
+
+.mention-picker__item:hover,
+.mention-picker__item.is-active {
+  background: rgba(141, 182, 220, 0.16);
+}
+
+.mention-picker__avatar {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.mention-picker__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 /* Thread header call active state */
