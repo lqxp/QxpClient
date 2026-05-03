@@ -31,6 +31,10 @@ const avatarInitials = computed(() => {
 });
 
 const avatarAccent = computed(() => props.messenger.accentFor(props.message.username || ""));
+const avatarSrc = computed(() => {
+  const profile = props.messenger.profileFor?.(props.message.username || "");
+  return props.messenger.profileImageSrc?.(profile?.avatar) || "";
+});
 
 const showTimestamp = computed(() => props.position === "end" || props.position === "single");
 
@@ -258,8 +262,11 @@ function onDelete() {
     <span
       v-if="!isOwn && showAvatar"
       class="msg__avatar"
-      :class="`avatar--${avatarAccent}`"
-    >{{ avatarInitials }}</span>
+      :class="avatarSrc ? 'msg__avatar--image' : `avatar--${avatarAccent}`"
+    >
+      <img v-if="avatarSrc" :src="avatarSrc" :alt="`${message.username} avatar`" />
+      <template v-else>{{ avatarInitials }}</template>
+    </span>
     <span v-else-if="!isOwn" class="msg__spacer"></span>
 
     <div v-if="jumbo" class="jumbo">
@@ -514,3 +521,17 @@ function onDelete() {
     </div>
   </article>
 </template>
+
+<style scoped>
+.msg__avatar--image {
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.msg__avatar--image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+</style>
