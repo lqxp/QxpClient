@@ -16,6 +16,7 @@ import {
 
 const STORAGE_KEY = "qxprotocol-messenger-v4";
 const PROFILE_STORAGE_KEY = "qxprotocol-profile-v1";
+const CLIENT_ID_STORAGE_KEY = "qxprotocol-client-id-v1";
 const QUICK_REACTIONS = ["❤️", "👍", "😂", "😮", "😢", "💀", "🧢"];
 const MAX_ROOMS_SHOWN = 100;
 const MAX_HISTORY_PER_ROOM = 500;
@@ -124,6 +125,63 @@ function isAndroidWebViewRuntime() {
 
 function isTauriRuntime() {
   return typeof window !== "undefined" && Boolean((window as any).__TAURI_INTERNALS__);
+}
+
+function detectClientPlatform() {
+  const ua = typeof navigator === "undefined" ? "" : String(navigator.userAgent || "").toLowerCase();
+  if (isTauriRuntime()) {
+    if (ua.includes("android")) return "android";
+    if (/iphone|ipad|ipod/.test(ua)) return "ios";
+    return "desktop";
+  }
+  if (ua.includes("android")) return "android";
+  if (/iphone|ipad|ipod/.test(ua)) return "ios";
+  if (ua.includes("mobile")) return "mobile";
+  return "web";
+}
+
+function sanitizeClientId(value) {
+  return String(value || "").trim().replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 48);
+}
+
+function getPersistentClientId() {
+  try {
+    const existing = sanitizeClientId(localStorage.getItem(CLIENT_ID_STORAGE_KEY));
+    if (existing) return existing;
+    const generated = globalThis.crypto?.randomUUID?.()
+      || `client-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    const next = sanitizeClientId(generated);
+    localStorage.setItem(CLIENT_ID_STORAGE_KEY, next);
+    return next;
+  } catch {
+    return sanitizeClientId(`client-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
+  }
+}
+
+function sanitizePlatform(value) {
+  const platform = String(value || "").trim().toLowerCase();
+  if (["web", "desktop", "android", "ios", "mobile"].includes(platform)) return platform;
+  return platform ? "desktop" : "web";
+}
+
+function platformLabel(platform) {
+  switch (sanitizePlatform(platform)) {
+    case "android": return "Android";
+    case "ios": return "iOS";
+    case "mobile": return "Mobile";
+    case "desktop": return "Desktop";
+    default: return "Web";
+  }
+}
+
+function platformIcon(platform) {
+  switch (sanitizePlatform(platform)) {
+    case "android": return "A";
+    case "ios": return "iOS";
+    case "mobile": return "M";
+    case "desktop": return "PC";
+    default: return "Web";
+  }
 }
 
 function sanitizeRoomId(value) {
@@ -707,6 +765,8 @@ export function useMessenger() {
     usersByRoom: {},
     profilesByUser: {},
     statusesByUser: {},
+    clientPlatformsByUser: {},
+    callClientsByRoom: {},
     unreadByRoom: persisted.unreadByRoom,
 
     messageInput: "",
@@ -781,6 +841,8 @@ export function useMessenger() {
   let callOutboundStream: MediaStream | null = null;
   let callGateTimer: ReturnType<typeof setInterval> | null = null;
   let callGateOpenUntil = 0;
+  const localClientId = getPersistentClientId();
+  const localPlatform = detectClientPlatform();
 
   function attachmentUrlFor(message) {
     if (!message?.attachment?.dataB64) return null;
@@ -862,7 +924,7 @@ export function useMessenger() {
     };
   });
 
-  const memberRoster = computed(() => state.usersByRoom[state.activeRoom] || []);
+  const memberRoster = computed(() => [...new Set((state.usersByRoom[state.activeRoom] || []).map(sanitizeUsername).filter(Boolean))]);
   const myProfile = computed(() => normalizeProfile(state.profile));
   const myStatus = computed(() => sanitizePresenceStatus(state.status));
 
@@ -1906,6 +1968,8 @@ export function useMessenger() {
           deleteMessagesOnLeave: state.deleteMessagesOnLeave,
           status: sanitizePresenceStatus(state.status),
           profile: normalizeProfile(state.profile),
+          clientId: localClientId,
+          platform: localPlatform,
           v: "QxpClient",
           isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
           isSecure: window.isSecureContext
@@ -2137,15 +2201,45 @@ export function useMessenger() {
     const media = isVoiceChat ? currentCallMedia() : { ...EMPTY_CALL_MEDIA };
     state.localCallMedia = media;
     callManager?.setLocalMedia(media);
-    send({ op: 98, d: { isVoiceChat, media } });
-    send({ op: 110, d: { gameId: state.callRoom || state.activeRoom, isVoiceChat, media } });
+    send({ op: 98, d: { isVoiceChat, media, clientId: localClientId, platform: localPlatform } });
+    send({ op: 110, d: { gameId: state.callRoom || state.activeRoom, isVoiceChat, media, clientId: localClientId, platform: localPlatform } });
+  }
+
+  function rememberClientPlatform(username, platform) {
+    const key = sanitizeUsername(username);
+    const normalized = sanitizePlatform(platform);
+    if (!key || !normalized) return;
+    const platforms = new Set(state.clientPlatformsByUser[key] || []);
+    platforms.add(normalized);
+    state.clientPlatformsByUser[key] = [...platforms];
+  }
+
+  function normalizeRoomUsers(players) {
+    const users = new Set<string>();
+    for (const player of Array.isArray(players) ? players : []) {
+      const user = sanitizeUsername(typeof player === "string" ? player : player?.user || player?.username || player?.name);
+      if (!user) continue;
+      users.add(user);
+      if (typeof player === "object" && player?.platform) rememberClientPlatform(user, player.platform);
+    }
+    return [...users];
+  }
+
+  function platformsForUser(username) {
+    const key = sanitizeUsername(username);
+    const platforms = new Set(state.clientPlatformsByUser[key] || []);
+    if (key === sanitizeUsername(state.username)) platforms.add(localPlatform);
+    return [...platforms].map(sanitizePlatform).filter(Boolean).sort();
   }
 
   function connectKnownCallPeers(roomId) {
     if (!callManager) return;
     const me = sanitizeUsername(state.username);
+    const callClients = state.callClientsByRoom[roomId] || {};
     for (const user of state.voiceMembersByRoom[roomId] || []) {
-      if (user && user !== me) callManager.connectPeer(user);
+      if (!user || user === me) continue;
+      const clients = callClients[user] || [""];
+      for (const clientId of clients.length ? clients : [""]) callManager.connectPeer(user, clientId);
     }
   }
 
@@ -2231,6 +2325,8 @@ export function useMessenger() {
       callManager = new WebRtcCallManager({
         roomId,
         username: sanitizeUsername(state.username),
+        clientId: localClientId,
+        platform: localPlatform,
         localStream: outboundStream,
         sendSignal: (payload: CallSignalPayload) => send({ op: 111, d: payload }),
         onRemoteMedia: storeRemoteCallMedia,
@@ -2242,6 +2338,9 @@ export function useMessenger() {
         const members = new Set(state.voiceMembersByRoom[roomId] || []);
         members.add(me);
         state.voiceMembersByRoom[roomId] = [...members];
+        if (!state.callClientsByRoom[roomId]) state.callClientsByRoom[roomId] = {};
+        state.callClientsByRoom[roomId][me] = [localClientId];
+        rememberClientPlatform(me, localPlatform);
       }
       publishCallState(true);
       connectKnownCallPeers(roomId);
@@ -2382,6 +2481,7 @@ export function useMessenger() {
     if (me && roomId) {
       const members = (state.voiceMembersByRoom[roomId] || []).filter((u) => u !== me);
       state.voiceMembersByRoom[roomId] = members;
+      delete state.callClientsByRoom[roomId]?.[me];
     }
   }
 
@@ -2389,30 +2489,53 @@ export function useMessenger() {
     const roomId = sanitizeRoomId(d?.gameId);
     const user = sanitizeUsername(d?.user);
     if (!roomId || !user) return;
+    const clientId = sanitizeClientId(d?.clientId || d?.fromClientId);
+    const me = sanitizeUsername(state.username);
+    if (d?.platform) rememberClientPlatform(user, d.platform);
+    if (!state.callClientsByRoom[roomId]) state.callClientsByRoom[roomId] = {};
 
     const members = new Set(state.voiceMembersByRoom[roomId] || []);
     const wasKnownMember = members.has(user);
     if (d.isVoiceChat === true) {
       members.add(user);
+      if (clientId) {
+        const clients = new Set(state.callClientsByRoom[roomId][user] || []);
+        clients.add(clientId);
+        state.callClientsByRoom[roomId][user] = [...clients];
+      }
       updateRemoteMedia(user, d.media || { audio: true });
-      if (state.inCall && state.callRoom === roomId) {
-        callManager?.connectPeer(user);
-        if (!wasKnownMember && user !== sanitizeUsername(state.username)) publishCallState(true);
+      if (state.inCall && state.callRoom === roomId && user !== me) {
+        callManager?.connectPeer(user, clientId);
+        if (!wasKnownMember) publishCallState(true);
       }
     } else {
-      members.delete(user);
-      callManager?.removePeer(user);
-      removeRemoteCallMedia(user);
+      const clients = new Set(state.callClientsByRoom[roomId][user] || []);
+      if (clientId) clients.delete(clientId);
+      if (clientId && clients.size) {
+        state.callClientsByRoom[roomId][user] = [...clients];
+      } else {
+        delete state.callClientsByRoom[roomId][user];
+        if (user !== me || clientId === localClientId || !state.inCall || state.callRoom !== roomId) members.delete(user);
+        callManager?.removePeer(user, clientId);
+        if (user !== me) removeRemoteCallMedia(user);
+      }
     }
     state.voiceMembersByRoom[roomId] = [...members];
   }
 
   function handleCallSignal(d) {
     if (!state.inCall || !callManager) return;
+    const from = sanitizeUsername(d?.from);
+    if (from && from === sanitizeUsername(state.username)) return;
+    if (d?.toClientId && sanitizeClientId(d.toClientId) !== localClientId) return;
+    if (d?.fromPlatform) rememberClientPlatform(from, d.fromPlatform);
     callManager.handleSignal({
       gameId: sanitizeRoomId(d?.gameId),
       to: sanitizeUsername(d?.to),
-      from: sanitizeUsername(d?.from),
+      from,
+      toClientId: sanitizeClientId(d?.toClientId),
+      fromClientId: sanitizeClientId(d?.fromClientId),
+      fromPlatform: sanitizePlatform(d?.fromPlatform),
       type: d?.type,
       sdp: typeof d?.sdp === "string" ? d.sdp : undefined,
       candidate: d?.candidate
@@ -2434,7 +2557,7 @@ export function useMessenger() {
   function handleVoiceState(d) {
     const roomId = sanitizeRoomId(d?.gameId);
     if (!roomId) return;
-    const user = d?.user;
+    const user = sanitizeUsername(d?.user);
     if (!user || d?.ok) return;    // our own op 98 ack has {ok} but no user — skip
     if (d?.media) {
       handleCallState(d);
@@ -2892,7 +3015,7 @@ export function useMessenger() {
     if (!roomId) return;
 
     if (Array.isArray(d?.players)) {
-      state.usersByRoom[roomId] = d.players;
+      state.usersByRoom[roomId] = normalizeRoomUsers(d.players);
     }
     if (d?.profiles && typeof d.profiles === "object") {
       applyProfiles(d.profiles);
@@ -2901,13 +3024,25 @@ export function useMessenger() {
       applyStatuses(d.statuses);
     }
     if (Array.isArray(d?.voicePlayers)) {
-      state.voiceMembersByRoom[roomId] = d.voicePlayers;
+      state.voiceMembersByRoom[roomId] = normalizeRoomUsers(d.voicePlayers);
     }
     if (Array.isArray(d?.callPlayers)) {
-      state.voiceMembersByRoom[roomId] = d.callPlayers.map((player) => sanitizeUsername(player?.user)).filter(Boolean);
+      const members = new Set<string>();
+      if (!state.callClientsByRoom[roomId]) state.callClientsByRoom[roomId] = {};
       for (const player of d.callPlayers) {
-        updateRemoteMedia(player?.user, player?.media);
+        const user = sanitizeUsername(player?.user || player?.username || player);
+        if (!user) continue;
+        members.add(user);
+        const clientId = sanitizeClientId(player?.clientId);
+        if (clientId) {
+          const clients = new Set(state.callClientsByRoom[roomId][user] || []);
+          clients.add(clientId);
+          state.callClientsByRoom[roomId][user] = [...clients];
+        }
+        if (player?.platform) rememberClientPlatform(user, player.platform);
+        updateRemoteMedia(user, player?.media);
       }
+      state.voiceMembersByRoom[roomId] = [...members];
     }
 
     if (d?.ok && !d?.system) {
@@ -2951,6 +3086,7 @@ export function useMessenger() {
 
     state.statusesByUser[key] = status;
     if (d?.profile) state.profilesByUser[key] = normalizeProfile(d.profile);
+    if (d?.platform) rememberClientPlatform(key, d.platform);
     if (key === me) state.status = status;
 
     if (!roomId) return;
@@ -2974,7 +3110,10 @@ export function useMessenger() {
       if (roomId === state.activeRoom) state.activeRoom = "";
     } else if (d?.left) {
       const arr = state.usersByRoom[roomId];
-      if (arr) state.usersByRoom[roomId] = arr.filter((u) => u !== d.left);
+      const left = sanitizeUsername(d.left);
+      if (arr) state.usersByRoom[roomId] = arr.filter((u) => u !== left);
+      state.voiceMembersByRoom[roomId] = (state.voiceMembersByRoom[roomId] || []).filter((u) => u !== left);
+      delete state.callClientsByRoom[roomId]?.[left];
     }
   }
 
@@ -3191,6 +3330,9 @@ export function useMessenger() {
     statusFor,
     presenceStatusLabel,
     profileImageSrc,
+    platformsForUser,
+    platformLabel,
+    platformIcon,
     showToast,
 
     persist,

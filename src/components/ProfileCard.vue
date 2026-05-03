@@ -16,6 +16,7 @@ const isSelf = computed(() => String(props.messenger.state.username || "").trim(
 const voiceMembers = computed(() => new Set(props.messenger.state.voiceMembersByRoom[props.messenger.state.activeRoom] || []));
 const status = computed(() => props.messenger.statusFor(props.username));
 const statusLabel = computed(() => voiceMembers.value.has(props.username) ? "In voice chat" : props.messenger.presenceStatusLabel(status.value));
+const platforms = computed(() => props.messenger.platformsForUser?.(props.username) || []);
 
 function initialsFor(name: string) {
   const clean = String(name || "?").trim();
@@ -52,6 +53,14 @@ function initialsFor(name: string) {
             ></span>
             {{ statusLabel }}<template v-if="profile.pronouns"> · {{ profile.pronouns }}</template><template v-if="isSelf"> · you</template>
           </small>
+          <div v-if="platforms.length" class="profile-card__platforms" aria-label="Client platforms">
+            <span
+              v-for="platform in platforms"
+              :key="platform"
+              class="platforms__badge"
+              :title="messenger.platformLabel(platform)"
+            >{{ messenger.platformIcon(platform) }}</span>
+          </div>
         </div>
         <div class="profile-card__section">
           <h4>About</h4>

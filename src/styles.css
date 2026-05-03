@@ -1153,6 +1153,39 @@ textarea {
   letter-spacing: 0.04em;
 }
 
+.platforms,
+.profile-card__platforms {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.platforms__badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.profile-card__platforms {
+  margin-top: 10px;
+}
+
+.profile-card__platforms .platforms__badge {
+  min-width: 26px;
+  height: 22px;
+  color: var(--text);
+}
+
 .members__status {
   display: flex;
   align-items: center;

@@ -1,3 +1,4 @@
+import { callPeerClientId, callPeerId, callPeerUsername } from "./callTypes";
 import type { CallMediaState, CallSignalPayload, RemoteCallMedia } from "./callTypes";
 import { rtcRuntimeConfig } from "@/config/runtime";
 
@@ -22,6 +23,8 @@ interface LocalTrackSlot {
 interface WebRtcCallManagerOptions {
   roomId: string;
   username: string;
+  clientId?: string;
+  platform?: string;
   localStream: MediaStream;
   sendSignal: (payload: CallSignalPayload) => void;
   onRemoteMedia: (username: string, media: RemoteCallMedia) => void;
@@ -59,6 +62,9 @@ export class WebRtcCallManager {
   private readonly peers = new Map<string, PeerState>();
   private readonly roomId: string;
   private readonly username: string;
+  private readonly clientId: string;
+  private readonly platform: string;
+  private readonly selfPeerId: string;
   private readonly sendSignal: WebRtcCallManagerOptions["sendSignal"];
   private readonly onRemoteMedia: WebRtcCallManagerOptions["onRemoteMedia"];
   private readonly onRemoteLeft: WebRtcCallManagerOptions["onRemoteLeft"];
@@ -69,6 +75,9 @@ export class WebRtcCallManager {
   constructor(options: WebRtcCallManagerOptions) {
     this.roomId = options.roomId;
     this.username = options.username;
+    this.clientId = String(options.clientId || "");
+    this.platform = String(options.platform || "");
+    this.selfPeerId = callPeerId(this.username, this.clientId);
     this.localStream = options.localStream;
     this.sendSignal = options.sendSignal;
     this.onRemoteMedia = options.onRemoteMedia;
@@ -77,18 +86,21 @@ export class WebRtcCallManager {
     if (audioTrack) this.localTracks.set("audio", { track: audioTrack, stream: this.localStream });
   }
 
-  connectPeer(peerName: string) {
-    if (!peerName || peerName === this.username || this.peers.has(peerName)) return;
-    this.createPeer(peerName);
+  connectPeer(peerName: string, clientId = "") {
+    const peerId = callPeerId(peerName, clientId);
+    if (!peerId || peerId === this.selfPeerId || this.peers.has(peerId)) return;
+    this.createPeer(peerId);
   }
 
-  removePeer(peerName: string) {
-    const peer = this.peers.get(peerName);
+  removePeer(peerName: string, clientId = "") {
+    const peerId = callPeerId(peerName, clientId);
+    if (!peerId) return;
+    const peer = this.peers.get(peerId);
     if (!peer) return;
     peer.pc.close();
     for (const track of peer.stream.getTracks()) track.stop();
-    this.peers.delete(peerName);
-    this.onRemoteLeft(peerName);
+    this.peers.delete(peerId);
+    this.onRemoteLeft(callPeerUsername(peerId));
   }
 
   setLocalMedia(media: CallMediaState) {
@@ -150,8 +162,10 @@ export class WebRtcCallManager {
   }
 
   async handleSignal(payload: CallSignalPayload) {
-    const from = payload.from;
-    if (!from || from === this.username || payload.gameId !== this.roomId) return;
+    const from = callPeerId(payload.from || "", payload.fromClientId || "");
+    if (!from || from === this.selfPeerId || payload.gameId !== this.roomId) return;
+    if (payload.toClientId && payload.toClientId !== this.clientId) return;
+    if (payload.to && payload.to !== this.username) return;
 
     const peer = this.peers.get(from) || this.createPeer(from);
     peer.signalChain = peer.signalChain
@@ -187,7 +201,10 @@ export class WebRtcCallManager {
         await peer.pc.setLocalDescription();
         this.sendSignal({
           gameId: this.roomId,
-          to: from,
+          to: callPeerUsername(from),
+          toClientId: callPeerClientId(from),
+          fromClientId: this.clientId,
+          fromPlatform: this.platform,
           type: "answer",
           sdp: peer.pc.localDescription?.sdp || ""
         });
@@ -225,7 +242,10 @@ export class WebRtcCallManager {
       if (!candidate) return;
       this.sendSignal({
         gameId: this.roomId,
-        to: peerName,
+        to: callPeerUsername(peerName),
+        toClientId: callPeerClientId(peerName),
+        fromClientId: this.clientId,
+        fromPlatform: this.platform,
         type: "ice",
         candidate: candidate.toJSON()
       });
@@ -241,7 +261,7 @@ export class WebRtcCallManager {
         stream.addTrack(track);
       }
       const emitRemoteMedia = () => {
-        this.onRemoteMedia(peerName, { stream, media: this.inferRemoteMedia(stream) });
+        this.onRemoteMedia(callPeerUsername(peerName), { stream, media: this.inferRemoteMedia(stream) });
       };
       track.onended = () => {
         stream.removeTrack(track);
@@ -264,7 +284,10 @@ export class WebRtcCallManager {
         await pc.setLocalDescription();
         this.sendSignal({
           gameId: this.roomId,
-          to: peerName,
+          to: callPeerUsername(peerName),
+          toClientId: callPeerClientId(peerName),
+          fromClientId: this.clientId,
+          fromPlatform: this.platform,
           type: "offer",
           sdp: pc.localDescription?.sdp || ""
         });
@@ -310,7 +333,7 @@ export class WebRtcCallManager {
   }
 
   private isPolite(peerName: string) {
-    return this.username.localeCompare(peerName) > 0;
+    return this.selfPeerId.localeCompare(peerName) > 0;
   }
 
   private inferRemoteMedia(stream: MediaStream): CallMediaState {
