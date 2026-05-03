@@ -4028,6 +4028,103 @@ textarea {
   flex: none;
 }
 
+.calltile__tools {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.calltile:hover .calltile__tools,
+.calltile:focus-within .calltile__tools,
+.calltile.is-focused .calltile__tools {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.calltile__tools button,
+.callpanel__focus-close {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.58);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.calltile__tools button:hover,
+.callpanel__focus-close:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.calltile__tools svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.callpanel__focus {
+  position: relative;
+  min-height: min(70vh, 620px);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #020305;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.callpanel__focus.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  min-height: 100vh;
+  border-radius: 0;
+  border: 0;
+}
+
+.callpanel__focus video {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  display: block;
+  object-fit: contain;
+  background: #000;
+}
+
+.callpanel__focus-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.callpanel__focus-label {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+}
+
 .callpanel__audio {
   display: flex;
   gap: 8px;

@@ -6,13 +6,18 @@ const props = defineProps({
 });
 
 const now = ref(Date.now());
+const focusedTileId = ref("");
+const fullscreenTileId = ref("");
 let tickId = null;
+let panelWindow = null;
+let panelWindowSyncId = null;
 
 onMounted(() => {
   tickId = setInterval(() => { now.value = Date.now(); }, 500);
 });
 onBeforeUnmount(() => {
   if (tickId) clearInterval(tickId);
+  if (panelWindowSyncId) clearInterval(panelWindowSyncId);
 });
 
 const callRoom = computed(() => props.messenger.state.callRoom);
@@ -131,10 +136,30 @@ function hasVideo(username) {
   return Boolean(media.camera || media.screen);
 }
 
+const focusedTile = computed(() => callTiles.value.find((tile) => tile.id === focusedTileId.value));
+
 function tileLabel(tile) {
   if (tile.kind === "screen") return "Screen";
   if (tile.kind === "camera") return "Camera";
   return "Voice";
+}
+
+function escapePopupHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function videoStreamForTile(tile) {
+  if (!tile?.video) return null;
+  if (tile.self) return props.messenger.localPreviewStream(tile.kind);
+  const stream = props.messenger.remoteVideoStream(tile.username);
+  const tracks = (stream?.getVideoTracks?.() || []).filter((track) => track.readyState === "live" && !track.muted);
+  const track = tracks[tile.trackIndex] || tracks[0];
+  return track ? new MediaStream([track]) : null;
 }
 
 function bindLocalPreview(el, kind) {
@@ -154,6 +179,85 @@ function bindRemoteVideo(el, username, trackIndex = 0) {
   }
   const existingTrack = el.srcObject?.getVideoTracks?.()[0];
   if (existingTrack?.id !== track.id) el.srcObject = new MediaStream([track]);
+}
+
+function bindFocusedVideo(el) {
+  if (!el || !focusedTile.value) return;
+  const stream = videoStreamForTile(focusedTile.value);
+  if (el.srcObject !== stream) el.srcObject = stream;
+}
+
+function setFocusedTile(tile) {
+  if (!tile?.video) return;
+  focusedTileId.value = focusedTileId.value === tile.id ? "" : tile.id;
+}
+
+function clearFocusedTile() {
+  focusedTileId.value = "";
+  fullscreenTileId.value = "";
+}
+
+function toggleTileFullscreen(tile) {
+  if (!tile?.video) return;
+  fullscreenTileId.value = fullscreenTileId.value === tile.id ? "" : tile.id;
+  if (fullscreenTileId.value) focusedTileId.value = tile.id;
+}
+
+function openTileWindow(tile) {
+  if (!tile?.video) return;
+  const stream = videoStreamForTile(tile);
+  const child = window.open("", `qxp-tile-${tile.id}`, "popup=yes,width=960,height=640");
+  if (!child) return;
+  const safeTitle = `${escapePopupHtml(tile.username)} - ${escapePopupHtml(tileLabel(tile))}`;
+  child.document.write(`<!doctype html><html><head><title>${safeTitle}</title><style>html,body{margin:0;width:100%;height:100%;background:#020305;color:#fff;font-family:system-ui,sans-serif}body{display:flex;flex-direction:column}.bar{height:42px;display:flex;align-items:center;padding:0 14px;background:#090b10;border-bottom:1px solid rgba(255,255,255,.12);font-weight:700}video{width:100%;height:calc(100% - 43px);object-fit:${tile.kind === "screen" ? "contain" : "cover"};background:#000}</style></head><body><div class="bar">${safeTitle}</div><video autoplay playsinline ${tile.self ? "muted" : ""}></video></body></html>`);
+  child.document.close();
+  const video = child.document.querySelector("video");
+  if (video) {
+    video.srcObject = stream;
+    video.play?.().catch?.(() => {});
+  }
+}
+
+function syncPanelWindow() {
+  if (!panelWindow || panelWindow.closed) return;
+  const doc = panelWindow.document;
+  const mount = doc.getElementById("tiles");
+  if (!mount) return;
+  mount.innerHTML = "";
+  for (const tile of callTiles.value) {
+    const card = doc.createElement("article");
+    card.className = `tile ${tile.kind === "screen" ? "screen" : ""}`;
+    const label = doc.createElement("div");
+    label.className = "label";
+    label.textContent = `${tile.username} · ${tileLabel(tile)}`;
+    card.appendChild(label);
+    if (tile.video) {
+      const video = doc.createElement("video");
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = tile.self;
+      video.srcObject = videoStreamForTile(tile);
+      video.play?.().catch?.(() => {});
+      card.appendChild(video);
+    } else {
+      const empty = doc.createElement("div");
+      empty.className = "empty";
+      empty.textContent = initialsOf(tile.username);
+      card.appendChild(empty);
+    }
+    mount.appendChild(card);
+  }
+}
+
+function openPanelWindow() {
+  panelWindow = window.open("", "qxp-voice-panel", "popup=yes,width=1180,height=760");
+  if (!panelWindow) return;
+  const safeRoomName = escapePopupHtml(props.messenger.displayRoomName(callRoom.value));
+  panelWindow.document.write(`<!doctype html><html><head><title>QxChat VoicePanel</title><style>html,body{margin:0;min-height:100%;background:#060709;color:#fff;font-family:system-ui,sans-serif}.head{height:46px;display:flex;align-items:center;gap:10px;padding:0 14px;background:#090b10;border-bottom:1px solid rgba(255,255,255,.12)}.live{color:#4fd68a;font-weight:800}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;padding:10px}.tile{position:relative;min-height:220px;border-radius:10px;overflow:hidden;background:#15171c;border:1px solid rgba(255,255,255,.1)}video{width:100%;height:100%;display:block;object-fit:cover;background:#000}.screen video{object-fit:contain}.label{position:absolute;z-index:2;left:8px;bottom:8px;padding:6px 8px;border-radius:6px;background:rgba(0,0,0,.58);font-weight:700}.empty{height:100%;display:grid;place-items:center;font-size:42px;font-weight:800}</style></head><body><div class="head"><span class="live">Live</span><strong>${safeRoomName}</strong><span>${callElapsed()}</span></div><main id="tiles" class="grid"></main></body></html>`);
+  panelWindow.document.close();
+  syncPanelWindow();
+  if (panelWindowSyncId) clearInterval(panelWindowSyncId);
+  panelWindowSyncId = setInterval(syncPanelWindow, 1000);
 }
 
 function bindRemoteAudio(el, username) {
@@ -208,6 +312,15 @@ function bindRemoteAudio(el, username) {
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="m9 10 3-3 3 3"/><path d="M12 7v7"/></svg>
         </button>
         <button
+          class="icon-btn"
+          type="button"
+          aria-label="Extract voice panel"
+          title="Extract voice panel"
+          @click="openPanelWindow"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+        </button>
+        <button
           class="icon-btn icon-btn--danger"
           type="button"
           aria-label="End call"
@@ -228,7 +341,9 @@ function bindRemoteAudio(el, username) {
           'is-self': tile.self,
           'is-muted': tile.self && messenger.state.callMuted,
           'has-video': tile.video,
-          'is-screen': tile.kind === 'screen'
+          'is-screen': tile.kind === 'screen',
+          'is-focused': focusedTileId === tile.id,
+          'is-fullscreen': fullscreenTileId === tile.id
         }"
       >
         <div v-if="tile.video" class="calltile__video">
@@ -252,6 +367,17 @@ function bindRemoteAudio(el, username) {
             :class="`avatar--${messenger.accentFor(tile.username)}`"
           >{{ initialsOf(tile.username) }}</span>
         </div>
+        <div v-if="tile.video" class="calltile__tools">
+          <button type="button" title="Zoom" aria-label="Zoom view" @click="setFocusedTile(tile)">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/><path d="M11 8v6M8 11h6"/></svg>
+          </button>
+          <button type="button" title="Fullscreen" aria-label="Fullscreen view" @click="toggleTileFullscreen(tile)">
+            <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+          </button>
+          <button type="button" title="Extract view" aria-label="Extract view" @click="openTileWindow(tile)">
+            <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+          </button>
+        </div>
         <div class="calltile__overlay">
           <span class="calltile__name">
             {{ tile.username }}<span v-if="tile.self" class="calltile__you"> (you)</span>
@@ -262,6 +388,12 @@ function bindRemoteAudio(el, username) {
           </span>
         </div>
       </div>
+    </div>
+
+    <div v-if="focusedTile" class="callpanel__focus" :class="{ 'is-fullscreen': fullscreenTileId === focusedTile.id }">
+      <button class="callpanel__focus-close" type="button" aria-label="Close enlarged view" @click="clearFocusedTile">×</button>
+      <video :ref="bindFocusedVideo" autoplay playsinline :muted="focusedTile.self"></video>
+      <div class="callpanel__focus-label">{{ focusedTile.username }} · {{ tileLabel(focusedTile) }}</div>
     </div>
 
     <div class="callpanel__audio" v-if="remoteMembers.length">

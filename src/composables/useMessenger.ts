@@ -33,7 +33,7 @@ const RECONNECT_DEFAULTS = {
   minDelayMs: 1000,
   maxDelayMs: 30000
 };
-const PROFILE_IMAGE_MIME_TYPES = new Set(["image/png", "image/apng", "image/gif", "image/jpeg", "image/jpg"]);
+const PROFILE_IMAGE_MIME_TYPES = new Set(["image/png", "image/apng", "image/gif", "image/jpeg", "image/jpg", "image/webp"]);
 const PRESENCE_STATUSES = ["online", "invisible", "dnd"];
 const DUPLICATE_MESSAGE_WINDOW_MS = 10 * 60 * 1000;
 const RANDOM_ROOM_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -663,6 +663,7 @@ function mimeFromProfileFile(file) {
   if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
   if (name.endsWith(".png") || name.endsWith(".apng")) return "image/png";
   if (name.endsWith(".gif")) return "image/gif";
+  if (name.endsWith(".webp")) return "image/webp";
   return "";
 }
 
@@ -1313,7 +1314,7 @@ export function useMessenger() {
 
     const mimeType = mimeFromProfileFile(file);
     if (!mimeType) {
-      state.lastError = "Profile images support PNG, APNG, GIF and JPEG.";
+      state.lastError = "Profile images support PNG, APNG, GIF, JPEG and WEBP.";
       showToast(state.lastError);
       return false;
     }

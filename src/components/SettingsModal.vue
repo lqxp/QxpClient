@@ -304,9 +304,9 @@ onBeforeUnmount(() => {
             <button v-if="profile.banner" type="button" class="btn settings-profile__photo"
               @click="messenger.clearProfileImage('banner')">Clear banner</button>
           </div>
-          <input ref="avatarInputRef" type="file" accept="image/png,image/apng,image/gif,image/jpeg,.apng"
+          <input ref="avatarInputRef" type="file" accept="image/png,image/apng,image/gif,image/jpeg,image/webp,.apng,.webp"
             style="display: none" @change="onAvatarPicked" />
-          <input ref="bannerInputRef" type="file" accept="image/png,image/apng,image/gif,image/jpeg,.apng"
+          <input ref="bannerInputRef" type="file" accept="image/png,image/apng,image/gif,image/jpeg,image/webp,.apng,.webp"
             style="display: none" @change="onBannerPicked" />
         </div>
 
@@ -406,7 +406,7 @@ onBeforeUnmount(() => {
         </div>
 
         <p class="settings-note">
-          Profile image max 2 MB. Banner max 5 MB, PNG/APNG/GIF/JPEG.
+          Profile image max 2 MB. Banner max 5 MB, PNG/APNG/GIF/JPEG/WEBP.
         </p>
       </section>
 
