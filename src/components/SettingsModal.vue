@@ -209,7 +209,10 @@ onBeforeUnmount(() => {
       </label>
 
       <button class="settings__card" type="button" @click="activeSection = 'profile'">
-        <span class="avatar avatar--md" :class="`avatar--${meAccent}`">{{ meInitials }}</span>
+        <span v-if="avatarSrc" class="side-user__avatar">
+          <img :src="avatarSrc" alt="" />
+        </span>
+        <span v-else class="avatar avatar--md" :class="`avatar--${meAccent}`">{{ meInitials }}</span>
         <span>
           <strong>{{ messenger.state.username || "anonymous" }}</strong>
           <small>{{ messenger.connectionLabel.value }}</small>
