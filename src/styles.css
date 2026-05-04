@@ -873,7 +873,7 @@ textarea {
   color: var(--muted);
   flex: none;
   min-height: 66px;
-  background: rgba(18, 18, 20, 0.28);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
 }
 
 .side__foot .dot {
@@ -1263,17 +1263,17 @@ textarea {
   max-height: calc(100vh - 36px);
   overflow: auto;
   border-radius: 16px;
-  background: #080809;
+  background: var(--surface);
   border: 1px solid var(--line-strong);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48), 0 0 0 1px var(--line-strong);
 }
 
 .profile-card__banner {
   width: 100%;
   aspect-ratio: 21 / 9;
   background:
-    linear-gradient(135deg, rgba(32, 144, 234, 0.22), rgba(63, 207, 111, 0.12)),
-    #202124;
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, transparent), rgba(63, 207, 111, 0.12)),
+    var(--surface-2);
 }
 
 .profile-card__banner img,
@@ -1295,7 +1295,7 @@ textarea {
   left: 42px;
   width: 132px;
   height: 132px;
-  border: 7px solid #080809;
+  border: 7px solid var(--surface);
   font-size: 40px;
 }
 
@@ -1348,19 +1348,19 @@ textarea {
   position: absolute;
   top: 14px;
   right: 14px;
-  background: rgba(0, 0, 0, 0.32);
-  color: rgba(255, 255, 255, 0.76);
+  background: color-mix(in srgb, var(--surface-2) 85%, transparent);
+  color: var(--text);
 }
 
 .profile-card__close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--surface-hover);
+  color: var(--text);
 }
 
 .profile-card__section {
   margin-top: 34px;
   padding-left: 16px;
-  border-left: 5px solid rgba(255, 255, 255, 0.24);
+  border-left: 5px solid color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
 .profile-card__section h4 {
@@ -3584,6 +3584,20 @@ textarea {
 :root[data-theme="light"] .admin-row {
   background: var(--surface-2);
   border-color: var(--line-strong);
+}
+
+:root[data-theme="light"] .side__foot {
+  background: var(--surface);
+}
+
+:root[data-theme="light"] .side-user:hover,
+:root[data-theme="light"] .side-status__menu button:hover,
+:root[data-theme="light"] .side-status__menu button.is-active {
+  background: var(--surface-hover);
+}
+
+:root[data-theme="light"] .profile-card {
+  background: rgba(12, 22, 34, 0.22);
 }
 
 @media (max-width: 820px) {
