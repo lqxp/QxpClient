@@ -1833,7 +1833,9 @@ export function useMessenger() {
     if (!state.connected || !state.identified) return;
     const d: any = {
       deleteMessagesOnLeave: state.deleteMessagesOnLeave,
-      status: sanitizePresenceStatus(state.status)
+      status: sanitizePresenceStatus(state.status),
+      clientId: localClientId,
+      platform: localPlatform
     };
     if (includeProfile) d.profile = normalizeProfile(state.profile);
     send({ op: 8, d });
@@ -3024,6 +3026,17 @@ export function useMessenger() {
           upsertMessage(d).catch(() => {
             state.lastError = "Could not process edited message.";
           });
+        }
+        break;
+      case 13:
+        {
+          const key = sanitizeUsername(d?.username || d?.user);
+          if (key) {
+            if (d?.platform) rememberClientPlatform(key, d.platform);
+            else if (typeof d?.isMobile === "boolean") rememberClientPlatform(key, d.isMobile ? "mobile" : "desktop");
+            if (d?.profile) state.profilesByUser[key] = normalizeProfile(d.profile);
+            if (d?.status) state.statusesByUser[key] = sanitizePresenceStatus(d.status);
+          }
         }
         break;
       case 87:
