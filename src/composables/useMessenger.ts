@@ -3072,6 +3072,15 @@ export function useMessenger() {
     if (d?.statuses && typeof d.statuses === "object") {
       applyStatuses(d.statuses);
     }
+    if (d?.platforms && typeof d.platforms === "object") {
+      for (const [username, platforms] of Object.entries(d.platforms)) {
+        const key = sanitizeUsername(username);
+        if (!key) continue;
+        for (const platform of Array.isArray(platforms) ? platforms : [platforms]) {
+          rememberClientPlatform(key, platform);
+        }
+      }
+    }
     if (Array.isArray(d?.voicePlayers)) {
       state.voiceMembersByRoom[roomId] = normalizeRoomUsers(d.voicePlayers);
     }
