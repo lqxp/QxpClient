@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from "vue";
+import { appRuntimeConfig } from "@/config/runtime";
 
 const props = defineProps({
   messenger: { type: Object, required: true }
@@ -151,6 +152,37 @@ const microphones = computed(() =>
 const headphones = computed(() =>
   props.messenger.state.audioDevices.filter((device) => device.kind === "audiooutput")
 );
+
+const runtimePlatform = computed(() => {
+  const messengerPlatform = String(props.messenger.platformsForUser?.(props.messenger.state.username || "")?.[0] || "").trim();
+  if (messengerPlatform) return messengerPlatform;
+  const ua = String(navigator.userAgent || "").toLowerCase();
+  if (ua.includes("android")) return "android";
+  if (/iphone|ipad|ipod/.test(ua)) return "ios";
+  if (ua.includes("windows")) return "windows";
+  if (ua.includes("mac os") || ua.includes("macintosh")) return "macos";
+  if (ua.includes("linux")) return "linux";
+  return "web";
+});
+
+const runtimeDetails = computed(() => {
+  const uaData = (navigator as Navigator & { userAgentData?: { platform?: string; mobile?: boolean } }).userAgentData;
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "unknown";
+  return {
+    appVersion: __APP_VERSION__,
+    platform: props.messenger.platformLabel(runtimePlatform.value),
+    os: uaData?.platform || navigator.platform || "unknown",
+    mobile: uaData?.mobile ?? /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+    secureContext: window.isSecureContext,
+    online: navigator.onLine,
+    language: navigator.language || "unknown",
+    timezone,
+    userAgent: navigator.userAgent,
+    serverOrigin: appRuntimeConfig.serverOrigin,
+    apiBaseUrl: appRuntimeConfig.apiBaseUrl,
+    wsUrl: appRuntimeConfig.wsUrl
+  };
+});
 
 function deviceLabel(device, fallback) {
   return device.label || fallback;
@@ -713,6 +745,60 @@ onBeforeUnmount(() => {
             <div>
               <dt>Saved rooms</dt>
               <dd>{{ messenger.state.rooms.length }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="settings-group">
+          <h4>Developer details</h4>
+          <dl class="settings-kv">
+            <div>
+              <dt>App version</dt>
+              <dd>{{ runtimeDetails.appVersion }}</dd>
+            </div>
+            <div>
+              <dt>Platform</dt>
+              <dd>{{ runtimeDetails.platform }}</dd>
+            </div>
+            <div>
+              <dt>Operating system</dt>
+              <dd>{{ runtimeDetails.os }}</dd>
+            </div>
+            <div>
+              <dt>Mobile runtime</dt>
+              <dd>{{ runtimeDetails.mobile ? "yes" : "no" }}</dd>
+            </div>
+            <div>
+              <dt>Secure context</dt>
+              <dd>{{ runtimeDetails.secureContext ? "yes" : "no" }}</dd>
+            </div>
+            <div>
+              <dt>Online</dt>
+              <dd>{{ runtimeDetails.online ? "yes" : "no" }}</dd>
+            </div>
+            <div>
+              <dt>Language</dt>
+              <dd>{{ runtimeDetails.language }}</dd>
+            </div>
+            <div>
+              <dt>Timezone</dt>
+              <dd>{{ runtimeDetails.timezone }}</dd>
+            </div>
+            <div>
+              <dt>Server origin</dt>
+              <dd>{{ runtimeDetails.serverOrigin }}</dd>
+            </div>
+            <div>
+              <dt>API base URL</dt>
+              <dd>{{ runtimeDetails.apiBaseUrl }}</dd>
+            </div>
+            <div>
+              <dt>WebSocket URL</dt>
+              <dd>{{ runtimeDetails.wsUrl }}</dd>
+            </div>
+            <div>
+              <dt>User agent</dt>
+              <dd>{{ runtimeDetails.userAgent }}</dd>
             </div>
           </dl>
         </div>
