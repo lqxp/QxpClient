@@ -528,7 +528,7 @@ onBeforeUnmount(() => {
               <option value="">System default</option>
               <option v-for="(device, index) in microphones" :key="device.deviceId || `mic-${index}`"
                 :value="device.deviceId">
-                {{ deviceLabel(device, `Microphone ${index + 1}`) }}
+                {{ deviceLabel(device, `Microphone ${Number(index) + 1}`) }}
               </option>
             </select>
           </label>
@@ -540,7 +540,7 @@ onBeforeUnmount(() => {
               <option value="">System default</option>
               <option v-for="(device, index) in headphones" :key="device.deviceId || `speaker-${index}`"
                 :value="device.deviceId">
-                {{ deviceLabel(device, `Output ${index + 1}`) }}
+                {{ deviceLabel(device, `Output ${Number(index) + 1}`) }}
               </option>
             </select>
           </label>
