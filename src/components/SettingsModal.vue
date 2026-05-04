@@ -261,9 +261,9 @@ onBeforeUnmount(() => {
             <path d="M4 21a8 8 0 0 1 16 0" />
           </svg>
           <svg v-else-if="section.id === 'ui'" viewBox="0 0 24 24">
-            <path d="M12 3a9 9 0 1 0 9 9" />
-            <path d="M12 3a3 3 0 0 1 0 6h0a3 3 0 0 0 0 6h5" />
-            <circle cx="17.5" cy="8.5" r="1" />
+            <rect x="3" y="4" width="18" height="12" rx="2" />
+            <path d="M8 20h8" />
+            <path d="M12 16v4" />
           </svg>
           <svg v-else-if="section.id === 'security'" viewBox="0 0 24 24">
             <rect x="5" y="10" width="14" height="10" rx="2" />
