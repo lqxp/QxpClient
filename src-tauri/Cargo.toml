@@ -16,7 +16,7 @@ name = "qxp-tauri"
 path = "src/main.rs"
 
 [build-dependencies]
-tauri-build = { version = "2.5.6", features = [] }
+tauri-build = { version = "=2.6.0", features = [] }
 
 [dependencies]
 tauri = { version = "2.10.3", features = [] }
