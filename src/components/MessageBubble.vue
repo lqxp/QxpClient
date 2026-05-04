@@ -38,6 +38,7 @@ const avatarSrc = computed(() => {
 });
 
 const showTimestamp = computed(() => props.position === "end" || props.position === "single");
+const isDiscordStyle = computed(() => props.messenger.state.messageStyle === "discord");
 
 const attachmentUrl = computed(() => props.messenger.attachmentUrlFor(props.message));
 const attachmentKind = computed(() => props.message.kind);
@@ -298,14 +299,14 @@ function onDelete() {
     ]"
   >
     <span
-      v-if="!isOwn && showAvatar"
+      v-if="showAvatar"
       class="msg__avatar"
       :class="avatarSrc ? 'msg__avatar--image' : `avatar--${avatarAccent}`"
     >
       <img v-if="avatarSrc" :src="avatarSrc" :alt="`${message.username} avatar`" />
       <template v-else>{{ avatarInitials }}</template>
     </span>
-    <span v-else-if="!isOwn" class="msg__spacer"></span>
+    <span v-else class="msg__spacer"></span>
 
     <div v-if="jumbo" class="jumbo">
       <div v-if="showAuthor && !isOwn" class="jumbo__author">{{ message.username }}</div>
@@ -407,7 +408,10 @@ function onDelete() {
         </div>
       </div>
 
-      <div v-if="showAuthor && !isOwn" class="bubble__author">{{ message.username }}</div>
+      <div v-if="showAuthor" class="bubble__author">
+        <span>{{ message.username }}</span>
+        <span v-if="isDiscordStyle" class="bubble__author-time">{{ messenger.formatTime(message.timestamp) }}</span>
+      </div>
 
       <button
         v-if="message.replyToMessageId"
@@ -540,9 +544,10 @@ function onDelete() {
         </div>
       </a>
 
-      <span v-if="showTimestamp && !deleted" class="bubble__time">
+      <span v-if="showTimestamp && !deleted && !isDiscordStyle" class="bubble__time">
         {{ messenger.formatTime(message.timestamp) }}<span v-if="edited"> · edited</span>
       </span>
+      <span v-else-if="isDiscordStyle && edited && !deleted" class="bubble__edited">(edited)</span>
 
       <div v-if="message.reactions.length && !deleted" class="reactions">
         <button

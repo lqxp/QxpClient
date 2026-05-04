@@ -366,6 +366,9 @@ function loadPersisted() {
       autoArchiveUploads: Boolean(raw.autoArchiveUploads),
       streamerMode: Boolean(raw.streamerMode),
       messageSoundEnabled: Boolean(raw.messageSoundEnabled),
+      themeMode: ["dark", "light", "adaptive"].includes(String(raw.themeMode || "").toLowerCase()) ? String(raw.themeMode).toLowerCase() : "dark",
+      appAccent: ["blue", "violet", "emerald", "rose", "amber"].includes(String(raw.appAccent || "").toLowerCase()) ? String(raw.appAccent).toLowerCase() : "blue",
+      messageStyle: ["bubble", "discord"].includes(String(raw.messageStyle || "").toLowerCase()) ? String(raw.messageStyle).toLowerCase() : "bubble",
       androidNotificationsEnabled: raw.androidNotificationsEnabled !== false,
       serverClearsLocalMessages: raw.serverClearsLocalMessages !== false,
       autoReconnectEnabled: raw.autoReconnectEnabled !== false,
@@ -394,6 +397,9 @@ function loadPersisted() {
       autoArchiveUploads: false,
       streamerMode: false,
       messageSoundEnabled: false,
+      themeMode: "dark",
+      appAccent: "blue",
+      messageStyle: "bubble",
       androidNotificationsEnabled: true,
       serverClearsLocalMessages: true,
       autoReconnectEnabled: RECONNECT_DEFAULTS.enabled,
@@ -460,6 +466,9 @@ function savePersisted(state) {
         autoArchiveUploads: state.autoArchiveUploads,
         streamerMode: state.streamerMode,
         messageSoundEnabled: state.messageSoundEnabled,
+        themeMode: state.themeMode,
+        appAccent: state.appAccent,
+        messageStyle: state.messageStyle,
         androidNotificationsEnabled: state.androidNotificationsEnabled,
         serverClearsLocalMessages: state.serverClearsLocalMessages,
         autoReconnectEnabled: state.autoReconnectEnabled,
@@ -814,6 +823,9 @@ export function useMessenger() {
     autoArchiveUploads: persisted.autoArchiveUploads,
     streamerMode: persisted.streamerMode,
     messageSoundEnabled: persisted.messageSoundEnabled,
+    themeMode: persisted.themeMode,
+    appAccent: persisted.appAccent,
+    messageStyle: persisted.messageStyle,
     androidNotificationsEnabled: persisted.androidNotificationsEnabled,
     serverClearsLocalMessages: persisted.serverClearsLocalMessages,
     autoReconnectEnabled: persisted.autoReconnectEnabled,
@@ -1283,6 +1295,24 @@ export function useMessenger() {
   function setAndroidNotificationsEnabled(value) {
     state.androidNotificationsEnabled = Boolean(value);
     if (state.androidNotificationsEnabled) requestNotificationPermission();
+    persist();
+  }
+
+  function setThemeMode(value) {
+    const next = ["dark", "light", "adaptive"].includes(String(value || "").toLowerCase()) ? String(value).toLowerCase() : "dark";
+    state.themeMode = next;
+    persist();
+  }
+
+  function setAppAccent(value) {
+    const next = ["blue", "violet", "emerald", "rose", "amber"].includes(String(value || "").toLowerCase()) ? String(value).toLowerCase() : "blue";
+    state.appAccent = next;
+    persist();
+  }
+
+  function setMessageStyle(value) {
+    const next = ["bubble", "discord"].includes(String(value || "").toLowerCase()) ? String(value).toLowerCase() : "bubble";
+    state.messageStyle = next;
     persist();
   }
 
@@ -3243,6 +3273,9 @@ export function useMessenger() {
       autoArchiveUploads: state.autoArchiveUploads,
       streamerMode: state.streamerMode,
       messageSoundEnabled: state.messageSoundEnabled,
+      themeMode: state.themeMode,
+      appAccent: state.appAccent,
+      messageStyle: state.messageStyle,
       androidNotificationsEnabled: state.androidNotificationsEnabled,
       serverClearsLocalMessages: state.serverClearsLocalMessages,
       autoReconnectEnabled: state.autoReconnectEnabled,
@@ -3327,6 +3360,9 @@ export function useMessenger() {
         if (typeof data.deleteMessagesOnLeave === "boolean") state.deleteMessagesOnLeave = data.deleteMessagesOnLeave;
         if (typeof data.streamerMode === "boolean") state.streamerMode = data.streamerMode;
         if (typeof data.messageSoundEnabled === "boolean") state.messageSoundEnabled = data.messageSoundEnabled;
+        if (typeof data.themeMode === "string") setThemeMode(data.themeMode);
+        if (typeof data.appAccent === "string") setAppAccent(data.appAccent);
+        if (typeof data.messageStyle === "string") setMessageStyle(data.messageStyle);
         if (typeof data.androidNotificationsEnabled === "boolean") state.androidNotificationsEnabled = data.androidNotificationsEnabled;
         if (typeof data.autoArchiveUploads === "boolean") state.autoArchiveUploads = data.autoArchiveUploads;
         if (typeof data.autoReconnectEnabled === "boolean") state.autoReconnectEnabled = data.autoReconnectEnabled;
@@ -3416,6 +3452,9 @@ export function useMessenger() {
     setStreamerMode,
     setMessageSoundEnabled,
     setAndroidNotificationsEnabled,
+    setThemeMode,
+    setAppAccent,
+    setMessageStyle,
     setAutoReconnectEnabled,
     setServerClearsLocalMessages,
     setAutoArchiveUploads,

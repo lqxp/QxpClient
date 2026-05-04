@@ -34,6 +34,7 @@ const profileTextChanged = computed(() =>
 
 const allSections = [
   { id: "profile", label: "Profile" },
+  { id: "ui", label: "UI & Appearance" },
   { id: "security", label: "Security" },
   { id: "privacy", label: "Privacy" },
   { id: "notifications", label: "Notifications" },
@@ -259,6 +260,11 @@ onBeforeUnmount(() => {
             <circle cx="12" cy="8" r="4" />
             <path d="M4 21a8 8 0 0 1 16 0" />
           </svg>
+          <svg v-else-if="section.id === 'ui'" viewBox="0 0 24 24">
+            <path d="M12 3a9 9 0 1 0 9 9" />
+            <path d="M12 3a3 3 0 0 1 0 6h0a3 3 0 0 0 0 6h5" />
+            <circle cx="17.5" cy="8.5" r="1" />
+          </svg>
           <svg v-else-if="section.id === 'security'" viewBox="0 0 24 24">
             <rect x="5" y="10" width="14" height="10" rx="2" />
             <path d="M8 10V7a4 4 0 0 1 8 0v3" />
@@ -392,6 +398,7 @@ onBeforeUnmount(() => {
           </label>
         </div>
 
+
         <div class="settings-group">
           <label class="settings-field">
             <span class="settings-field__icon">
@@ -403,8 +410,7 @@ onBeforeUnmount(() => {
             </span>
             <span class="settings-field__body">
               <span class="settings-field__label">Description</span>
-              <span class="settings-field__hint">{{ draftDescription.length }}/{{
-                messenger.MAX_PROFILE_DESCRIPTION_LENGTH }}</span>
+              <span class="settings-field__hint">{{ draftDescription.length }}/{{ messenger.MAX_PROFILE_DESCRIPTION_LENGTH }}</span>
             </span>
           </label>
           <textarea v-model="draftDescription" class="settings-input settings-textarea"
@@ -440,6 +446,46 @@ onBeforeUnmount(() => {
         <p class="settings-note">
           Profile image max 2 MB. Banner max 5 MB, PNG/APNG/GIF/JPEG/WEBP.
         </p>
+      </section>
+
+      <section v-else-if="activeSection === 'ui'" class="settings-page">
+        <div class="settings-group">
+          <h4>Theme</h4>
+          <label class="settings-select">
+            <span>Application theme</span>
+            <select :value="messenger.state.themeMode" @change="messenger.setThemeMode(targetValue($event))">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+              <option value="adaptive">Adaptive (time based)</option>
+            </select>
+          </label>
+          <p class="settings-note">Adaptive switches automatically based on your local time.</p>
+        </div>
+
+        <div class="settings-group">
+          <h4>Colors</h4>
+          <label class="settings-select">
+            <span>Accent color</span>
+            <select :value="messenger.state.appAccent" @change="messenger.setAppAccent(targetValue($event))">
+              <option value="blue">Blue</option>
+              <option value="violet">Violet</option>
+              <option value="emerald">Emerald</option>
+              <option value="rose">Rose</option>
+              <option value="amber">Amber</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="settings-group">
+          <h4>Messages</h4>
+          <label class="settings-select">
+            <span>Message shape</span>
+            <select :value="messenger.state.messageStyle" @change="messenger.setMessageStyle(targetValue($event))">
+              <option value="bubble">Bubbles</option>
+              <option value="discord">Discord-style (left line)</option>
+            </select>
+          </label>
+        </div>
       </section>
 
       <section v-else-if="activeSection === 'security'" class="settings-page">

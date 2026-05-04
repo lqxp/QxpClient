@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useMessenger } from "@/composables/useMessenger";
 import MessengerSidebar from "@/components/MessengerSidebar.vue";
 import MemberSidebar from "@/components/MemberSidebar.vue";
@@ -20,6 +20,7 @@ const callRoom = computed(() => messenger.state.callRoom);
 const callRoomLabel = computed(() => messenger.displayRoomName(callRoom.value));
 const callRoomDifferent = computed(() => inCall.value && callRoom.value !== messenger.state.activeRoom);
 const callElapsed = computed(() => messenger.formatDuration(messenger.state.callElapsed));
+let adaptiveThemeTimer: ReturnType<typeof setInterval> | null = null;
 
 watch(needsOnboarding, (required) => {
   if (!required && !messenger.state.connected && !messenger.state.ws) {
@@ -31,8 +32,36 @@ watch(() => messenger.state.activeRoom, (room) => {
   mobileThreadOpen.value = !!room;
 }, { immediate: true });
 
+function applyAppearance() {
+  const hour = new Date().getHours();
+  const adaptiveTheme = (hour >= 7 && hour < 19) ? "light" : "dark";
+  const theme = messenger.state.themeMode === "adaptive" ? adaptiveTheme : messenger.state.themeMode;
+
+  document.documentElement.setAttribute("data-theme", theme || "dark");
+  document.documentElement.setAttribute("data-accent", messenger.state.appAccent || "blue");
+  document.documentElement.setAttribute("data-message-style", messenger.state.messageStyle || "bubble");
+}
+
+watch(() => [messenger.state.themeMode, messenger.state.appAccent, messenger.state.messageStyle], () => {
+  applyAppearance();
+}, { immediate: true });
+
+watch(() => messenger.state.themeMode, (mode) => {
+  if (adaptiveThemeTimer) {
+    clearInterval(adaptiveThemeTimer);
+    adaptiveThemeTimer = null;
+  }
+  if (mode === "adaptive") {
+    adaptiveThemeTimer = setInterval(applyAppearance, 60_000);
+  }
+}, { immediate: true });
+
 onMounted(() => {
   if (messenger.state.authToken) messenger.refreshSession();
+});
+
+onBeforeUnmount(() => {
+  if (adaptiveThemeTimer) clearInterval(adaptiveThemeTimer);
 });
 
 function showConversationList() {

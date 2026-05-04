@@ -52,12 +52,13 @@ const decorated = computed(() => {
     else if (sameAsPrev && sameAsNext) position = "mid";
     else position = "end";
 
+    const discordStyle = props.messenger.state.messageStyle === "discord";
     out.push({
       m,
       showDay,
       position,
       showAuthor: !sameAsPrev,
-      showAvatar: position === "end" || position === "single"
+      showAvatar: discordStyle ? (!sameAsPrev) : (position === "end" || position === "single")
     });
   }
   return out;
