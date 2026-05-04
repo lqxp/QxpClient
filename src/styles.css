@@ -447,7 +447,7 @@ textarea {
 .onboarding__field input:focus,
 .onboarding__field textarea:focus {
   border-color: var(--accent);
-  background: #121316;
+  background: var(--surface);
 }
 
 .onboarding__field input::placeholder,
@@ -3099,7 +3099,7 @@ textarea {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #0f0f10;
+  background: var(--bg);
   color: var(--text);
   animation: modal-fade 120ms ease-out;
 }
@@ -3118,7 +3118,7 @@ textarea {
   min-width: 0;
   min-height: 0;
   padding: 22px 20px;
-  background: #28282a;
+  background: var(--surface);
   border-right: 1px solid var(--line-strong);
 }
 
@@ -3193,7 +3193,7 @@ textarea {
   height: 44px;
   padding: 0 16px;
   border-radius: 12px;
-  color: #d8d8dc;
+  color: var(--text);
   font-size: 15px;
   text-align: left;
   min-width: 0;
@@ -3242,7 +3242,7 @@ textarea {
   place-items: center;
   min-height: 48px;
   margin-bottom: 24px;
-  background: linear-gradient(#0f0f10 72%, rgba(15, 15, 16, 0));
+  background: linear-gradient(var(--bg) 72%, transparent);
 }
 
 .settings__main-head h3 {
@@ -3270,8 +3270,8 @@ textarea {
   overflow: hidden;
   border-radius: 12px;
   background:
-    linear-gradient(135deg, rgba(32, 144, 234, 0.22), rgba(63, 207, 111, 0.12)),
-    #202124;
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, transparent), rgba(63, 207, 111, 0.12)),
+    var(--surface-2);
   border: 1px solid var(--line-strong);
 }
 
@@ -3280,14 +3280,14 @@ textarea {
   height: 86px;
   font-size: 30px;
   margin-top: -54px;
-  border: 5px solid #0f0f10;
+  border: 5px solid var(--bg);
 }
 
 .settings-profile__avatar-image {
   width: 86px;
   height: 86px;
   margin-top: -54px;
-  border: 5px solid #0f0f10;
+  border: 5px solid var(--bg);
 }
 
 .settings-profile__photo {
@@ -3305,7 +3305,7 @@ textarea {
 
 .settings-group {
   padding: 24px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.11);
+  border-top: 1px solid var(--line-strong);
 }
 
 .settings-group:first-child {
@@ -3371,7 +3371,7 @@ textarea {
   padding: 0 14px;
   border-radius: 8px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--line-strong);
   color: var(--text);
   font-size: 15px;
 }
@@ -3390,7 +3390,8 @@ textarea {
 }
 
 .settings-select select option {
-  color: #111;
+  color: var(--text);
+  background: var(--surface);
 }
 
 .settings-btn {
@@ -3476,8 +3477,8 @@ textarea {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: #fff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.42), 0 0 16px rgba(255, 255, 255, 0.6);
+  background: var(--text);
+  box-shadow: 0 0 0 1px var(--line-strong);
 }
 
 .settings-range strong {
@@ -3564,6 +3565,25 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   overflow-wrap: anywhere;
+}
+
+:root[data-theme="light"] .settings__card {
+  background: var(--surface-2);
+}
+
+:root[data-theme="light"] .settings__nav-item:hover,
+:root[data-theme="light"] .settings__nav-item.is-active {
+  background: var(--surface-hover);
+}
+
+:root[data-theme="light"] .settings-profile__photo {
+  background: var(--surface-2);
+}
+
+:root[data-theme="light"] .settings-kv > div,
+:root[data-theme="light"] .admin-row {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
 }
 
 @media (max-width: 820px) {
