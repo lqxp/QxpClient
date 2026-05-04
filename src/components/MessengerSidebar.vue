@@ -8,6 +8,7 @@ const emit = defineEmits(["conversation-selected"]);
 
 const composeRef = ref(null);
 const statusMenuOpen = ref(false);
+const isMobile = ref(false);
 
 const meInitials = computed(() => initialsOf(props.messenger.state.username));
 const meAccent = computed(() => props.messenger.accentFor(props.messenger.state.username || "you"));
@@ -73,8 +74,19 @@ function onDocumentClick() {
   statusMenuOpen.value = false;
 }
 
-onMounted(() => document.addEventListener("click", onDocumentClick));
-onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
+function syncMobile() {
+  isMobile.value = window.matchMedia("(max-width: 820px)").matches;
+}
+
+onMounted(() => {
+  syncMobile();
+  window.addEventListener("resize", syncMobile, { passive: true });
+  document.addEventListener("click", onDocumentClick);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", syncMobile);
+  document.removeEventListener("click", onDocumentClick);
+});
 </script>
 
 <template>
@@ -151,6 +163,7 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
           <span v-if="c.unread > 0" class="conv__badge">{{ c.unread > 99 ? "99+" : c.unread }}</span>
 
           <button
+            v-if="!isMobile"
             class="conv__remove"
             type="button"
             :aria-label="`Remove ${c.name}`"

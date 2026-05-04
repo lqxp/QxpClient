@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onBeforeUnmount, watch } from "vue";
 import MessageBubble from "./MessageBubble.vue";
 
 const props = defineProps({
@@ -7,10 +7,33 @@ const props = defineProps({
 });
 
 const RUN_GAP_MS = 3 * 60 * 1000;
+const BANNER_TIMEOUT_MS = 4500;
+let bannerTimer: ReturnType<typeof setTimeout> | null = null;
 
 function dayKey(ts) {
   return new Date(ts).toDateString();
 }
+
+watch(
+  () => props.messenger.state.lastError,
+  (message) => {
+    if (bannerTimer) {
+      clearTimeout(bannerTimer);
+      bannerTimer = null;
+    }
+    if (!message) return;
+    bannerTimer = setTimeout(() => {
+      if (props.messenger.state.lastError === message) {
+        props.messenger.state.lastError = "";
+      }
+      bannerTimer = null;
+    }, BANNER_TIMEOUT_MS);
+  }
+);
+
+onBeforeUnmount(() => {
+  if (bannerTimer) clearTimeout(bannerTimer);
+});
 
 const decorated = computed(() => {
   const list = props.messenger.sortedMessages.value || [];

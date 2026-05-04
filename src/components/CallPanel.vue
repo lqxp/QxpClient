@@ -8,14 +8,22 @@ const props = defineProps({
 const now = ref(Date.now());
 const focusedTileId = ref("");
 const fullscreenTileId = ref("");
+const isMobile = ref(false);
 let tickId = null;
 let panelWindow = null;
 let panelWindowSyncId = null;
 
+function syncMobile() {
+  isMobile.value = window.matchMedia("(max-width: 820px)").matches;
+}
+
 onMounted(() => {
+  syncMobile();
+  window.addEventListener("resize", syncMobile, { passive: true });
   tickId = setInterval(() => { now.value = Date.now(); }, 500);
 });
 onBeforeUnmount(() => {
+  window.removeEventListener("resize", syncMobile);
   if (tickId) clearInterval(tickId);
   if (panelWindowSyncId) clearInterval(panelWindowSyncId);
 });
@@ -131,11 +139,6 @@ function mediaOf(username) {
   return props.messenger.state.remoteCallMediaByUser[username] || {};
 }
 
-function hasVideo(username) {
-  const media = mediaOf(username);
-  return Boolean(media.camera || media.screen);
-}
-
 const focusedTile = computed(() => callTiles.value.find((tile) => tile.id === focusedTileId.value));
 
 function tileLabel(tile) {
@@ -149,7 +152,7 @@ function escapePopupHtml(value) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+    .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
 
@@ -312,6 +315,7 @@ function bindRemoteAudio(el, username) {
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="m9 10 3-3 3 3"/><path d="M12 7v7"/></svg>
         </button>
         <button
+          v-if="!isMobile"
           class="icon-btn"
           type="button"
           aria-label="Extract voice panel"
@@ -374,7 +378,7 @@ function bindRemoteAudio(el, username) {
           <button type="button" title="Fullscreen" aria-label="Fullscreen view" @click="toggleTileFullscreen(tile)">
             <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
           </button>
-          <button type="button" title="Extract view" aria-label="Extract view" @click="openTileWindow(tile)">
+          <button v-if="!isMobile" type="button" title="Extract view" aria-label="Extract view" @click="openTileWindow(tile)">
             <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
           </button>
         </div>
