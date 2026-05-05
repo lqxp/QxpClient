@@ -334,7 +334,10 @@ function onDelete() {
   <article :id="messageDomId(message.messageId)" class="msg" :class="[
     { 'is-own': isOwn, 'is-jumbo': jumbo, 'is-deleted': deleted },
     { 'is-mentioned': effectiveMentioned, 'is-discord': isDiscordStyle },
-    { 'has-reactions': message.reactions.length && !deleted },
+    {
+      'has-reactions': message.reactions.length && !deleted,
+      'has-discord-reply': message.replyToMessageId && isDiscordStyle
+    },
     runClass
   ]">
     <span v-if="showAvatar" class="msg__avatar" :class="avatarSrc ? 'msg__avatar--image' : `avatar--${avatarAccent}`">
@@ -776,6 +779,11 @@ function onDelete() {
 :global(:root[data-message-style="discord"] .msg.is-own .msg__spacer) {
   display: grid;
   align-self: flex-start;
+}
+
+:global(:root[data-message-style="discord"] .msg.has-discord-reply .msg__avatar),
+:global(:root[data-message-style="discord"] .msg.has-discord-reply .msg__spacer) {
+  margin-top: 24px;
 }
 
 :global(:root[data-message-style="discord"] .bubble) {
