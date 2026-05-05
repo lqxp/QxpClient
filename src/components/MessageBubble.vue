@@ -426,6 +426,7 @@ function onDelete() {
         :class="{ 'is-missing': !repliedMessage }"
         @click="onReplyClick"
       >
+        <span class="reply-ref__hook" aria-hidden="true"></span>
         <span v-if="replyAvatarSrc" class="reply-ref__avatar reply-ref__avatar--image">
           <img :src="replyAvatarSrc" :alt="`${replyLabel} avatar`" />
         </span>
@@ -763,6 +764,7 @@ function onDelete() {
   height: 40px;
   margin-top: 5px;
   flex: none;
+  align-self: flex-start;
 }
 
 :global(:root[data-message-style="discord"] .msg.is-own) {
@@ -773,9 +775,11 @@ function onDelete() {
 :global(:root[data-message-style="discord"] .msg.is-own .msg__avatar),
 :global(:root[data-message-style="discord"] .msg.is-own .msg__spacer) {
   display: grid;
+  align-self: flex-start;
 }
 
 :global(:root[data-message-style="discord"] .bubble) {
+  position: static;
   width: 100%;
   min-width: 0;
   padding: 2px 0 0;
@@ -855,17 +859,17 @@ function onDelete() {
   text-align: left;
 }
 
-:global(:root[data-message-style="discord"] .reply-ref::before) {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 100%;
-  bottom: 0;
-  left: -36px;
-  margin: -1px 4px -2px -1px;
+:global(:root[data-message-style="discord"] .reply-ref__hook) {
+  width: 14px;
+  height: 10px;
+  margin-right: 2px;
+  margin-left: -18px;
   border-left: 2px solid #4f545c;
   border-top: 2px solid #4f545c;
   border-top-left-radius: 6px;
+  flex: none;
+  align-self: flex-end;
+  pointer-events: none;
 }
 
 :global(:root[data-message-style="discord"] .reply-ref.is-missing) {
@@ -966,6 +970,7 @@ function onDelete() {
 }
 
 :global(:root[data-message-style="discord"] .msg .bubble-actions) {
+  position: absolute;
   top: 0;
   right: 12px;
   left: auto;
@@ -1000,5 +1005,18 @@ function onDelete() {
   border-radius: 999px;
   background: var(--surface);
   box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+:global(:root[data-message-style="discord"] .jumbo) {
+  position: static;
+  min-width: 0;
+}
+
+:global(:root[data-message-style="discord"] .jumbo__glyph) {
+  display: inline-block;
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1;
 }
 </style>
