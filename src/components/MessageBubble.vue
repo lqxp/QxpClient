@@ -13,7 +13,30 @@ const props = defineProps({
   showAvatar: { type: Boolean, default: true }
 });
 
+function initialsFor(username) {
+  const name = String(username || "?").trim();
+  const parts = name.split(/[\s\-_]+/).slice(0, 2);
+  if (parts.length === 2 && parts[1]) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+function messageDomId(messageId) {
+  return `msg-${String(messageId || "")}`;
+}
+
+function previewTextFor(target, fallbackId = "") {
+  if (!target) return fallbackId ? "Original message is not loaded." : "";
+  if (target.deleted) return "Message deleted";
+  if (target.kind === "image") return "Photo";
+  if (target.kind === "video") return "Video";
+  if (target.kind === "audio" || target.kind === "voice") return "Voice message";
+  if (target.kind === "file") return target.attachment?.filename || "File attachment";
+  return target.text || "Message";
+}
+
 const isOwn = computed(() => props.messenger.isOwnMessage(props.message));
+const isDiscordStyle = computed(() => props.messenger.state.messageStyle === "discord");
+const showTimestamp = computed(() => props.position === "end" || props.position === "single");
 
 const runClass = computed(() => {
   switch (props.position) {
@@ -24,21 +47,12 @@ const runClass = computed(() => {
   }
 });
 
-const avatarInitials = computed(() => {
-  const n = String(props.message.username || "?").trim();
-  const parts = n.split(/[\s\-_]+/).slice(0, 2);
-  if (parts.length === 2 && parts[1]) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return n.slice(0, 2).toUpperCase();
-});
-
+const avatarInitials = computed(() => initialsFor(props.message.username));
 const avatarAccent = computed(() => props.messenger.accentFor(props.message.username || ""));
 const avatarSrc = computed(() => {
   const profile = props.messenger.profileFor?.(props.message.username || "");
   return props.messenger.profileImageSrc?.(profile?.avatar) || "";
 });
-
-const showTimestamp = computed(() => props.position === "end" || props.position === "single");
-const isDiscordStyle = computed(() => props.messenger.state.messageStyle === "discord");
 
 const attachmentUrl = computed(() => props.messenger.attachmentUrlFor(props.message));
 const attachmentKind = computed(() => props.message.kind);
@@ -58,6 +72,7 @@ const effectiveMentioned = computed(() => {
   const mentionRegex = new RegExp(`(^|[^a-z0-9_.])@${me.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}(?=$|[^a-z0-9_.])`, "i");
   return Boolean(props.message.mentioned) && mentionRegex.test(String(props.message.text || ""));
 });
+
 const imageViewerOpen = ref(false);
 const expandedText = ref(false);
 const selectedProfile = ref("");
@@ -65,21 +80,23 @@ const repliedMessage = computed(() =>
   props.messenger.findMessageById(props.message.roomId, props.message.replyToMessageId)
 );
 const replyLabel = computed(() => repliedMessage.value?.username || (props.message.replyToMessageId ? "Message" : ""));
-const replyText = computed(() => {
-  const target = repliedMessage.value;
-  if (!target) return props.message.replyToMessageId ? "Original message is not loaded." : "";
-  if (target.deleted) return "Message deleted";
-  if (target.kind === "image") return "Photo";
-  if (target.kind === "video") return "Video";
-  if (target.kind === "audio" || target.kind === "voice") return "Voice message";
-  if (target.kind === "file") return target.attachment?.filename || "File attachment";
-  return target.text || "Message";
+const replyText = computed(() => previewTextFor(repliedMessage.value, props.message.replyToMessageId));
+const replyEdited = computed(() => Number(repliedMessage.value?.editedAt || 0) > 0 && !repliedMessage.value?.deleted);
+const replyAvatarSrc = computed(() => {
+  const profile = props.messenger.profileFor?.(repliedMessage.value?.username || "");
+  return props.messenger.profileImageSrc?.(profile?.avatar) || "";
+});
+const replyAvatarAccent = computed(() => props.messenger.accentFor(repliedMessage.value?.username || replyLabel.value || ""));
+const replyAvatarInitials = computed(() => initialsFor(repliedMessage.value?.username || replyLabel.value || "?"));
+const replyHasVisual = computed(() => {
+  const kind = repliedMessage.value?.kind;
+  return kind === "image" || kind === "video" || kind === "audio" || kind === "voice" || kind === "file";
 });
 const textLineCount = computed(() => String(props.message.text || "").split(/\r?\n/).length);
 const isTextCollapsible = computed(() =>
   !deleted.value
   && textLineCount.value > 10
-  && (attachmentKind.value === "text" || attachmentKind.value === "file" || attachmentKind.value === "audio" || attachmentKind.value === "video" || attachmentKind.value === "image")
+  && ["text", "file", "audio", "video", "image"].includes(String(attachmentKind.value || "text"))
 );
 
 function escapeHtml(value) {
@@ -225,7 +242,8 @@ async function copyText(text) {
 }
 
 async function onCodeCopyClick(event) {
-  const button = event.target?.closest?.("[data-code-copy]");
+  const target = event.target as HTMLElement | null;
+  const button = target?.closest?.("[data-code-copy]") as HTMLElement | null;
   if (!button) return false;
 
   event.preventDefault();
@@ -239,10 +257,10 @@ async function onCodeCopyClick(event) {
   if (!copied) return true;
 
   const label = button.querySelector("span");
-  if (!label) return;
+  if (!label) return true;
   label.textContent = "Copied";
   button.classList.add("is-copied");
-  setTimeout(() => {
+  window.setTimeout(() => {
     label.textContent = "Copy";
     button.classList.remove("is-copied");
   }, 1200);
@@ -250,7 +268,8 @@ async function onCodeCopyClick(event) {
 }
 
 async function onMarkdownClick(event) {
-  const mention = event.target?.closest?.("[data-mention]");
+  const target = event.target as HTMLElement | null;
+  const mention = target?.closest?.("[data-mention]") as HTMLElement | null;
   const username = String(mention?.getAttribute?.("data-mention") || "").trim().toLowerCase();
   if (username && isKnownMention(username)) {
     event.preventDefault();
@@ -264,6 +283,23 @@ async function onMarkdownClick(event) {
 
 function closeProfile() {
   selectedProfile.value = "";
+}
+
+function jumpToMessage(messageId) {
+  const targetId = messageDomId(messageId);
+  const element = document.getElementById(targetId);
+  if (!element) return;
+  element.scrollIntoView({ behavior: "smooth", block: "center" });
+  element.classList.remove("is-jump-highlight");
+  requestAnimationFrame(() => {
+    element.classList.add("is-jump-highlight");
+    window.setTimeout(() => element.classList.remove("is-jump-highlight"), 1200);
+  });
+}
+
+function onReplyClick() {
+  if (!repliedMessage.value?.messageId) return;
+  jumpToMessage(repliedMessage.value.messageId);
 }
 
 function download() {
@@ -290,10 +326,11 @@ function onDelete() {
 
 <template>
   <article
+    :id="messageDomId(message.messageId)"
     class="msg"
     :class="[
       { 'is-own': isOwn, 'is-jumbo': jumbo, 'is-deleted': deleted },
-      { 'is-mentioned': effectiveMentioned },
+      { 'is-mentioned': effectiveMentioned, 'is-discord': isDiscordStyle },
       { 'has-reactions': message.reactions.length && !deleted },
       runClass
     ]"
@@ -334,11 +371,7 @@ function onDelete() {
             type="button"
             @click="messenger.toggleReaction(message, emoji)"
           >{{ emoji }}</button>
-          <button
-            type="button"
-            aria-label="Reply"
-            @click="messenger.startReply(message)"
-          >
+          <button type="button" aria-label="Reply" @click="messenger.startReply(message)">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17 4 12l5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
           </button>
           <button
@@ -350,13 +383,7 @@ function onDelete() {
           >
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
           </button>
-          <button
-            v-if="isOwn"
-            type="button"
-            class="pick__delete"
-            aria-label="Delete"
-            @click="onDelete"
-          >
+          <button v-if="isOwn" type="button" class="pick__delete" aria-label="Delete" @click="onDelete">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
         </div>
@@ -379,12 +406,7 @@ function onDelete() {
             type="button"
             @click="messenger.toggleReaction(message, emoji)"
           >{{ emoji }}</button>
-          <button
-            v-if="!deleted"
-            type="button"
-            aria-label="Reply"
-            @click="messenger.startReply(message)"
-          >
+          <button v-if="!deleted" type="button" aria-label="Reply" @click="messenger.startReply(message)">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17 4 12l5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
           </button>
           <button
@@ -396,35 +418,49 @@ function onDelete() {
           >
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
           </button>
-          <button
-            v-if="isOwn && !deleted"
-            type="button"
-            class="pick__delete"
-            aria-label="Delete"
-            @click="onDelete"
-          >
+          <button v-if="isOwn && !deleted" type="button" class="pick__delete" aria-label="Delete" @click="onDelete">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
         </div>
       </div>
+
+      <button
+        v-if="message.replyToMessageId"
+        type="button"
+        class="reply-ref"
+        :class="{ 'is-missing': !repliedMessage }"
+        @click="onReplyClick"
+      >
+        <span
+          v-if="replyAvatarSrc"
+          class="reply-ref__avatar reply-ref__avatar--image"
+        >
+          <img :src="replyAvatarSrc" :alt="`${replyLabel} avatar`" />
+        </span>
+        <span
+          v-else
+          class="reply-ref__avatar"
+          :class="`avatar--${replyAvatarAccent}`"
+        >
+          {{ replyAvatarInitials }}
+        </span>
+        <span class="reply-ref__username">{{ replyLabel }}</span>
+        <span v-if="replyHasVisual" class="reply-ref__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 7h3l1.4-2h7.2L17 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        </span>
+        <span class="reply-ref__text">{{ replyText }}</span>
+        <span v-if="replyEdited" class="reply-ref__edited">(edited)</span>
+      </button>
 
       <div v-if="showAuthor" class="bubble__author">
         <span>{{ message.username }}</span>
         <span v-if="isDiscordStyle" class="bubble__author-time">{{ messenger.formatTime(message.timestamp) }}</span>
       </div>
 
-      <button
-        v-if="message.replyToMessageId"
-        type="button"
-        class="reply-card"
-        @click="repliedMessage && messenger.startReply(repliedMessage)"
-      >
-        <span class="reply-card__author">{{ replyLabel }}</span>
-        <span class="reply-card__text">{{ replyText }}</span>
-      </button>
-
       <template v-if="deleted">
-        <div class="bubble__text bubble__text--deleted">Message deleted</div>
+        <div class="bubble__body">
+          <div class="bubble__text bubble__text--deleted">Message deleted</div>
+        </div>
       </template>
 
       <template v-else-if="attachmentKind === 'image' && attachmentUrl">
@@ -443,13 +479,15 @@ function onDelete() {
           :size-label="messenger.formatSize(message.attachment.size)"
           @close="imageViewerOpen = false"
         />
-        <div
-          v-if="message.text"
-          class="bubble__text markdown"
-          :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-          @click="onMarkdownClick"
-          v-html="markdown(message.text)"
-        ></div>
+        <div v-if="message.text" class="bubble__body">
+          <div
+            class="bubble__text markdown"
+            :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
+            @click="onMarkdownClick"
+            v-html="markdown(message.text)"
+          ></div>
+          <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
+        </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
           {{ expandedText ? "Show less" : "See more" }}
         </button>
@@ -461,13 +499,15 @@ function onDelete() {
           :filename="message.attachment.filename"
           :size-label="messenger.formatSize(message.attachment.size)"
         />
-        <div
-          v-if="message.text"
-          class="bubble__text markdown"
-          :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-          @click="onMarkdownClick"
-          v-html="markdown(message.text)"
-        ></div>
+        <div v-if="message.text" class="bubble__body">
+          <div
+            class="bubble__text markdown"
+            :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
+            @click="onMarkdownClick"
+            v-html="markdown(message.text)"
+          ></div>
+          <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
+        </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
           {{ expandedText ? "Show less" : "See more" }}
         </button>
@@ -481,13 +521,15 @@ function onDelete() {
           :fallback-duration="message.voiceDuration || ''"
           :messenger="messenger"
         />
-        <div
-          v-if="message.text && !message.text.startsWith('[voice:')"
-          class="bubble__text markdown"
-          :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-          @click="onMarkdownClick"
-          v-html="markdown(message.text)"
-        ></div>
+        <div v-if="message.text && !message.text.startsWith('[voice:')" class="bubble__body">
+          <div
+            class="bubble__text markdown"
+            :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
+            @click="onMarkdownClick"
+            v-html="markdown(message.text)"
+          ></div>
+          <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
+        </div>
         <button v-if="isTextCollapsible && message.text && !message.text.startsWith('[voice:')" type="button" class="bubble__more" @click="expandedText = !expandedText">
           {{ expandedText ? "Show less" : "See more" }}
         </button>
@@ -509,25 +551,30 @@ function onDelete() {
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </span>
         </button>
-        <div
-          v-if="message.text"
-          class="bubble__text markdown"
-          :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-          @click="onMarkdownClick"
-          v-html="markdown(message.text)"
-        ></div>
+        <div v-if="message.text" class="bubble__body">
+          <div
+            class="bubble__text markdown"
+            :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
+            @click="onMarkdownClick"
+            v-html="markdown(message.text)"
+          ></div>
+          <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
+        </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
           {{ expandedText ? "Show less" : "See more" }}
         </button>
       </template>
 
       <template v-else>
-        <div
-          class="bubble__text markdown"
-          :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-          @click="onMarkdownClick"
-          v-html="markdown(message.text)"
-        ></div>
+        <div class="bubble__body">
+          <div
+            class="bubble__text markdown"
+            :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
+            @click="onMarkdownClick"
+            v-html="markdown(message.text)"
+          ></div>
+          <span v-if="isDiscordStyle && edited && !deleted" class="bubble__edited">(edited)</span>
+        </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
           {{ expandedText ? "Show less" : "See more" }}
         </button>
@@ -547,7 +594,6 @@ function onDelete() {
       <span v-if="showTimestamp && !deleted && !isDiscordStyle" class="bubble__time">
         {{ messenger.formatTime(message.timestamp) }}<span v-if="edited"> · edited</span>
       </span>
-      <span v-else-if="isDiscordStyle && edited && !deleted" class="bubble__edited">(edited)</span>
 
       <div v-if="message.reactions.length && !deleted" class="reactions">
         <button
@@ -575,16 +621,85 @@ function onDelete() {
 </template>
 
 <style scoped>
-.msg__avatar--image {
+@import url("https://fonts.bunny.net/css?family=roboto:400,500,700");
+
+@font-face {
+  font-family: "Whitney";
+  src: url("https://cdn.jsdelivr.net/gh/ItzDerock/discord-components@master/assets/fonts/Book.woff") format("woff");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Whitney";
+  src: url("https://cdn.jsdelivr.net/gh/ItzDerock/discord-components@master/assets/fonts/Medium.woff") format("woff");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Whitney";
+  src: url("https://cdn.jsdelivr.net/gh/ItzDerock/discord-components@master/assets/fonts/Semibold.woff") format("woff");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Whitney";
+  src: url("https://cdn.jsdelivr.net/gh/ItzDerock/discord-components@master/assets/fonts/Bold.woff") format("woff");
+  font-weight: 700;
+  font-display: swap;
+}
+
+.msg__avatar--image,
+.reply-ref__avatar--image {
   overflow: hidden;
   background: var(--surface-2);
 }
 
-.msg__avatar--image img {
+.msg__avatar--image img,
+.reply-ref__avatar--image img {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
+}
+
+.reply-ref__avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  flex: none;
+}
+
+.bubble__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  column-gap: 0.25rem;
+  min-width: 0;
+}
+
+.reply-ref__icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  flex: none;
+}
+
+.reply-ref__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 :global(.mention[data-mention]) {
@@ -594,5 +709,318 @@ function onDelete() {
 :global(.mention[data-mention]:hover) {
   filter: brightness(1.15);
   text-decoration: underline;
+}
+
+:global(:root[data-message-style="discord"] .feed) {
+  gap: 0;
+  padding: 0 0 0.5rem;
+  background-color: transparent;
+  color: var(--text);
+  font-size: 16px;
+  font-family: Whitney, "Source Sans Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 170%;
+}
+
+:global(:root[data-message-style="discord"] .day) {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 1rem 0.75rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+:global(:root[data-message-style="discord"] .day::before),
+:global(:root[data-message-style="discord"] .day::after) {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+:global(:root[data-message-style="discord"] .msg) {
+  max-width: 100%;
+  width: 100%;
+  margin-top: 1.0625rem;
+  padding: 0 1em;
+  padding-right: 48px !important;
+  gap: 16px;
+  align-items: flex-start;
+  border-left: 0;
+  background: transparent;
+  color: #dcddde;
+  transition: background-color 50ms ease-out;
+}
+
+:global(:root[data-message-style="discord"] .msg.is-run-mid),
+:global(:root[data-message-style="discord"] .msg.is-run-end) {
+  margin-top: 0;
+}
+
+:global(:root[data-message-style="discord"] .msg:hover) {
+  background-color: rgba(4, 4, 5, 0.07);
+}
+
+:global(:root[data-message-style="discord"] .msg.is-mentioned) {
+  position: relative;
+  background-color: rgba(250, 166, 26, 0.1);
+}
+
+:global(:root[data-message-style="discord"] .msg.is-mentioned:hover) {
+  background-color: rgba(250, 166, 26, 0.08);
+}
+
+:global(:root[data-message-style="discord"] .msg.is-mentioned::before) {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background-color: #faa61a;
+}
+
+:global(:root[data-message-style="discord"] .msg.is-jump-highlight) {
+  background-color: rgba(88, 101, 242, 0.16);
+}
+
+:global(:root[data-message-style="discord"] .msg__avatar),
+:global(:root[data-message-style="discord"] .msg__spacer) {
+  width: 40px;
+  height: 40px;
+  margin-top: 5px;
+  flex: none;
+}
+
+:global(:root[data-message-style="discord"] .msg.is-own) {
+  flex-direction: row;
+  margin-left: 0;
+}
+
+:global(:root[data-message-style="discord"] .msg.is-own .msg__avatar),
+:global(:root[data-message-style="discord"] .msg.is-own .msg__spacer) {
+  display: grid;
+}
+
+:global(:root[data-message-style="discord"] .bubble) {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 0 0;
+  background: transparent;
+  color: #dcddde;
+  border-radius: 0;
+  font-family: Whitney, "Source Sans Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+:global(:root[data-message-style="discord"] .msg.is-own .bubble) {
+  color: #dcddde;
+}
+
+:global(:root[data-message-style="discord"] .bubble__author) {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin: 0 0 2px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+}
+
+:global(:root[data-message-style="discord"] .bubble__author-time) {
+  margin-left: 3px;
+  color: #72767d;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+:global(:root[data-message-style="discord"] .bubble__body) {
+  font-size: 1rem;
+  font-weight: 400;
+  word-break: break-word;
+  position: relative;
+}
+
+:global(:root[data-message-style="discord"] .bubble__text) {
+  display: inline;
+  min-width: 0;
+  font-size: 1rem;
+  line-height: 1.375rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  user-select: text;
+  font-weight: 400;
+}
+
+:global(:root[data-message-style="discord"] .bubble__text--deleted) {
+  color: #72767d;
+  font-style: italic;
+}
+
+:global(:root[data-message-style="discord"] .bubble__edited),
+:global(:root[data-message-style="discord"] .reply-ref__edited) {
+  margin-left: 0.25rem;
+  color: #72767d;
+  font-size: 10px;
+  white-space: nowrap;
+  flex: none;
+}
+
+:global(:root[data-message-style="discord"] .reply-ref) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: fit-content;
+  max-width: min(100%, 48rem);
+  margin: 0 0 4px;
+  padding-top: 2px;
+  color: #b9bbbe;
+  font-size: 0.875rem;
+  line-height: 1.125rem;
+  white-space: nowrap;
+  user-select: none;
+  text-align: left;
+}
+
+:global(:root[data-message-style="discord"] .reply-ref::before) {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  bottom: 0;
+  left: -36px;
+  margin: -1px 4px -2px -1px;
+  border-left: 2px solid #4f545c;
+  border-top: 2px solid #4f545c;
+  border-top-left-radius: 6px;
+}
+
+:global(:root[data-message-style="discord"] .reply-ref.is-missing) {
+  cursor: default;
+}
+
+:global(:root[data-message-style="discord"] .reply-ref:not(.is-missing):hover .reply-ref__text) {
+  color: #fff;
+}
+
+:global(:root[data-message-style="discord"] .reply-ref__username) {
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+  color: #fff;
+  opacity: 0.64;
+  font-weight: 500;
+}
+
+:global(:root[data-message-style="discord"] .reply-ref__text) {
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+}
+
+:global(:root[data-message-style="discord"] .markdown a) {
+  color: #00aff4;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+:global(:root[data-message-style="discord"] .markdown a:hover) {
+  text-decoration: underline;
+}
+
+:global(:root[data-message-style="discord"] .mention) {
+  display: inline-block;
+  padding: 0 2px;
+  border-radius: 3px;
+  background-color: hsla(235, 85.6%, 64.7%, 0.3);
+  color: #e3e7f8;
+  font-weight: 500;
+  transition: background-color 50ms ease-out, color 50ms ease-out;
+}
+
+:global(:root[data-message-style="discord"] .mention:hover) {
+  background-color: hsl(235, 85.6%, 64.7%);
+  color: #fff;
+  text-decoration: none;
+  filter: none;
+}
+
+:global(:root[data-message-style="discord"] .markdown code) {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #2f3136;
+  font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", monospace;
+  font-size: 0.875em;
+}
+
+:global(:root[data-message-style="discord"] .codeblock) {
+  margin: 0.25rem 0;
+  border: 1px solid #202225;
+  border-radius: 4px;
+  background: #2f3136;
+  box-shadow: none;
+}
+
+:global(:root[data-message-style="discord"] .codeblock__head) {
+  min-height: 32px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #202225;
+  color: #b9bbbe;
+  font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", monospace;
+  font-size: 11px;
+}
+
+:global(:root[data-message-style="discord"] .codeblock__copy) {
+  background: rgba(255, 255, 255, 0.06);
+  color: #b9bbbe;
+}
+
+:global(:root[data-message-style="discord"] .codeblock__copy:hover),
+:global(:root[data-message-style="discord"] .codeblock__copy.is-copied) {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+:global(:root[data-message-style="discord"] .codeblock pre) {
+  padding: 10px;
+}
+
+:global(:root[data-message-style="discord"] .markdown .codeblock code) {
+  background: transparent;
+}
+
+:global(:root[data-message-style="discord"] .embed) {
+  margin-top: 0.35rem;
+}
+
+:global(:root[data-message-style="discord"] .msg .bubble-actions) {
+  top: 0;
+  right: 12px;
+  left: auto;
+  padding-top: 0;
+}
+
+:global(:root[data-message-style="discord"] .msg:not(.is-own) .bubble-actions),
+:global(:root[data-message-style="discord"] .msg.is-own .bubble-actions) {
+  right: 12px;
+  left: auto;
+}
+
+:global(:root[data-message-style="discord"] .msg:hover > .bubble .bubble-actions),
+:global(:root[data-message-style="discord"] .msg:hover > .jumbo .bubble-actions),
+:global(:root[data-message-style="discord"] .msg .bubble-actions:hover) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+:global(:root[data-message-style="discord"] .reactions) {
+  position: static;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 2px 6px;
+  border-radius: 8px;
 }
 </style>
