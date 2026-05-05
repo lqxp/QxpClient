@@ -37,6 +37,11 @@ function previewTextFor(target, fallbackId = "") {
 const isOwn = computed(() => props.messenger.isOwnMessage(props.message));
 const isDiscordStyle = computed(() => props.messenger.state.messageStyle === "discord");
 const showTimestamp = computed(() => props.position === "end" || props.position === "single");
+const discordActionsStyle = computed(() => (
+  isDiscordStyle.value
+    ? { left: "auto", right: "12px" }
+    : undefined
+));
 
 const runClass = computed(() => {
   switch (props.position) {
@@ -350,7 +355,7 @@ function onDelete() {
           <span v-if="reaction.count > 1">{{ reaction.count }}</span>
         </button>
       </div>
-      <div class="bubble-actions">
+      <div class="bubble-actions" :style="discordActionsStyle">
         <div class="pick">
           <button v-for="emoji in messenger.QUICK_REACTIONS" :key="`pick-${emoji}`" type="button"
             @click="messenger.toggleReaction(message, emoji)">{{ emoji }}</button>
@@ -384,7 +389,7 @@ function onDelete() {
       'bubble--media': attachmentKind === 'image' || attachmentKind === 'video',
       'bubble--deleted': deleted
     }">
-      <div class="bubble-actions">
+      <div class="bubble-actions" :style="discordActionsStyle">
         <div class="pick" role="group" aria-label="React">
           <button v-for="emoji in messenger.QUICK_REACTIONS" :key="`pick-${emoji}`" type="button"
             @click="messenger.toggleReaction(message, emoji)">{{ emoji }}</button>
