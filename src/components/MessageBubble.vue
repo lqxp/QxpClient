@@ -37,6 +37,7 @@ function previewTextFor(target, fallbackId = "") {
 const isOwn = computed(() => props.messenger.isOwnMessage(props.message));
 const isDiscordStyle = computed(() => props.messenger.state.messageStyle === "discord");
 const showTimestamp = computed(() => props.position === "end" || props.position === "single");
+const keepBubbleReactions = computed(() => isDiscordStyle.value && props.position === "mid");
 const discordActionsStyle = computed(() => (
   isDiscordStyle.value
     ? { left: "auto", right: "12px" }
@@ -569,7 +570,11 @@ function onDelete() {
         {{ messenger.formatTime(message.timestamp) }}<span v-if="edited"> · edited</span>
       </span>
 
-      <div v-if="message.reactions.length && !deleted" class="reactions">
+      <div
+        v-if="message.reactions.length && !deleted"
+        class="reactions"
+        :class="{ 'reactions--bubble-mode': keepBubbleReactions }"
+      >
         <button v-for="reaction in message.reactions" :key="`${message.messageId}-${reaction.emoji}`" class="reaction"
           type="button" @click="messenger.toggleReaction(message, reaction.emoji)">
           <span>{{ reaction.emoji }}</span>
@@ -986,5 +991,14 @@ function onDelete() {
   margin-top: 6px;
   padding: 2px 6px;
   border-radius: 8px;
+}
+
+:global(:root[data-message-style="discord"] .reactions.reactions--bubble-mode) {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--line-strong);
 }
 </style>
