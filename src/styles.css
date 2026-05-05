@@ -3605,13 +3605,13 @@ textarea {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
     height: var(--app-viewport-height);
-    background: #191a20;
+    background: var(--bg);
   }
 
   .settings__side {
     overflow-y: auto;
     padding: calc(16px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom));
-    background: #191a20;
+    background: var(--bg);
     border-right: 0;
     border-bottom: 0;
   }
@@ -3623,8 +3623,8 @@ textarea {
     min-height: 58px;
     margin: calc(-16px - env(safe-area-inset-top)) -16px 18px;
     padding: calc(16px + env(safe-area-inset-top)) 16px 0;
-    background: rgba(25, 26, 32, 0.96);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+    background: color-mix(in srgb, var(--bg) 96%, transparent);
+    border-bottom: 1px solid var(--line-strong);
   }
 
   .settings__side-head h2 {
@@ -3650,8 +3650,8 @@ textarea {
     margin-bottom: 24px;
     padding: 0 18px;
     border-radius: 16px;
-    background: #101318;
-    color: #c5c8d0;
+    background: var(--surface);
+    color: var(--text);
   }
 
   .settings__search svg {
@@ -3673,13 +3673,13 @@ textarea {
   }
 
   .settings__search input::placeholder {
-    color: #8e929c;
+    color: var(--dim);
   }
 
   .settings__mobile-label {
     display: block;
     margin: 0 2px 12px;
-    color: #c9ccd4;
+    color: var(--text);
     font-size: 17px;
     font-weight: 800;
   }
@@ -3691,7 +3691,7 @@ textarea {
     margin-top: 0;
     overflow: hidden;
     border-radius: 20px;
-    background: #23262d;
+    background: var(--surface);
   }
 
   .settings__nav-item {
@@ -3701,13 +3701,13 @@ textarea {
     gap: 16px;
     padding: 0 18px;
     border-radius: 0;
-    color: #eef0f5;
+    color: var(--text);
     font-size: 18px;
     font-weight: 800;
   }
 
   .settings__nav-item + .settings__nav-item {
-    border-top: 1px solid rgba(255, 255, 255, 0.075);
+    border-top: 1px solid var(--line-strong);
   }
 
   .settings__nav-item:hover,
@@ -3718,7 +3718,7 @@ textarea {
   .settings__nav-item svg:not(.settings__chevron) {
     width: 26px;
     height: 26px;
-    color: #d5d8df;
+    color: var(--muted);
     stroke-width: 2;
   }
 
@@ -3726,7 +3726,7 @@ textarea {
     display: block;
     width: 22px;
     height: 22px;
-    color: #c7cbd3;
+    color: var(--muted);
     stroke-width: 2.6;
   }
 
@@ -3735,7 +3735,7 @@ textarea {
     min-height: 0;
     padding: 0 16px calc(40px + env(safe-area-inset-bottom));
     overflow-x: hidden;
-    background: #111214;
+    background: var(--bg);
   }
 
   .settings--section-open .settings__side {
@@ -3755,8 +3755,8 @@ textarea {
     min-height: calc(62px + env(safe-area-inset-top));
     margin: 0 -16px 18px;
     padding: calc(8px + env(safe-area-inset-top)) 16px 8px;
-    background: rgba(25, 26, 32, 0.98);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+    background: color-mix(in srgb, var(--bg) 98%, transparent);
+    border-bottom: 1px solid var(--line-strong);
   }
 
   .settings__back {
