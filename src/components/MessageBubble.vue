@@ -325,21 +325,13 @@ function onDelete() {
 </script>
 
 <template>
-  <article
-    :id="messageDomId(message.messageId)"
-    class="msg"
-    :class="[
-      { 'is-own': isOwn, 'is-jumbo': jumbo, 'is-deleted': deleted },
-      { 'is-mentioned': effectiveMentioned, 'is-discord': isDiscordStyle },
-      { 'has-reactions': message.reactions.length && !deleted },
-      runClass
-    ]"
-  >
-    <span
-      v-if="showAvatar"
-      class="msg__avatar"
-      :class="avatarSrc ? 'msg__avatar--image' : `avatar--${avatarAccent}`"
-    >
+  <article :id="messageDomId(message.messageId)" class="msg" :class="[
+    { 'is-own': isOwn, 'is-jumbo': jumbo, 'is-deleted': deleted },
+    { 'is-mentioned': effectiveMentioned, 'is-discord': isDiscordStyle },
+    { 'has-reactions': message.reactions.length && !deleted },
+    runClass
+  ]">
+    <span v-if="showAvatar" class="msg__avatar" :class="avatarSrc ? 'msg__avatar--image' : `avatar--${avatarAccent}`">
       <img v-if="avatarSrc" :src="avatarSrc" :alt="`${message.username} avatar`" />
       <template v-else>{{ avatarInitials }}</template>
     </span>
@@ -352,101 +344,89 @@ function onDelete() {
         {{ messenger.formatTime(message.timestamp) }}<span v-if="edited"> · edited</span>
       </span>
       <div v-if="message.reactions.length" class="reactions reactions--standalone">
-        <button
-          v-for="reaction in message.reactions"
-          :key="`${message.messageId}-${reaction.emoji}`"
-          class="reaction"
-          type="button"
-          @click="messenger.toggleReaction(message, reaction.emoji)"
-        >
+        <button v-for="reaction in message.reactions" :key="`${message.messageId}-${reaction.emoji}`" class="reaction"
+          type="button" @click="messenger.toggleReaction(message, reaction.emoji)">
           <span>{{ reaction.emoji }}</span>
           <span v-if="reaction.count > 1">{{ reaction.count }}</span>
         </button>
       </div>
       <div class="bubble-actions">
         <div class="pick">
-          <button
-            v-for="emoji in messenger.QUICK_REACTIONS"
-            :key="`pick-${emoji}`"
-            type="button"
-            @click="messenger.toggleReaction(message, emoji)"
-          >{{ emoji }}</button>
+          <button v-for="emoji in messenger.QUICK_REACTIONS" :key="`pick-${emoji}`" type="button"
+            @click="messenger.toggleReaction(message, emoji)">{{ emoji }}</button>
           <button type="button" aria-label="Reply" @click="messenger.startReply(message)">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17 4 12l5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 17 4 12l5-5" />
+              <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+            </svg>
           </button>
-          <button
-            v-if="canEdit"
-            type="button"
-            class="pick__edit"
-            aria-label="Edit"
-            @click="messenger.startEditMessage(message)"
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <button v-if="canEdit" type="button" class="pick__edit" aria-label="Edit"
+            @click="messenger.startEditMessage(message)">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
           </button>
           <button v-if="isOwn" type="button" class="pick__delete" aria-label="Delete" @click="onDelete">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
           </button>
         </div>
       </div>
     </div>
 
-    <div
-      v-else
-      class="bubble"
-      :class="{
-        'bubble--media': attachmentKind === 'image' || attachmentKind === 'video',
-        'bubble--deleted': deleted
-      }"
-    >
+    <div v-else class="bubble" :class="{
+      'bubble--media': attachmentKind === 'image' || attachmentKind === 'video',
+      'bubble--deleted': deleted
+    }">
       <div class="bubble-actions">
         <div class="pick" role="group" aria-label="React">
-          <button
-            v-for="emoji in messenger.QUICK_REACTIONS"
-            :key="`pick-${emoji}`"
-            type="button"
-            @click="messenger.toggleReaction(message, emoji)"
-          >{{ emoji }}</button>
+          <button v-for="emoji in messenger.QUICK_REACTIONS" :key="`pick-${emoji}`" type="button"
+            @click="messenger.toggleReaction(message, emoji)">{{ emoji }}</button>
           <button v-if="!deleted" type="button" aria-label="Reply" @click="messenger.startReply(message)">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17 4 12l5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 17 4 12l5-5" />
+              <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+            </svg>
           </button>
-          <button
-            v-if="canEdit"
-            type="button"
-            class="pick__edit"
-            aria-label="Edit"
-            @click="messenger.startEditMessage(message)"
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <button v-if="canEdit" type="button" class="pick__edit" aria-label="Edit"
+            @click="messenger.startEditMessage(message)">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
           </button>
           <button v-if="isOwn && !deleted" type="button" class="pick__delete" aria-label="Delete" @click="onDelete">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
           </button>
         </div>
       </div>
 
-      <button
-        v-if="message.replyToMessageId"
-        type="button"
-        class="reply-ref"
-        :class="{ 'is-missing': !repliedMessage }"
-        @click="onReplyClick"
-      >
-        <span
-          v-if="replyAvatarSrc"
-          class="reply-ref__avatar reply-ref__avatar--image"
-        >
+      <button v-if="message.replyToMessageId" type="button" class="reply-ref" :class="{ 'is-missing': !repliedMessage }"
+        @click="onReplyClick">
+        <span v-if="replyAvatarSrc" class="reply-ref__avatar reply-ref__avatar--image">
           <img :src="replyAvatarSrc" :alt="`${replyLabel} avatar`" />
         </span>
-        <span
-          v-else
-          class="reply-ref__avatar"
-          :class="`avatar--${replyAvatarAccent}`"
-        >
+        <span v-else class="reply-ref__avatar" :class="`avatar--${replyAvatarAccent}`">
           {{ replyAvatarInitials }}
         </span>
         <span class="reply-ref__username">{{ replyLabel }}</span>
         <span v-if="replyHasVisual" class="reply-ref__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M4 7h3l1.4-2h7.2L17 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h3l1.4-2h7.2L17 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" />
+            <circle cx="12" cy="13" r="3.5" />
+          </svg>
         </span>
         <span class="reply-ref__text">{{ replyText }}</span>
         <span v-if="replyEdited" class="reply-ref__edited">(edited)</span>
@@ -464,28 +444,15 @@ function onDelete() {
       </template>
 
       <template v-else-if="attachmentKind === 'image' && attachmentUrl">
-        <button
-          type="button"
-          class="att-image-link"
-          :aria-label="`Open image preview: ${message.attachment.filename}`"
-          @click="openImageViewer"
-        >
+        <button type="button" class="att-image-link" :aria-label="`Open image preview: ${message.attachment.filename}`"
+          @click="openImageViewer">
           <img :src="attachmentUrl" :alt="message.attachment.filename" class="att-image" />
         </button>
-        <ImageViewer
-          v-if="imageViewerOpen"
-          :src="attachmentUrl"
-          :filename="message.attachment.filename"
-          :size-label="messenger.formatSize(message.attachment.size)"
-          @close="imageViewerOpen = false"
-        />
+        <ImageViewer v-if="imageViewerOpen" :src="attachmentUrl" :filename="message.attachment.filename"
+          :size-label="messenger.formatSize(message.attachment.size)" @close="imageViewerOpen = false" />
         <div v-if="message.text" class="bubble__body">
-          <div
-            class="bubble__text markdown"
-            :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-            @click="onMarkdownClick"
-            v-html="markdown(message.text)"
-          ></div>
+          <div class="bubble__text markdown" :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
+            @click="onMarkdownClick" v-html="markdown(message.text)"></div>
           <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
         </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
@@ -494,18 +461,11 @@ function onDelete() {
       </template>
 
       <template v-else-if="attachmentKind === 'video' && attachmentUrl">
-        <VideoPlayer
-          :src="attachmentUrl"
-          :filename="message.attachment.filename"
-          :size-label="messenger.formatSize(message.attachment.size)"
-        />
+        <VideoPlayer :src="attachmentUrl" :filename="message.attachment.filename"
+          :size-label="messenger.formatSize(message.attachment.size)" />
         <div v-if="message.text" class="bubble__body">
-          <div
-            class="bubble__text markdown"
-            :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-            @click="onMarkdownClick"
-            v-html="markdown(message.text)"
-          ></div>
+          <div class="bubble__text markdown" :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
+            @click="onMarkdownClick" v-html="markdown(message.text)"></div>
           <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
         </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
@@ -514,23 +474,16 @@ function onDelete() {
       </template>
 
       <template v-else-if="attachmentKind === 'audio' && attachmentUrl">
-        <AudioPlayer
-          :src="attachmentUrl"
-          :filename="message.attachment.filename"
-          :size-label="messenger.formatSize(message.attachment.size)"
-          :fallback-duration="message.voiceDuration || ''"
-          :messenger="messenger"
-        />
+        <AudioPlayer :src="attachmentUrl" :filename="message.attachment.filename"
+          :size-label="messenger.formatSize(message.attachment.size)" :fallback-duration="message.voiceDuration || ''"
+          :messenger="messenger" />
         <div v-if="message.text && !message.text.startsWith('[voice:')" class="bubble__body">
-          <div
-            class="bubble__text markdown"
-            :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-            @click="onMarkdownClick"
-            v-html="markdown(message.text)"
-          ></div>
+          <div class="bubble__text markdown" :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
+            @click="onMarkdownClick" v-html="markdown(message.text)"></div>
           <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
         </div>
-        <button v-if="isTextCollapsible && message.text && !message.text.startsWith('[voice:')" type="button" class="bubble__more" @click="expandedText = !expandedText">
+        <button v-if="isTextCollapsible && message.text && !message.text.startsWith('[voice:')" type="button"
+          class="bubble__more" @click="expandedText = !expandedText">
           {{ expandedText ? "Show less" : "See more" }}
         </button>
       </template>
@@ -538,7 +491,11 @@ function onDelete() {
       <template v-else-if="attachmentKind === 'file' && message.attachment">
         <button class="att-file" type="button" @click="download" :disabled="!attachmentUrl">
           <span class="att-file-icon">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+              <path d="M14 2v6h6" />
+            </svg>
           </span>
           <span class="att-file-meta">
             <span class="att-file-name">{{ message.attachment.filename }}</span>
@@ -548,16 +505,17 @@ function onDelete() {
             </span>
           </span>
           <span v-if="attachmentUrl" class="att-file-dl">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
           </span>
         </button>
         <div v-if="message.text" class="bubble__body">
-          <div
-            class="bubble__text markdown"
-            :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-            @click="onMarkdownClick"
-            v-html="markdown(message.text)"
-          ></div>
+          <div class="bubble__text markdown" :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
+            @click="onMarkdownClick" v-html="markdown(message.text)"></div>
           <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
         </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
@@ -567,12 +525,8 @@ function onDelete() {
 
       <template v-else>
         <div class="bubble__body">
-          <div
-            class="bubble__text markdown"
-            :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
-            @click="onMarkdownClick"
-            v-html="markdown(message.text)"
-          ></div>
+          <div class="bubble__text markdown" :class="{ 'bubble__text--collapsed': isTextCollapsible && !expandedText }"
+            @click="onMarkdownClick" v-html="markdown(message.text)"></div>
           <span v-if="isDiscordStyle && edited && !deleted" class="bubble__edited">(edited)</span>
         </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
@@ -596,13 +550,8 @@ function onDelete() {
       </span>
 
       <div v-if="message.reactions.length && !deleted" class="reactions">
-        <button
-          v-for="reaction in message.reactions"
-          :key="`${message.messageId}-${reaction.emoji}`"
-          class="reaction"
-          type="button"
-          @click="messenger.toggleReaction(message, reaction.emoji)"
-        >
+        <button v-for="reaction in message.reactions" :key="`${message.messageId}-${reaction.emoji}`" class="reaction"
+          type="button" @click="messenger.toggleReaction(message, reaction.emoji)">
           <span>{{ reaction.emoji }}</span>
           <span v-if="reaction.count > 1">{{ reaction.count }}</span>
         </button>
@@ -611,12 +560,7 @@ function onDelete() {
   </article>
 
   <Teleport to="body">
-    <ProfileCard
-      v-if="selectedProfile"
-      :messenger="messenger"
-      :username="selectedProfile"
-      @close="closeProfile"
-    />
+    <ProfileCard v-if="selectedProfile" :messenger="messenger" :username="selectedProfile" @close="closeProfile" />
   </Teleport>
 </template>
 
