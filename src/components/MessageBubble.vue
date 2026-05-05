@@ -413,8 +413,13 @@ function onDelete() {
         </div>
       </div>
 
-      <button v-if="message.replyToMessageId" type="button" class="reply-ref" :class="{ 'is-missing': !repliedMessage }"
-        @click="onReplyClick">
+      <button
+        v-if="message.replyToMessageId && isDiscordStyle"
+        type="button"
+        class="reply-ref"
+        :class="{ 'is-missing': !repliedMessage }"
+        @click="onReplyClick"
+      >
         <span v-if="replyAvatarSrc" class="reply-ref__avatar reply-ref__avatar--image">
           <img :src="replyAvatarSrc" :alt="`${replyLabel} avatar`" />
         </span>
@@ -430,6 +435,16 @@ function onDelete() {
         </span>
         <span class="reply-ref__text">{{ replyText }}</span>
         <span v-if="replyEdited" class="reply-ref__edited">(edited)</span>
+      </button>
+
+      <button
+        v-else-if="message.replyToMessageId"
+        type="button"
+        class="reply-card"
+        @click="onReplyClick"
+      >
+        <span class="reply-card__author">{{ replyLabel }}</span>
+        <span class="reply-card__text">{{ replyText }}</span>
       </button>
 
       <div v-if="showAuthor" class="bubble__author">
