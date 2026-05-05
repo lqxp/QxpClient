@@ -860,10 +860,10 @@ function onDelete() {
 }
 
 :global(:root[data-message-style="discord"] .reply-ref__hook) {
-  width: 14px;
+  width: 12px;
   height: 10px;
-  margin-right: 2px;
-  margin-left: -18px;
+  margin-right: 4px;
+  margin-left: 0;
   border-left: 2px solid #4f545c;
   border-top: 2px solid #4f545c;
   border-top-left-radius: 6px;
