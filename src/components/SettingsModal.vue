@@ -876,76 +876,76 @@ onBeforeUnmount(() => {
 
       <section v-else class="settings-page">
         <div class="settings-group">
-          <h4>About</h4>
+          <h4>{{ t('settings.about.title') }}</h4>
           <dl class="settings-kv">
             <div>
-              <dt>Session</dt>
+              <dt>{{ t('settings.about.session') }}</dt>
               <dd>{{ messenger.state.uuid || "—" }}</dd>
             </div>
             <div>
-              <dt>Status</dt>
+              <dt>{{ t('settings.about.status') }}</dt>
               <dd>{{ messenger.connectionLabel.value }}</dd>
             </div>
             <div>
-              <dt>Joined rooms</dt>
+              <dt>{{ t('settings.about.joinedRooms') }}</dt>
               <dd>{{ messenger.state.joinedRooms.length }}</dd>
             </div>
             <div>
-              <dt>Saved rooms</dt>
+              <dt>{{ t('settings.about.savedRooms') }}</dt>
               <dd>{{ messenger.state.rooms.length }}</dd>
             </div>
           </dl>
         </div>
 
         <div class="settings-group">
-          <h4>Developer details</h4>
+          <h4>{{ t('settings.about.developer') }}</h4>
           <dl class="settings-kv">
             <div>
-              <dt>App version</dt>
+              <dt>{{ t('settings.about.appVersion') }}</dt>
               <dd>{{ runtimeDetails.appVersion }}</dd>
             </div>
             <div>
-              <dt>Platform</dt>
+              <dt>{{ t('settings.about.platform') }}</dt>
               <dd>{{ runtimeDetails.platform }}</dd>
             </div>
             <div>
-              <dt>Operating system</dt>
+              <dt>{{ t('settings.about.os') }}</dt>
               <dd>{{ runtimeDetails.os }}</dd>
             </div>
             <div>
-              <dt>Mobile runtime</dt>
-              <dd>{{ runtimeDetails.mobile ? "yes" : "no" }}</dd>
+              <dt>{{ t('settings.about.mobile') }}</dt>
+              <dd>{{ runtimeDetails.mobile ? t('settings.about.yes') : t('settings.about.no') }}</dd>
             </div>
             <div>
-              <dt>Secure context</dt>
-              <dd>{{ runtimeDetails.secureContext ? "yes" : "no" }}</dd>
+              <dt>{{ t('settings.about.secureContext') }}</dt>
+              <dd>{{ runtimeDetails.secureContext ? t('settings.about.yes') : t('settings.about.no') }}</dd>
             </div>
             <div>
-              <dt>Online</dt>
-              <dd>{{ runtimeDetails.online ? "yes" : "no" }}</dd>
+              <dt>{{ t('settings.about.online') }}</dt>
+              <dd>{{ runtimeDetails.online ? t('settings.about.yes') : t('settings.about.no') }}</dd>
             </div>
             <div>
-              <dt>Language</dt>
+              <dt>{{ t('settings.about.language') }}</dt>
               <dd>{{ runtimeDetails.language }}</dd>
             </div>
             <div>
-              <dt>Timezone</dt>
+              <dt>{{ t('settings.about.timezone') }}</dt>
               <dd>{{ runtimeDetails.timezone }}</dd>
             </div>
             <div>
-              <dt>Server origin</dt>
+              <dt>{{ t('settings.about.serverOrigin') }}</dt>
               <dd>{{ runtimeDetails.serverOrigin }}</dd>
             </div>
             <div>
-              <dt>API base URL</dt>
+              <dt>{{ t('settings.about.apiBaseUrl') }}</dt>
               <dd>{{ runtimeDetails.apiBaseUrl }}</dd>
             </div>
             <div>
-              <dt>WebSocket URL</dt>
+              <dt>{{ t('settings.about.wsUrl') }}</dt>
               <dd>{{ runtimeDetails.wsUrl }}</dd>
             </div>
             <div>
-              <dt>User agent</dt>
+              <dt>{{ t('settings.about.userAgent') }}</dt>
               <dd>{{ runtimeDetails.userAgent }}</dd>
             </div>
           </dl>
