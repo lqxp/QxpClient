@@ -14,7 +14,7 @@ import {
   parseRoomAccessToken,
   normalizeRoomKey
 } from "@/crypto/e2ee";
-import { playCameraOffSound, playCameraOnSound, playJoinSound, playLeaveSound, playMuteSound, playScreenOffSound, playScreenOnSound, playUnmuteSound } from "@/calls/callSounds";
+import { playCameraOffSound, playCameraOnSound, playJoinSound, playLeaveSound, playMuteSound, playScreenOffSound, playScreenOnSound, playUnmuteSound, setCallSoundsActive, setSoundFlag } from "@/calls/callSounds";
 
 const STORAGE_KEY = "qxprotocol-messenger-v4";
 const PROFILE_STORAGE_KEY = "qxprotocol-profile-v1";
@@ -367,6 +367,18 @@ function loadPersisted() {
       autoArchiveUploads: Boolean(raw.autoArchiveUploads),
       streamerMode: Boolean(raw.streamerMode),
       messageSoundEnabled: Boolean(raw.messageSoundEnabled),
+      callSoundsEnabled: raw.callSoundsEnabled !== false,
+      soundFlags: {
+        join: raw.soundFlags?.join !== false,
+        leave: raw.soundFlags?.leave !== false,
+        mute: raw.soundFlags?.mute !== false,
+        unmute: raw.soundFlags?.unmute !== false,
+        cameraOn: raw.soundFlags?.cameraOn !== false,
+        cameraOff: raw.soundFlags?.cameraOff !== false,
+        screenOn: raw.soundFlags?.screenOn !== false,
+        screenOff: raw.soundFlags?.screenOff !== false,
+        message: raw.soundFlags?.message !== false
+      },
       themeMode: ["dark", "light", "adaptive"].includes(String(raw.themeMode || "").toLowerCase()) ? String(raw.themeMode).toLowerCase() : "dark",
       appAccent: ["blue", "violet", "emerald", "rose", "amber"].includes(String(raw.appAccent || "").toLowerCase()) ? String(raw.appAccent).toLowerCase() : "blue",
       messageStyle: ["bubble", "discord"].includes(String(raw.messageStyle || "").toLowerCase()) ? String(raw.messageStyle).toLowerCase() : "bubble",
@@ -398,6 +410,8 @@ function loadPersisted() {
       autoArchiveUploads: false,
       streamerMode: false,
       messageSoundEnabled: false,
+      callSoundsEnabled: true,
+      soundFlags: { join: true, leave: true, mute: true, unmute: true, cameraOn: true, cameraOff: true, screenOn: true, screenOff: true, message: true },
       themeMode: "dark",
       appAccent: "blue",
       messageStyle: "bubble",
@@ -467,6 +481,8 @@ function savePersisted(state) {
         autoArchiveUploads: state.autoArchiveUploads,
         streamerMode: state.streamerMode,
         messageSoundEnabled: state.messageSoundEnabled,
+        callSoundsEnabled: state.callSoundsEnabled,
+        soundFlags: { ...state.soundFlags },
         themeMode: state.themeMode,
         appAccent: state.appAccent,
         messageStyle: state.messageStyle,
@@ -824,6 +840,8 @@ export function useMessenger() {
     autoArchiveUploads: persisted.autoArchiveUploads,
     streamerMode: persisted.streamerMode,
     messageSoundEnabled: persisted.messageSoundEnabled,
+    callSoundsEnabled: persisted.callSoundsEnabled,
+    soundFlags: { ...persisted.soundFlags },
     themeMode: persisted.themeMode,
     appAccent: persisted.appAccent,
     messageStyle: persisted.messageStyle,
@@ -863,6 +881,10 @@ export function useMessenger() {
     adminLoading: false,
     adminOverview: null
   });
+
+  // Sync call sounds flag from persisted state
+  setCallSoundsActive(state.callSoundsEnabled);
+  for (const [key, val] of Object.entries(state.soundFlags)) setSoundFlag(key, Boolean(val));
 
   // Non-reactive registry of Blob-URLs keyed by messageId so repeated renders
   // reuse the same URL and we can free them when messages are evicted.
@@ -1290,6 +1312,19 @@ export function useMessenger() {
   function setMessageSoundEnabled(value) {
     state.messageSoundEnabled = Boolean(value);
     if (state.messageSoundEnabled) ensureNotificationAudio();
+    persist();
+  }
+
+  function setCallSoundsEnabled(value) {
+    state.callSoundsEnabled = Boolean(value);
+    setCallSoundsActive(state.callSoundsEnabled);
+    persist();
+  }
+
+  function setSoundEnabled(key: string, value: boolean) {
+    if (!(key in state.soundFlags)) return;
+    state.soundFlags[key] = Boolean(value);
+    setSoundFlag(key, state.soundFlags[key]);
     persist();
   }
 
@@ -3281,6 +3316,8 @@ export function useMessenger() {
       autoArchiveUploads: state.autoArchiveUploads,
       streamerMode: state.streamerMode,
       messageSoundEnabled: state.messageSoundEnabled,
+      callSoundsEnabled: state.callSoundsEnabled,
+      soundFlags: { ...state.soundFlags },
       themeMode: state.themeMode,
       appAccent: state.appAccent,
       messageStyle: state.messageStyle,
@@ -3369,6 +3406,12 @@ export function useMessenger() {
         if (typeof data.streamerMode === "boolean") state.streamerMode = data.streamerMode;
         if (typeof data.messageSoundEnabled === "boolean") state.messageSoundEnabled = data.messageSoundEnabled;
         if (typeof data.themeMode === "string") setThemeMode(data.themeMode);
+        if (typeof data.callSoundsEnabled === "boolean") setCallSoundsEnabled(data.callSoundsEnabled);
+        if (data.soundFlags && typeof data.soundFlags === "object") {
+          for (const key of Object.keys(state.soundFlags)) {
+            if (typeof data.soundFlags[key] === "boolean") setSoundEnabled(key, data.soundFlags[key]);
+          }
+        }
         if (typeof data.appAccent === "string") setAppAccent(data.appAccent);
         if (typeof data.messageStyle === "string") setMessageStyle(data.messageStyle);
         if (typeof data.androidNotificationsEnabled === "boolean") state.androidNotificationsEnabled = data.androidNotificationsEnabled;
@@ -3459,6 +3502,8 @@ export function useMessenger() {
     setDeleteMessagesOnLeave,
     setStreamerMode,
     setMessageSoundEnabled,
+    setCallSoundsEnabled,
+    setSoundEnabled,
     setAndroidNotificationsEnabled,
     setThemeMode,
     setAppAccent,

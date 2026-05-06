@@ -5,6 +5,32 @@
 
 let ctx: AudioContext | null = null;
 
+// Granular per-sound enable flags (all on by default)
+const _flags: Record<string, boolean> = {
+  join: true,
+  leave: true,
+  mute: true,
+  unmute: true,
+  cameraOn: true,
+  cameraOff: true,
+  screenOn: true,
+  screenOff: true,
+  message: true
+};
+
+export function setSoundFlag(key: string, value: boolean): void {
+  if (key in _flags) _flags[key] = value;
+}
+
+export function getSoundFlag(key: string): boolean {
+  return _flags[key] ?? true;
+}
+
+/** @deprecated use setSoundFlag per-sound */
+export function setCallSoundsActive(value: boolean): void {
+  for (const key of Object.keys(_flags)) _flags[key] = value;
+}
+
 function getCtx(): AudioContext {
   if (!ctx || ctx.state === "closed") {
     ctx = new AudioContext();
@@ -17,7 +43,8 @@ function resume(ac: AudioContext): Promise<void> {
 }
 
 /** Joue une séquence de bips définie par des notes { freq, duration, gap } */
-function playTones(notes: { freq: number; dur: number; gap?: number }[], volume = 0.18): void {
+function playTones(notes: { freq: number; dur: number; gap?: number }[], volume = 0.18, flag?: string): void {
+  if (flag && !_flags[flag]) return;
   try {
     const ac = getCtx();
     resume(ac).then(() => {
@@ -48,65 +75,69 @@ function playTones(notes: { freq: number; dur: number; gap?: number }[], volume 
 }
 
 /** Mute — bip sourd court */
-export function playMuteSound(): void {
-  playTones([
-    { freq: 300, dur: 0.1 }
-  ], 0.12);
+export function playMuteSound(preview = false): void {
+  playTones([{ freq: 300, dur: 0.1 }], 0.12, preview ? undefined : "mute");
 }
 
 /** Unmute — bip clair court */
-export function playUnmuteSound(): void {
-  playTones([
-    { freq: 600, dur: 0.1 }
-  ], 0.12);
+export function playUnmuteSound(preview = false): void {
+  playTones([{ freq: 600, dur: 0.1 }], 0.12, preview ? undefined : "unmute");
 }
 
 /** Join vocal — deux bips montants doux */
-export function playJoinSound(): void {
+export function playJoinSound(preview = false): void {
   playTones([
     { freq: 440, dur: 0.08, gap: 0.03 },
     { freq: 660, dur: 0.12 }
-  ], 0.16);
+  ], 0.16, preview ? undefined : "join");
 }
 
 /** Leave vocal — deux bips descendants */
-export function playLeaveSound(): void {
+export function playLeaveSound(preview = false): void {
   playTones([
     { freq: 520, dur: 0.08, gap: 0.03 },
     { freq: 340, dur: 0.14 }
-  ], 0.16);
+  ], 0.16, preview ? undefined : "leave");
 }
 
 /** Caméra activée — bip court montant */
-export function playCameraOnSound(): void {
+export function playCameraOnSound(preview = false): void {
   playTones([
     { freq: 880, dur: 0.06, gap: 0.02 },
     { freq: 1100, dur: 0.08 }
-  ], 0.13);
+  ], 0.13, preview ? undefined : "cameraOn");
 }
 
 /** Caméra désactivée — bip court descendant */
-export function playCameraOffSound(): void {
+export function playCameraOffSound(preview = false): void {
   playTones([
     { freq: 660, dur: 0.08, gap: 0.02 },
     { freq: 440, dur: 0.1 }
-  ], 0.13);
+  ], 0.13, preview ? undefined : "cameraOff");
 }
 
 /** Partage d'écran activé — bip triple montant */
-export function playScreenOnSound(): void {
+export function playScreenOnSound(preview = false): void {
   playTones([
     { freq: 520, dur: 0.06, gap: 0.02 },
     { freq: 660, dur: 0.06, gap: 0.02 },
     { freq: 880, dur: 0.1 }
-  ], 0.13);
+  ], 0.13, preview ? undefined : "screenOn");
 }
 
 /** Partage d'écran désactivé — bip triple descendant */
-export function playScreenOffSound(): void {
+export function playScreenOffSound(preview = false): void {
   playTones([
     { freq: 880, dur: 0.06, gap: 0.02 },
     { freq: 660, dur: 0.06, gap: 0.02 },
     { freq: 440, dur: 0.1 }
-  ], 0.13);
+  ], 0.13, preview ? undefined : "screenOff");
+}
+
+/** Message — bip notification */
+export function playMessageSound(preview = false): void {
+  playTones([
+    { freq: 880, dur: 0.06, gap: 0.02 },
+    { freq: 1100, dur: 0.1 }
+  ], 0.14, preview ? undefined : "message");
 }

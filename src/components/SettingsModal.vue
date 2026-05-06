@@ -536,7 +536,7 @@ onBeforeUnmount(() => {
 
       <section v-else-if="activeSection === 'notifications'" class="settings-page">
         <div class="settings-group">
-          <h4>Notifications</h4>
+          <h4>Messages</h4>
           <label class="settings-check">
             <input type="checkbox" :checked="messenger.state.messageSoundEnabled"
               @change="messenger.setMessageSoundEnabled(targetChecked($event))" />
@@ -547,9 +547,104 @@ onBeforeUnmount(() => {
               @change="messenger.setAndroidNotificationsEnabled(targetChecked($event))" />
             <span>Show notifications for background messages</span>
           </label>
-          <p class="settings-hint">Permission: {{ messenger.notificationPermission() }}</p>
+          <p class="settings-note">Permission: {{ messenger.notificationPermission() }}</p>
         </div>
 
+        <div class="settings-group">
+          <h4>Sounds</h4>
+          <div class="sound-list">
+            <div class="sound-row">
+              <div class="sound-row__info">
+                <span class="sound-row__label">Message</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('message')">Preview Sound</button>
+              </div>
+              <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.message }">
+                <input type="checkbox" :checked="messenger.state.soundFlags.message" @change="messenger.setSoundEnabled('message', targetChecked($event))" />
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
+            </div>
+            <div class="sound-row">
+              <div class="sound-row__info">
+                <span class="sound-row__label">Voice Connected</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('join')">Preview Sound</button>
+              </div>
+              <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.join }">
+                <input type="checkbox" :checked="messenger.state.soundFlags.join" @change="messenger.setSoundEnabled('join', targetChecked($event))" />
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
+            </div>
+            <div class="sound-row">
+              <div class="sound-row__info">
+                <span class="sound-row__label">Voice Disconnected</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('leave')">Preview Sound</button>
+              </div>
+              <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.leave }">
+                <input type="checkbox" :checked="messenger.state.soundFlags.leave" @change="messenger.setSoundEnabled('leave', targetChecked($event))" />
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
+            </div>
+            <div class="sound-row">
+              <div class="sound-row__info">
+                <span class="sound-row__label">Mute</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('mute')">Preview Sound</button>
+              </div>
+              <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.mute }">
+                <input type="checkbox" :checked="messenger.state.soundFlags.mute" @change="messenger.setSoundEnabled('mute', targetChecked($event))" />
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
+            </div>
+            <div class="sound-row">
+              <div class="sound-row__info">
+                <span class="sound-row__label">Unmute</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('unmute')">Preview Sound</button>
+              </div>
+              <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.unmute }">
+                <input type="checkbox" :checked="messenger.state.soundFlags.unmute" @change="messenger.setSoundEnabled('unmute', targetChecked($event))" />
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
+            </div>
+            <div class="sound-row">
+              <div class="sound-row__info">
+                <span class="sound-row__label">Camera On</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('cameraOn')">Preview Sound</button>
+              </div>
+              <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.cameraOn }">
+                <input type="checkbox" :checked="messenger.state.soundFlags.cameraOn" @change="messenger.setSoundEnabled('cameraOn', targetChecked($event))" />
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
+            </div>
+            <div class="sound-row">
+              <div class="sound-row__info">
+                <span class="sound-row__label">Camera Off</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('cameraOff')">Preview Sound</button>
+              </div>
+              <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.cameraOff }">
+                <input type="checkbox" :checked="messenger.state.soundFlags.cameraOff" @change="messenger.setSoundEnabled('cameraOff', targetChecked($event))" />
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
+            </div>
+            <div class="sound-row">
+              <div class="sound-row__info">
+                <span class="sound-row__label">Screen Share On</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('screenOn')">Preview Sound</button>
+              </div>
+              <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.screenOn }">
+                <input type="checkbox" :checked="messenger.state.soundFlags.screenOn" @change="messenger.setSoundEnabled('screenOn', targetChecked($event))" />
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
+            </div>
+            <div class="sound-row">
+              <div class="sound-row__info">
+                <span class="sound-row__label">Screen Share Off</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('screenOff')">Preview Sound</button>
+              </div>
+              <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.screenOff }">
+                <input type="checkbox" :checked="messenger.state.soundFlags.screenOff" @change="messenger.setSoundEnabled('screenOff', targetChecked($event))" />
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section v-else-if="activeSection === 'calls'" class="settings-page">
