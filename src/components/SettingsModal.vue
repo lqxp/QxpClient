@@ -35,6 +35,20 @@ const profileTextChanged = computed(() =>
   draftDescription.value.trim() !== String(profile.value.description || "").trim()
   || draftPronouns.value.trim() !== String(profile.value.pronouns || "").trim()
 );
+const connectionStatusLabel = computed(() => {
+  if (props.messenger.state.connected && props.messenger.state.identified) {
+    switch (props.messenger.state.status) {
+      case "invisible":
+        return t("sidebar.invisible");
+      case "dnd":
+        return t("sidebar.dnd");
+      default:
+        return t("sidebar.online");
+    }
+  }
+  if (props.messenger.state.connected) return t("sidebar.connecting");
+  return t("sidebar.offline");
+});
 
 const allSections = computed(() => [
   { id: "profile", label: t("settings.sections.profile") },
@@ -254,7 +268,7 @@ onBeforeUnmount(() => {
         <span v-else class="avatar avatar--md" :class="`avatar--${meAccent}`">{{ meInitials }}</span>
         <span>
           <strong>{{ messenger.state.username || "anonymous" }}</strong>
-          <small>{{ messenger.connectionLabel.value }}</small>
+          <small>{{ connectionStatusLabel }}</small>
         </span>
       </button>
 
@@ -913,7 +927,7 @@ onBeforeUnmount(() => {
             </div>
             <div>
               <dt>{{ t('settings.about.status') }}</dt>
-              <dd>{{ messenger.connectionLabel.value }}</dd>
+              <dd>{{ connectionStatusLabel }}</dd>
             </div>
             <div>
               <dt>{{ t('settings.about.joinedRooms') }}</dt>
