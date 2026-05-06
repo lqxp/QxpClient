@@ -519,14 +519,16 @@ onBeforeUnmount(() => {
         <div class="settings-group">
           <h4>Privacy</h4>
           <label class="settings-check">
+            <span>Delete local room messages when leaving</span>
             <input type="checkbox" :checked="messenger.state.deleteMessagesOnLeave"
               @change="messenger.setDeleteMessagesOnLeave(targetChecked($event))" />
-            <span>Delete local room messages when leaving</span>
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <label class="settings-check">
+            <span>Streamer mode</span>
             <input type="checkbox" :checked="messenger.state.streamerMode"
               @change="messenger.setStreamerMode(targetChecked($event))" />
-            <span>Streamer mode</span>
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <p class="settings-note">
             Streamer mode hides room IDs in the interface while keeping your rooms connected.
@@ -538,14 +540,16 @@ onBeforeUnmount(() => {
         <div class="settings-group">
           <h4>Messages</h4>
           <label class="settings-check">
+            <span>Play a sound for new messages</span>
             <input type="checkbox" :checked="messenger.state.messageSoundEnabled"
               @change="messenger.setMessageSoundEnabled(targetChecked($event))" />
-            <span>Play a sound for new messages</span>
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <label class="settings-check">
+            <span>Show notifications for background messages</span>
             <input type="checkbox" :checked="messenger.state.androidNotificationsEnabled"
               @change="messenger.setAndroidNotificationsEnabled(targetChecked($event))" />
-            <span>Show notifications for background messages</span>
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <p class="settings-note">Permission: {{ messenger.notificationPermission() }}</p>
         </div>
@@ -651,12 +655,14 @@ onBeforeUnmount(() => {
         <div class="settings-group">
           <h4>Calling</h4>
           <label class="settings-check">
-            <input type="checkbox" checked disabled />
             <span>Enable incoming calls</span>
+            <input type="checkbox" checked disabled />
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <label class="settings-check">
-            <input type="checkbox" checked disabled />
             <span>Play calling sounds</span>
+            <input type="checkbox" checked disabled />
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
         </div>
 
@@ -722,14 +728,16 @@ onBeforeUnmount(() => {
         <div class="settings-group">
           <h4>Connection</h4>
           <label class="settings-check">
+            <span>Reconnect automatically to chat</span>
             <input type="checkbox" :checked="messenger.state.autoReconnectEnabled"
               @change="messenger.setAutoReconnectEnabled(targetChecked($event))" />
-            <span>Reconnect automatically to chat</span>
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <label class="settings-check">
+            <span>Let the server clear local message cache</span>
             <input type="checkbox" :checked="messenger.state.serverClearsLocalMessages"
               @change="messenger.setServerClearsLocalMessages(targetChecked($event))" />
-            <span>Let the server clear local message cache</span>
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <p class="settings-note">
             Enabled by default. When disabled, reconnecting keeps Android/browser cached room messages even if the
@@ -740,9 +748,10 @@ onBeforeUnmount(() => {
         <div class="settings-group">
           <h4>Uploads</h4>
           <label class="settings-check">
+            <span>Automatically archive files in .zip when upload</span>
             <input type="checkbox" :checked="messenger.state.autoArchiveUploads"
               @change="messenger.setAutoArchiveUploads(targetChecked($event))" />
-            <span>Automatically archive files in .zip when upload</span>
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <p class="settings-note">
             Disabled by default. When enabled, uploaded attachments are wrapped in a ZIP file before sending. Upload limit: 25 MB.
@@ -776,14 +785,16 @@ onBeforeUnmount(() => {
         <div class="settings-group" v-if="messenger.state.adminOverview?.features">
           <h4>Features</h4>
           <label class="settings-check">
+            <span>Registrations</span>
             <input type="checkbox" :checked="messenger.state.adminOverview.features.registerEnabled"
               @change="messenger.setAdminFeature('registerEnabled', targetChecked($event))" />
-            <span>Registrations</span>
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <label class="settings-check">
+            <span>Calls</span>
             <input type="checkbox" :checked="messenger.state.adminOverview.features.callsEnabled"
               @change="messenger.setAdminFeature('callsEnabled', targetChecked($event))" />
-            <span>Calls</span>
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
         </div>
 
