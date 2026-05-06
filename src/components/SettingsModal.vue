@@ -421,7 +421,7 @@ onBeforeUnmount(() => {
           </label>
           <textarea v-model="draftDescription" class="settings-input settings-textarea"
             :maxlength="messenger.MAX_PROFILE_DESCRIPTION_LENGTH" spellcheck="true" rows="4"
-            placeholder="Write a short profile description"></textarea>
+            :placeholder="t('settings.profile.descriptionPlaceholder')"></textarea>
         </div>
 
         <div class="settings-group">

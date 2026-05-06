@@ -25,7 +25,7 @@ const callActiveHere = computed(() =>
 
 const callElapsed = computed(() => props.messenger.formatDuration(props.messenger.state.callElapsed));
 const roomHasKey = computed(() => props.messenger.hasRoomKey(props.messenger.state.activeRoom));
-const securityLabel = computed(() => roomHasKey.value ? "E2EE ready" : "No room key yet");
+const securityLabel = computed(() => roomHasKey.value ? t("thread.e2eeReady") : t("thread.noRoomKeyYet"));
 const callsAvailable = computed(() => props.messenger.callsAvailable.value);
 const callsUnavailableReason = computed(() => props.messenger.callsUnavailableReason.value);
 
@@ -38,10 +38,10 @@ function copyInvite() {
   if (!id) return;
   props.messenger.copyRoomInvite(id)
     .then(() => {
-      props.messenger.showToast("Room token copied.");
+      props.messenger.showToast(t("thread.copyTokenSuccess"));
     })
     .catch((error) => {
-      props.messenger.state.lastError = error?.message || "Could not copy room token.";
+      props.messenger.state.lastError = error?.message || t("thread.copyTokenError");
     });
 }
 
@@ -49,8 +49,8 @@ function removeHere() {
   const id = props.messenger.state.activeRoom;
   if (!id) return;
   const label = props.messenger.displayRoomName(id);
-  const suffix = props.messenger.state.deleteMessagesOnLeave ? " Local messages will be deleted." : "";
-  if (!confirm(`Leave "${label}"?${suffix}`)) return;
+  const suffix = props.messenger.state.deleteMessagesOnLeave ? ` ${t("thread.leaveRoomDeletesLocal")}` : "";
+  if (!confirm(t("thread.leaveRoomConfirm", { room: label, suffix }))) return;
   props.messenger.leaveRoom(id);
 }
 </script>
@@ -75,8 +75,8 @@ function removeHere() {
             <span class="call-dot"></span>
             {{ t('call.live') }} · {{ callElapsed }}
           </template>
-          <template v-else-if="callsAvailable">Room conversation · {{ securityLabel }}</template>
-          <template v-else>Room conversation · {{ securityLabel }} · Calls unavailable: relay not configured</template>
+          <template v-else-if="callsAvailable">{{ t('thread.roomConversation') }} · {{ securityLabel }}</template>
+          <template v-else>{{ t('thread.roomConversation') }} · {{ securityLabel }} · {{ t('thread.callsUnavailable') }}</template>
         </div>
       </div>
     </div>

@@ -21,18 +21,35 @@
         "searchPlaceholder": "Buscar",
         "newConversation": "Nueva conversación",
         "generateToken": "Generar token de sala",
+        "pasteRoomToken": "Pegar token de sala",
         "settings": "Ajustes",
         "online": "En línea",
         "invisible": "Invisible",
         "dnd": "No molestar",
-        "connecting": "Conectando…"
+        "connecting": "Conectando…",
+        "offline": "Sin conexión",
+        "connect": "Conectar",
+        "disconnect": "Desconectar",
+        "changeStatus": "Cambiar estado",
+        "joined": "Unido",
+        "removeConversation": "Eliminar {room}",
+        "removeConversationConfirm": "¿Eliminar la conversación \"{room}\" y sus mensajes?",
+        "anonymous": "anónimo"
     },
     "thread": {
         "back": "Volver a conversaciones",
         "startCall": "Iniciar llamada",
         "leaveRoom": "Salir de la sala",
         "copyToken": "Copiar token de sala",
-        "members": "Miembros en línea"
+        "members": "Miembros en línea",
+        "roomConversation": "Conversación de sala",
+        "e2eeReady": "E2EE listo",
+        "noRoomKeyYet": "Aún no hay clave de sala",
+        "callsUnavailable": "Llamadas no disponibles: relé no configurado",
+        "copyTokenSuccess": "Token de sala copiado.",
+        "copyTokenError": "No se pudo copiar el token de sala.",
+        "leaveRoomDeletesLocal": "Los mensajes locales se eliminarán.",
+        "leaveRoomConfirm": "¿Salir de \"{room}\"?{suffix}"
     },
     "composer": {
         "placeholder": "Mensaje",
@@ -109,6 +126,7 @@
             "status": "Estado",
             "statusHint": "Controla cómo apareces en Presencia.",
             "description": "Descripción",
+            "descriptionPlaceholder": "Escribe una breve descripción de perfil",
             "pronouns": "Pronombres",
             "pronounsPlaceholder": "ej. él/ella",
             "profileImage": "Imagen de perfil",
@@ -263,10 +281,16 @@
     },
     "members": {
         "title": "Miembros",
-        "online": "En línea"
+        "online": "En línea",
+        "presence": "Presencia",
+        "you": "tú",
+        "openProfile": "Abrir perfil: {username}"
     },
     "profile": {
-        "close": "Cerrar perfil"
+        "close": "Cerrar perfil",
+        "about": "Acerca de",
+        "noDescription": "Sin descripción de perfil.",
+        "inVoiceChat": "En chat de voz"
     },
     "audio": {
         "download": "Descargar audio"

@@ -21,18 +21,35 @@
         "searchPlaceholder": "Поиск",
         "newConversation": "Новая беседа",
         "generateToken": "Создать токен комнаты",
+        "pasteRoomToken": "Вставьте токен комнаты",
         "settings": "Настройки",
         "online": "В сети",
         "invisible": "Невидимый",
         "dnd": "Не беспокоить",
-        "connecting": "Подключение…"
+        "connecting": "Подключение…",
+        "offline": "Не в сети",
+        "connect": "Подключиться",
+        "disconnect": "Отключиться",
+        "changeStatus": "Изменить статус",
+        "joined": "В комнате",
+        "removeConversation": "Удалить {room}",
+        "removeConversationConfirm": "Удалить беседу \"{room}\" и её сообщения?",
+        "anonymous": "аноним"
     },
     "thread": {
         "back": "Назад к беседам",
         "startCall": "Начать звонок",
         "leaveRoom": "Покинуть комнату",
         "copyToken": "Скопировать токен комнаты",
-        "members": "Участники онлайн"
+        "members": "Участники онлайн",
+        "roomConversation": "Беседа комнаты",
+        "e2eeReady": "E2EE готово",
+        "noRoomKeyYet": "Ключ комнаты ещё не создан",
+        "callsUnavailable": "Звонки недоступны: ретранслятор не настроен",
+        "copyTokenSuccess": "Токен комнаты скопирован.",
+        "copyTokenError": "Не удалось скопировать токен комнаты.",
+        "leaveRoomDeletesLocal": "Локальные сообщения будут удалены.",
+        "leaveRoomConfirm": "Покинуть \"{room}\"?{suffix}"
     },
     "composer": {
         "placeholder": "Сообщение",
@@ -109,6 +126,7 @@
             "status": "Статус",
             "statusHint": "Управляет вашим отображением в Присутствии.",
             "description": "Описание",
+            "descriptionPlaceholder": "Напишите короткое описание профиля",
             "pronouns": "Местоимения",
             "pronounsPlaceholder": "напр. он/его",
             "profileImage": "Фото профиля",
@@ -263,10 +281,16 @@
     },
     "members": {
         "title": "Участники",
-        "online": "Онлайн"
+        "online": "Онлайн",
+        "presence": "Присутствие",
+        "you": "вы",
+        "openProfile": "Открыть профиль: {username}"
     },
     "profile": {
-        "close": "Закрыть профиль"
+        "close": "Закрыть профиль",
+        "about": "О профиле",
+        "noDescription": "Описание профиля отсутствует.",
+        "inVoiceChat": "В голосовом чате"
     },
     "audio": {
         "download": "Скачать аудио"

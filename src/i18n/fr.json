@@ -21,18 +21,35 @@
         "searchPlaceholder": "Rechercher",
         "newConversation": "Nouvelle conversation",
         "generateToken": "Générer un token de salon",
+        "pasteRoomToken": "Coller un token de salon",
         "settings": "Paramètres",
         "online": "En ligne",
         "invisible": "Invisible",
         "dnd": "Ne pas déranger",
-        "connecting": "Connexion…"
+        "connecting": "Connexion…",
+        "offline": "Hors ligne",
+        "connect": "Connecter",
+        "disconnect": "Déconnecter",
+        "changeStatus": "Changer le statut",
+        "joined": "Rejoint",
+        "removeConversation": "Supprimer {room}",
+        "removeConversationConfirm": "Supprimer la conversation \"{room}\" et ses messages ?",
+        "anonymous": "anonyme"
     },
     "thread": {
         "back": "Retour aux conversations",
         "startCall": "Démarrer un appel",
         "leaveRoom": "Quitter le salon",
         "copyToken": "Copier le token du salon",
-        "members": "Membres en ligne"
+        "members": "Membres en ligne",
+        "roomConversation": "Conversation du salon",
+        "e2eeReady": "E2EE prêt",
+        "noRoomKeyYet": "Pas encore de clé de salon",
+        "callsUnavailable": "Appels indisponibles : relais non configuré",
+        "copyTokenSuccess": "Token du salon copié.",
+        "copyTokenError": "Impossible de copier le token du salon.",
+        "leaveRoomDeletesLocal": "Les messages locaux seront supprimés.",
+        "leaveRoomConfirm": "Quitter \"{room}\" ?{suffix}"
     },
     "composer": {
         "placeholder": "Message",
@@ -109,6 +126,7 @@
             "status": "Statut",
             "statusHint": "Contrôle votre apparence dans la Présence.",
             "description": "Description",
+            "descriptionPlaceholder": "Écrivez une courte description de profil",
             "pronouns": "Pronoms",
             "pronounsPlaceholder": "ex. il/lui",
             "profileImage": "Image de profil",
@@ -263,10 +281,16 @@
     },
     "members": {
         "title": "Membres",
-        "online": "En ligne"
+        "online": "En ligne",
+        "presence": "Présence",
+        "you": "vous",
+        "openProfile": "Ouvrir le profil : {username}"
     },
     "profile": {
-        "close": "Fermer le profil"
+        "close": "Fermer le profil",
+        "about": "À propos",
+        "noDescription": "Aucune description de profil.",
+        "inVoiceChat": "En chat vocal"
     },
     "audio": {
         "download": "Télécharger l'audio"

@@ -16,7 +16,16 @@ const isMobile = ref(false);
 const meInitials = computed(() => initialsOf(props.messenger.state.username));
 const meAccent = computed(() => props.messenger.accentFor(props.messenger.state.username || "you"));
 const meAvatar = computed(() => props.messenger.profileImageSrc(props.messenger.myProfile.value.avatar));
-const statusLabel = computed(() => props.messenger.presenceStatusLabel(props.messenger.state.status));
+const statusLabel = computed(() => {
+  switch (props.messenger.state.status) {
+    case "invisible":
+      return t("sidebar.invisible");
+    case "dnd":
+      return t("sidebar.dnd");
+    default:
+      return t("sidebar.online");
+  }
+});
 const statusOptions = computed(() => [
   { value: "online", label: t('sidebar.online') },
   { value: "invisible", label: t('sidebar.invisible') },
@@ -46,7 +55,7 @@ function onComposeKey(event) {
 function removeConversation(event, roomId) {
   event.stopPropagation();
   event.preventDefault();
-  if (!confirm(`Remove conversation "${props.messenger.displayRoomName(roomId)}" and its messages?`)) return;
+  if (!confirm(t("sidebar.removeConversationConfirm", { room: props.messenger.displayRoomName(roomId) }))) return;
   props.messenger.removeRoom(roomId);
 }
 
@@ -104,15 +113,15 @@ onBeforeUnmount(() => {
         pattern="[A-Za-z0-9]{8,64}"
         autocomplete="off"
         spellcheck="false"
-        placeholder="Paste room token"
+        :placeholder="t('sidebar.pasteRoomToken')"
         @keydown.enter.prevent="messenger.submitCompose"
         @keydown="onComposeKey"
         @blur="messenger.state.composeInput ? null : messenger.cancelCompose()"
       />
-      <button type="button" aria-label="Generate room token" @mousedown.prevent @click="createRoom">
+      <button type="button" :aria-label="t('sidebar.generateToken')" @mousedown.prevent @click="createRoom">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15 21 21"/><path d="M4 4l5 5"/></svg>
       </button>
-      <button type="button" aria-label="Cancel" @mousedown.prevent @click="messenger.cancelCompose">
+      <button type="button" :aria-label="t('composer.cancelEdit')" @mousedown.prevent @click="messenger.cancelCompose">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
@@ -154,7 +163,7 @@ onBeforeUnmount(() => {
           <span class="conv__head">
             <span class="conv__name">
               {{ c.name }}
-              <span v-if="c.joined" class="conv__joined" title="Joined"></span>
+              <span v-if="c.joined" class="conv__joined" :title="t('sidebar.joined')"></span>
             </span>
             <span class="conv__time">{{ c.timestampLabel }}</span>
           </span>
@@ -169,7 +178,7 @@ onBeforeUnmount(() => {
             v-if="!isMobile"
             class="conv__remove"
             type="button"
-            :aria-label="`Remove ${c.name}`"
+            :aria-label="t('sidebar.removeConversation', { room: c.name })"
             @click="removeConversation($event, c.roomId)"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -188,7 +197,7 @@ onBeforeUnmount(() => {
         </span>
         <span v-else class="avatar avatar--md" :class="`avatar--${meAccent}`">{{ meInitials }}</span>
         <span class="side-user__text">
-          <strong>{{ messenger.state.username || "anonymous" }}</strong>
+          <strong>{{ messenger.state.username || t('sidebar.anonymous') }}</strong>
           <small>
             <span
               class="dot"
@@ -201,7 +210,7 @@ onBeforeUnmount(() => {
             ></span>
             <span v-if="messenger.state.connected && messenger.state.identified">{{ statusLabel }}</span>
             <span v-else-if="messenger.state.connected">{{ t('sidebar.connecting') }}</span>
-            <span v-else>Offline</span>
+            <span v-else>{{ t('sidebar.offline') }}</span>
           </small>
         </span>
       </button>
@@ -210,7 +219,7 @@ onBeforeUnmount(() => {
         <button
           class="icon-btn side-status__toggle"
           type="button"
-          aria-label="Change status"
+          :aria-label="t('sidebar.changeStatus')"
           :aria-expanded="statusMenuOpen"
           @click="toggleStatusMenu"
         >
@@ -245,13 +254,13 @@ onBeforeUnmount(() => {
         class="btn--ghost side-foot__link"
         type="button"
         @click="messenger.connect"
-      >connect</button>
+      >{{ t('sidebar.connect') }}</button>
       <button
         v-else
         class="btn--ghost side-foot__link"
         type="button"
         @click="messenger.disconnect"
-      >disconnect</button>
+      >{{ t('sidebar.disconnect') }}</button>
     </div>
   </aside>
 </template>

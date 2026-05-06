@@ -21,18 +21,35 @@
         "searchPlaceholder": "Search",
         "newConversation": "New conversation",
         "generateToken": "Generate room token",
+        "pasteRoomToken": "Paste room token",
         "settings": "Settings",
         "online": "Online",
         "invisible": "Invisible",
         "dnd": "Do Not Disturb",
-        "connecting": "Connecting…"
+        "connecting": "Connecting…",
+        "offline": "Offline",
+        "connect": "Connect",
+        "disconnect": "Disconnect",
+        "changeStatus": "Change status",
+        "joined": "Joined",
+        "removeConversation": "Remove {room}",
+        "removeConversationConfirm": "Remove conversation \"{room}\" and its messages?",
+        "anonymous": "anonymous"
     },
     "thread": {
         "back": "Back to conversations",
         "startCall": "Start call",
         "leaveRoom": "Leave room",
         "copyToken": "Copy room token",
-        "members": "Online members"
+        "members": "Online members",
+        "roomConversation": "Room conversation",
+        "e2eeReady": "E2EE ready",
+        "noRoomKeyYet": "No room key yet",
+        "callsUnavailable": "Calls unavailable: relay not configured",
+        "copyTokenSuccess": "Room token copied.",
+        "copyTokenError": "Could not copy room token.",
+        "leaveRoomDeletesLocal": "Local messages will be deleted.",
+        "leaveRoomConfirm": "Leave \"{room}\"?{suffix}"
     },
     "composer": {
         "placeholder": "Message",
@@ -109,6 +126,7 @@
             "status": "Status",
             "statusHint": "Controls how you appear in Presence.",
             "description": "Description",
+            "descriptionPlaceholder": "Write a short profile description",
             "pronouns": "Pronouns",
             "pronounsPlaceholder": "e.g. they/them",
             "profileImage": "Profile image",
@@ -263,10 +281,16 @@
     },
     "members": {
         "title": "Members",
-        "online": "Online"
+        "online": "Online",
+        "presence": "Presence",
+        "you": "you",
+        "openProfile": "Open profile: {username}"
     },
     "profile": {
-        "close": "Close profile"
+        "close": "Close profile",
+        "about": "About",
+        "noDescription": "No profile description.",
+        "inVoiceChat": "In voice chat"
     },
     "audio": {
         "download": "Download audio"

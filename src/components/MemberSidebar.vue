@@ -32,7 +32,14 @@ function statusFor(username: string) {
 }
 
 function statusLabel(username: string) {
-  return props.messenger.presenceStatusLabel(statusFor(username));
+  switch (statusFor(username)) {
+    case "invisible":
+      return t("sidebar.invisible");
+    case "dnd":
+      return t("sidebar.dnd");
+    default:
+      return t("sidebar.online");
+  }
 }
 
 function platformsFor(username: string) {
@@ -93,7 +100,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
   <aside class="members" :aria-label="t('thread.members')">
     <div class="members__head">
       <div>
-        <div class="members__eyebrow">Presence</div>
+        <div class="members__eyebrow">{{ t('members.presence') }}</div>
         <div class="members__title">{{ members.length }} {{ t('members.online') }}</div>
       </div>
     </div>
@@ -108,7 +115,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
             class="members__item"
             role="button"
             tabindex="0"
-            :aria-label="`Open profile: ${username}`"
+            :aria-label="t('members.openProfile', { username })"
             @click="openProfile($event, username)"
             @contextmenu.prevent.stop="openProfile($event, username)"
             @keydown.enter.prevent="selectedProfile = username"
@@ -123,7 +130,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
             <div class="members__meta">
               <div class="members__name">
                 {{ username }}
-                <span v-if="username === me" class="members__badge">you</span>
+                <span v-if="username === me" class="members__badge">{{ t('members.you') }}</span>
                 <span class="platforms" :aria-label="`Platforms: ${platformsFor(username).map((p) => messenger.platformLabel(p)).join(', ') || 'unknown'}`">
                   <span
                     v-for="platform in platformsFor(username)"
