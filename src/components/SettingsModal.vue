@@ -286,6 +286,14 @@ onBeforeUnmount(() => {
             <path d="M8 20h8" />
             <path d="M12 16v4" />
           </svg>
+          <svg v-else-if="section.id === 'language'" viewBox="0 0 24 24">
+            <path d="M4 5h9" />
+            <path d="M8.5 5c0 6-2.5 10-5.5 12" />
+            <path d="M6 11c1.5 2 3.5 3.5 6 4.5" />
+            <path d="M14 15h6" />
+            <path d="m17 5 4 10" />
+            <path d="m13 15 4-10" />
+          </svg>
           <svg v-else-if="section.id === 'security'" viewBox="0 0 24 24">
             <rect x="5" y="10" width="14" height="10" rx="2" />
             <path d="M8 10V7a4 4 0 0 1 8 0v3" />
@@ -509,7 +517,7 @@ onBeforeUnmount(() => {
       </section>
 
       <section v-else-if="activeSection === 'language'" class="settings-page">
-        <div class="settings-group">
+        <div class="settings-group settings-group--language">
           <h4>{{ t('settings.language.title') }}</h4>
           <label class="settings-select">
             <span>{{ t('settings.language.appLanguage') }}</span>
