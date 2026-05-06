@@ -14,7 +14,7 @@ import {
   parseRoomAccessToken,
   normalizeRoomKey
 } from "@/crypto/e2ee";
-import { playCameraOffSound, playCameraOnSound, playJoinSound, playLeaveSound, playScreenOffSound, playScreenOnSound } from "@/calls/callSounds";
+import { playCameraOffSound, playCameraOnSound, playJoinSound, playLeaveSound, playMuteSound, playScreenOffSound, playScreenOnSound, playUnmuteSound } from "@/calls/callSounds";
 
 const STORAGE_KEY = "qxprotocol-messenger-v4";
 const PROFILE_STORAGE_KEY = "qxprotocol-profile-v1";
@@ -2426,6 +2426,7 @@ export function useMessenger() {
     state.callMuted = !state.callMuted;
     updateCallAudioGate();
     publishCallState(true);
+    if (state.callMuted) playMuteSound(); else playUnmuteSound();
   }
 
   async function toggleCamera() {

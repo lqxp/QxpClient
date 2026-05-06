@@ -47,6 +47,20 @@ function playTones(notes: { freq: number; dur: number; gap?: number }[], volume 
   }
 }
 
+/** Mute — bip sourd court */
+export function playMuteSound(): void {
+  playTones([
+    { freq: 300, dur: 0.1 }
+  ], 0.12);
+}
+
+/** Unmute — bip clair court */
+export function playUnmuteSound(): void {
+  playTones([
+    { freq: 600, dur: 0.1 }
+  ], 0.12);
+}
+
 /** Join vocal — deux bips montants doux */
 export function playJoinSound(): void {
   playTones([
