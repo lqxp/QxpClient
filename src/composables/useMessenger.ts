@@ -1328,6 +1328,20 @@ export function useMessenger() {
     persist();
   }
 
+  function previewSound(key: string) {
+    switch (key) {
+      case "join":      playJoinSound(true); break;
+      case "leave":     playLeaveSound(true); break;
+      case "mute":      playMuteSound(true); break;
+      case "unmute":    playUnmuteSound(true); break;
+      case "cameraOn":  playCameraOnSound(true); break;
+      case "cameraOff": playCameraOffSound(true); break;
+      case "screenOn":  playScreenOnSound(true); break;
+      case "screenOff": playScreenOffSound(true); break;
+      case "message":   playMessageNotificationSound(); break;
+    }
+  }
+
   function setAndroidNotificationsEnabled(value) {
     state.androidNotificationsEnabled = Boolean(value);
     if (state.androidNotificationsEnabled) requestNotificationPermission();
