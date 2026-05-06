@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
 
 const props = defineProps({
   messenger: { type: Object, required: true }
@@ -14,11 +17,11 @@ const meInitials = computed(() => initialsOf(props.messenger.state.username));
 const meAccent = computed(() => props.messenger.accentFor(props.messenger.state.username || "you"));
 const meAvatar = computed(() => props.messenger.profileImageSrc(props.messenger.myProfile.value.avatar));
 const statusLabel = computed(() => props.messenger.presenceStatusLabel(props.messenger.state.status));
-const statusOptions = [
-  { value: "online", label: "Online" },
-  { value: "invisible", label: "Invisible" },
-  { value: "dnd", label: "Do Not Disturb" }
-];
+const statusOptions = computed(() => [
+  { value: "online", label: t('sidebar.online') },
+  { value: "invisible", label: t('sidebar.invisible') },
+  { value: "dnd", label: t('sidebar.dnd') }
+]);
 
 function initialsOf(name) {
   const trimmed = String(name || "?").trim();
@@ -120,14 +123,14 @@ onBeforeUnmount(() => {
         <input
           v-model="messenger.state.searchTerm"
           type="search"
-          placeholder="Search"
-          aria-label="Search conversations"
+          :placeholder="t('sidebar.searchPlaceholder')"
+          :aria-label="t('sidebar.searchPlaceholder')"
         />
       </label>
-      <button class="icon-btn side__shuffle" type="button" aria-label="Generate room token" @click="createRoom">
+      <button class="icon-btn side__shuffle" type="button" :aria-label="t('sidebar.generateToken')" @click="createRoom">
         <svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15 21 21"/><path d="M4 4l5 5"/></svg>
       </button>
-      <button class="icon-btn side__compose" type="button" aria-label="New conversation" @click="messenger.startCompose">
+      <button class="icon-btn side__compose" type="button" :aria-label="t('sidebar.newConversation')" @click="messenger.startCompose">
         <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
       </button>
     </div>
@@ -174,8 +177,7 @@ onBeforeUnmount(() => {
         </div>
       </template>
       <div v-else class="conv--empty">
-        No conversations yet.<br/>
-        Tap the pencil icon to start one.
+        {{ t('app.noConversationHint') }}
       </div>
     </div>
 
@@ -198,7 +200,7 @@ onBeforeUnmount(() => {
               }"
             ></span>
             <span v-if="messenger.state.connected && messenger.state.identified">{{ statusLabel }}</span>
-            <span v-else-if="messenger.state.connected">Authenticating...</span>
+            <span v-else-if="messenger.state.connected">{{ t('sidebar.connecting') }}</span>
             <span v-else>Offline</span>
           </small>
         </span>
@@ -216,7 +218,7 @@ onBeforeUnmount(() => {
         </button>
         <div v-if="statusMenuOpen" class="side-status__menu" role="menu">
           <button
-            v-for="option in statusOptions"
+            v-for="option in statusOptions.value"
             :key="option.value"
             type="button"
             role="menuitemradio"
@@ -234,7 +236,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <button class="icon-btn side-foot__settings" type="button" aria-label="Settings" @click="openSettings">
+      <button class="icon-btn side-foot__settings" type="button" :aria-label="t('sidebar.settings')" @click="openSettings">
         <svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.05.05a2 2 0 1 1-2.83 2.83l-.05-.05A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.05a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.88.34l-.05.05a2 2 0 1 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.05A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.05-.05a2 2 0 1 1 2.83-2.83l.05.05A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.05a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.05-.05a2 2 0 1 1 2.83 2.83l-.05.05A1.7 1.7 0 0 0 19.4 9c.23.62.83 1 1.55 1H21a2 2 0 1 1 0 4h-.05A1.7 1.7 0 0 0 19.4 15Z"/></svg>
       </button>
 
