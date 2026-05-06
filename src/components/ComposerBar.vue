@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
 
 const props = defineProps({
   messenger: { type: Object, required: true }
@@ -390,11 +393,11 @@ onBeforeUnmount(() => {
   <footer ref="composerRef" class="composer">
     <div v-if="recording" class="composer__recording">
       <span class="rec-dot"></span>
-      <span class="rec-label">Recording</span>
+      <span class="rec-label">{{ t('composer.holdToRecord') }}</span>
       <span class="rec-time">{{ messenger.formatDuration(messenger.state.recordingElapsed) }}</span>
       <span class="rec-spacer"></span>
-      <button type="button" class="btn--ghost" @click="cancelHold">cancel</button>
-      <button type="button" class="btn btn--send" @click="endHold">send</button>
+      <button type="button" class="btn--ghost" @click="cancelHold">{{ t('composer.recordCancel') }}</button>
+      <button type="button" class="btn btn--send" @click="endHold">{{ t('composer.recordSend') }}</button>
     </div>
 
     <template v-else>
@@ -407,19 +410,19 @@ onBeforeUnmount(() => {
       />
       <div v-if="messenger.state.editingMessage" class="reply-draft edit-draft">
         <div>
-          <span class="reply-draft__label">Editing message</span>
+          <span class="reply-draft__label">{{ t('composer.editing') }}</span>
           <span class="reply-draft__text">{{ messenger.state.editingMessage.text }}</span>
         </div>
-        <button type="button" class="icon-btn" aria-label="Cancel edit" @click="messenger.cancelEditMessage">
+        <button type="button" class="icon-btn" :aria-label="t('composer.cancelEdit')" @click="messenger.cancelEditMessage">
           <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
       </div>
       <div v-else-if="messenger.state.replyingTo" class="reply-draft">
         <div>
-          <span class="reply-draft__label">Replying to {{ messenger.state.replyingTo.username || "message" }}</span>
+          <span class="reply-draft__label">{{ t('composer.replyingTo') }} {{ messenger.state.replyingTo.username || t('message.reply') }}</span>
           <span class="reply-draft__text">{{ messenger.state.replyingTo.text }}</span>
         </div>
-        <button type="button" class="icon-btn" aria-label="Cancel reply" @click="messenger.cancelReply">
+        <button type="button" class="icon-btn" :aria-label="t('composer.cancelReply')" @click="messenger.cancelReply">
           <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
       </div>
@@ -438,23 +441,23 @@ onBeforeUnmount(() => {
         <div v-if="mobileActionsOpen" class="composer__actions-pop" role="menu">
           <button type="button" role="menuitem" :disabled="mediaDisabled" @click="pickFile">
             <svg viewBox="0 0 24 24"><path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 1 1 5.66 5.66l-9.2 9.19a2 2 0 1 1-2.83-2.83L14.83 7"/></svg>
-            <span>File</span>
+            <span>{{ t('composer.attachFile') }}</span>
           </button>
           <button type="button" role="menuitem" :disabled="mediaDisabled" @click="startMobileRecording">
             <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10a7 7 0 0 1-14 0"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-            <span>Voice</span>
+            <span>{{ t('composer.holdToRecord') }}</span>
           </button>
           <button type="button" role="menuitem" :disabled="mediaDisabled" @click="pickCamera">
             <svg viewBox="0 0 24 24"><path d="M4 7h3l1.4-2h7.2L17 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg>
-            <span>Camera</span>
+            <span>{{ t('camera.title') }}</span>
           </button>
         </div>
       </div>
 
-      <button class="icon-btn composer__desktop-action" type="button" aria-label="Attach file" :disabled="mediaDisabled" @click="pickFile">
+      <button class="icon-btn composer__desktop-action" type="button" :aria-label="t('composer.attachFile')" :disabled="mediaDisabled" @click="pickFile">
         <svg viewBox="0 0 24 24"><path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 1 1 5.66 5.66l-9.2 9.19a2 2 0 1 1-2.83-2.83L14.83 7"/></svg>
       </button>
-      <button class="icon-btn composer__desktop-action" type="button" aria-label="Take photo" :disabled="mediaDisabled" @click="pickCamera">
+      <button class="icon-btn composer__desktop-action" type="button" :aria-label="t('camera.title')" :disabled="mediaDisabled" @click="pickCamera">
         <svg viewBox="0 0 24 24"><path d="M4 7h3l1.4-2h7.2L17 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg>
       </button>
 
@@ -464,7 +467,7 @@ onBeforeUnmount(() => {
           v-model="messenger.state.messageInput"
           :maxlength="messenger.MESSAGE_LIMIT"
           rows="1"
-          :placeholder="disabled ? 'Join a room to start messaging' : editing ? 'Edit message' : 'Message'"
+          :placeholder="disabled ? t('composer.placeholder') : editing ? t('composer.editing') : t('composer.placeholder')"
           :disabled="disabled"
           autocomplete="off"
           spellcheck="false"
@@ -492,7 +495,7 @@ onBeforeUnmount(() => {
           <button
             class="icon-btn"
             type="button"
-            aria-label="Emoji"
+            :aria-label="t('composer.emoji')"
             :aria-expanded="pickerOpen"
             :disabled="disabled"
             @click.prevent="togglePicker"
@@ -517,7 +520,7 @@ onBeforeUnmount(() => {
         v-if="canSend"
         class="icon-btn composer__send"
         type="button"
-        aria-label="Send"
+        :aria-label="t('composer.send')"
         @click="send"
       >
         <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7Z"/></svg>
@@ -526,7 +529,7 @@ onBeforeUnmount(() => {
         v-else
         class="icon-btn composer__mic composer__desktop-action"
         type="button"
-        aria-label="Hold to record voice"
+        :aria-label="t('composer.holdToRecord')"
         :disabled="mediaDisabled"
         @mousedown.prevent="startHold"
         @mouseup.prevent="endHold"
@@ -541,11 +544,11 @@ onBeforeUnmount(() => {
   </footer>
 
   <Teleport to="body">
-    <div v-if="cameraOpen" class="camera-modal" role="dialog" aria-modal="true" aria-label="Take photo">
+    <div v-if="cameraOpen" class="camera-modal" role="dialog" aria-modal="true" :aria-label="t('camera.title')">
       <div class="camera-modal__panel">
         <header class="camera-modal__head">
-          <span>Camera</span>
-          <button type="button" class="icon-btn" aria-label="Close camera" @click="closeCamera">
+          <span>{{ t('camera.title') }}</span>
+          <button type="button" class="icon-btn" :aria-label="t('camera.close')" @click="closeCamera">
             <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
         </header>
@@ -563,9 +566,9 @@ onBeforeUnmount(() => {
         <canvas ref="cameraCanvasRef" class="sr-only"></canvas>
 
         <div class="camera-modal__actions">
-          <button type="button" class="btn" @click="closeCamera">Cancel</button>
+          <button type="button" class="btn" @click="closeCamera">{{ t('camera.cancel') }}</button>
           <button type="button" class="btn btn--primary" :disabled="cameraBusy || !!cameraError" @click="capturePhoto">
-            {{ cameraBusy ? "Sending..." : "Take photo" }}
+            {{ cameraBusy ? "..." : t('camera.capture') }}
           </button>
         </div>
       </div>
