@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useI18n } from "@/composables/useI18n";
 import { useMessenger } from "@/composables/useMessenger";
 import MessengerSidebar from "@/components/MessengerSidebar.vue";
 import MemberSidebar from "@/components/MemberSidebar.vue";
@@ -11,6 +12,7 @@ import SettingsModal from "@/components/SettingsModal.vue";
 import OnboardingScreen from "@/components/OnboardingScreen.vue";
 
 const messenger = useMessenger();
+const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
 const mobileThreadOpen = ref(false);
 
 const needsOnboarding = computed(() => !String(messenger.state.authToken || "").trim() || !String(messenger.state.username || "").trim());
@@ -106,15 +108,15 @@ function goToCallRoom() {
 
     <div class="no-thread" v-else>
       <div>
-        <h2>No conversation selected</h2>
-        <p>Pick a room from the list or tap the pencil icon to start one.</p>
+        <h2>{{ t('app.noConversation') }}</h2>
+        <p>{{ t('app.noConversationHint') }}</p>
       </div>
     </div>
 
     <div v-if="callRoomDifferent" class="call-pip" @click="goToCallRoom">
       <span class="call-dot"></span>
-      <span>In call · {{ callRoomLabel }} · {{ callElapsed }}</span>
-      <button type="button" class="btn--ghost" @click.stop="messenger.endCall">end</button>
+      <span>{{ t('app.inCall', { room: callRoomLabel, elapsed: callElapsed }) }}</span>
+      <button type="button" class="btn--ghost" @click.stop="messenger.endCall">{{ t('app.endCall') }}</button>
     </div>
 
     <SettingsModal :messenger="messenger" />

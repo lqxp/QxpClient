@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, onBeforeUnmount, ref, watch } from "vue";
+import { useI18n } from "@/composables/useI18n";
 import { appRuntimeConfig } from "@/config/runtime";
+
+const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
 
 const props = defineProps({
   messenger: { type: Object, required: true }
@@ -32,19 +35,19 @@ const profileTextChanged = computed(() =>
   || draftPronouns.value.trim() !== String(profile.value.pronouns || "").trim()
 );
 
-const allSections = [
-  { id: "profile", label: "Profile" },
-  { id: "ui", label: "UI & Appearance" },
-  { id: "security", label: "Security" },
-  { id: "privacy", label: "Privacy" },
-  { id: "notifications", label: "Notifications" },
-  { id: "calls", label: "Calls" },
-  { id: "advanced", label: "Advanced" },
-  { id: "admin", label: "Admin" },
-  { id: "backups", label: "Backups" },
-  { id: "about", label: "About" }
-];
-const sections = computed(() => allSections.filter((section) => section.id !== "admin" || props.messenger.state.admin));
+const allSections = computed(() => [
+  { id: "profile", label: t("settings.sections.profile") },
+  { id: "ui", label: t("settings.sections.ui") },
+  { id: "security", label: t("settings.sections.security") },
+  { id: "privacy", label: t("settings.sections.privacy") },
+  { id: "notifications", label: t("settings.sections.notifications") },
+  { id: "calls", label: t("settings.sections.calls") },
+  { id: "advanced", label: t("settings.sections.advanced") },
+  { id: "admin", label: t("settings.sections.admin") },
+  { id: "backups", label: t("settings.sections.backups") },
+  { id: "about", label: t("settings.sections.about") }
+]);
+const sections = computed(() => allSections.value.filter((section) => section.id !== "admin" || props.messenger.state.admin));
 const filteredSections = computed(() => {
   const query = settingsSearch.value.trim().toLowerCase();
   if (!query) return sections.value;
@@ -224,8 +227,8 @@ onBeforeUnmount(() => {
     aria-modal="true" aria-labelledby="settings-title">
     <aside class="settings__side">
       <header class="settings__side-head">
-        <h2 id="settings-title">Settings</h2>
-        <button class="icon-btn settings__close" type="button" aria-label="Close settings" @click="close">
+        <h2 id="settings-title">{{ t('settings.title') }}</h2>
+        <button class="icon-btn settings__close" type="button" :aria-label="t('settings.close')" @click="close">
           <svg viewBox="0 0 24 24">
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
@@ -237,7 +240,7 @@ onBeforeUnmount(() => {
           <circle cx="11" cy="11" r="7" />
           <path d="m20 20-3.5-3.5" />
         </svg>
-        <input v-model="settingsSearch" type="search" placeholder="Search" autocomplete="off" />
+        <input v-model="settingsSearch" type="search" :placeholder="t('settings.search')" autocomplete="off" />
       </label>
 
       <button class="settings__card" type="button" @click="activeSection = 'profile'">
@@ -316,7 +319,7 @@ onBeforeUnmount(() => {
 
     <main class="settings__main">
       <header class="settings__main-head">
-        <button class="icon-btn settings__back" type="button" aria-label="Back to settings" @click="backToSettingsList">
+        <button class="icon-btn settings__back" type="button" :aria-label="t('settings.back')" @click="backToSettingsList">
           <svg viewBox="0 0 24 24">
             <path d="m15 18-6-6 6-6" />
           </svg>
@@ -334,13 +337,12 @@ onBeforeUnmount(() => {
           </span>
           <span v-else class="avatar settings-profile__avatar" :class="`avatar--${meAccent}`">{{ meInitials }}</span>
           <div class="settings-profile__actions">
-            <button type="button" class="btn settings-profile__photo" @click="avatarInputRef?.click()">Profile
-              image</button>
-            <button type="button" class="btn settings-profile__photo" @click="bannerInputRef?.click()">Banner</button>
+            <button type="button" class="btn settings-profile__photo"             @click="avatarInputRef?.click()">{{ t('settings.profile.profileImage') }}</button>
+            <button type="button" class="btn settings-profile__photo"             @click="bannerInputRef?.click()">{{ t('settings.profile.banner') }}</button>
             <button v-if="profile.avatar" type="button" class="btn settings-profile__photo"
-              @click="messenger.clearProfileImage('avatar')">Clear image</button>
+              @click="messenger.clearProfileImage('avatar')">{{ t('settings.profile.clearImage') }}</button>
             <button v-if="profile.banner" type="button" class="btn settings-profile__photo"
-              @click="messenger.clearProfileImage('banner')">Clear banner</button>
+              @click="messenger.clearProfileImage('banner')">{{ t('settings.profile.clearBanner') }}</button>
           </div>
           <input ref="avatarInputRef" type="file" accept="image/png,image/apng,image/gif,image/jpeg,image/webp,.apng,.webp"
             style="display: none" @change="onAvatarPicked" />
@@ -357,15 +359,15 @@ onBeforeUnmount(() => {
               </svg>
             </span>
             <span class="settings-field__body">
-              <span class="settings-field__label">Display name</span>
-              <span class="settings-field__hint">Visible to people you message.</span>
+              <span class="settings-field__label">{{ t('settings.profile.displayName') }}</span>
+              <span class="settings-field__hint">{{ t('settings.profile.displayNameHint') }}</span>
             </span>
           </label>
           <div class="settings-inline">
             <input ref="firstInputRef" v-model="draftName" type="text" maxlength="32" autocomplete="off"
               spellcheck="false" placeholder="e.g. echo" class="settings-input" @keydown.enter.prevent="saveName" />
             <button type="button" class="btn btn--primary settings-btn" :disabled="!nameValid || !nameChanged"
-              @click="saveName">Save</button>
+                @click="saveName">{{ t('settings.profile.save') }}</button>
           </div>
         </div>
 
@@ -384,16 +386,16 @@ onBeforeUnmount(() => {
               </svg>
             </span>
             <span class="settings-field__body">
-              <span class="settings-field__label">Status</span>
-              <span class="settings-field__hint">Controls how you appear in Presence.</span>
+              <span class="settings-field__label">{{ t('settings.profile.status') }}</span>
+              <span class="settings-field__hint">{{ t('settings.profile.statusHint') }}</span>
             </span>
           </label>
           <label class="settings-select settings-select--offset">
             <span class="sr-only">Status</span>
             <select :value="messenger.state.status" @change="messenger.setPresenceStatus(targetValue($event))">
-              <option value="online">Online</option>
-              <option value="invisible">Invisible</option>
-              <option value="dnd">Do Not Disturb</option>
+              <option value="online">{{ t('sidebar.online') }}</option>
+              <option value="invisible">{{ t('sidebar.invisible') }}</option>
+              <option value="dnd">{{ t('sidebar.dnd') }}</option>
             </select>
           </label>
         </div>
@@ -409,7 +411,7 @@ onBeforeUnmount(() => {
               </svg>
             </span>
             <span class="settings-field__body">
-              <span class="settings-field__label">Description</span>
+              <span class="settings-field__label">{{ t('settings.profile.description') }}</span>
               <span class="settings-field__hint">{{ draftDescription.length }}/{{ messenger.MAX_PROFILE_DESCRIPTION_LENGTH }}</span>
             </span>
           </label>
@@ -429,60 +431,60 @@ onBeforeUnmount(() => {
               </svg>
             </span>
             <span class="settings-field__body">
-              <span class="settings-field__label">Pronouns</span>
+              <span class="settings-field__label">{{ t('settings.profile.pronouns') }}</span>
               <span class="settings-field__hint">{{ draftPronouns.length }}/{{ messenger.MAX_PROFILE_PRONOUNS_LENGTH
                 }}</span>
             </span>
           </label>
           <div class="settings-inline">
             <input v-model="draftPronouns" type="text" :maxlength="messenger.MAX_PROFILE_PRONOUNS_LENGTH"
-              autocomplete="off" spellcheck="false" placeholder="e.g. they/them" class="settings-input"
+              autocomplete="off" spellcheck="false" :placeholder="t('settings.profile.pronounsPlaceholder')" class="settings-input"
               @keydown.enter.prevent="saveProfileText" />
-            <button type="button" class="btn btn--primary settings-btn" :disabled="!profileTextChanged"
-              @click="saveProfileText">Save</button>
+            <button type="button" class="btn btn--primary settings-btn"             :disabled="!profileTextChanged"
+              @click="saveProfileText">{{ t('settings.profile.save') }}</button>
           </div>
         </div>
 
         <p class="settings-note">
-          Profile image max 2 MB. Banner max 5 MB, PNG/APNG/GIF/JPEG/WEBP.
+          {{ t('settings.profile.noteImages') }}
         </p>
       </section>
 
       <section v-else-if="activeSection === 'ui'" class="settings-page">
         <div class="settings-group">
-          <h4>Theme</h4>
+          <h4>{{ t('settings.ui.theme') }}</h4>
           <label class="settings-select">
-            <span>Application theme</span>
+            <span>{{ t('settings.ui.themeLabel') }}</span>
             <select :value="messenger.state.themeMode" @change="messenger.setThemeMode(targetValue($event))">
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-              <option value="adaptive">Adaptive (time based)</option>
+              <option value="dark">{{ t('settings.ui.dark') }}</option>
+              <option value="light">{{ t('settings.ui.light') }}</option>
+              <option value="adaptive">{{ t('settings.ui.adaptive') }}</option>
             </select>
           </label>
-          <p class="settings-note">Adaptive switches automatically based on your local time.</p>
+          <p class="settings-note">{{ t('settings.ui.adaptiveNote') }}</p>
         </div>
 
         <div class="settings-group">
-          <h4>Colors</h4>
+          <h4>{{ t('settings.ui.colors') }}</h4>
           <label class="settings-select">
-            <span>Accent color</span>
+            <span>{{ t('settings.ui.accentColor') }}</span>
             <select :value="messenger.state.appAccent" @change="messenger.setAppAccent(targetValue($event))">
-              <option value="blue">Blue</option>
-              <option value="violet">Violet</option>
-              <option value="emerald">Emerald</option>
-              <option value="rose">Rose</option>
-              <option value="amber">Amber</option>
+              <option value="blue">{{ t('settings.ui.blue') }}</option>
+              <option value="violet">{{ t('settings.ui.violet') }}</option>
+              <option value="emerald">{{ t('settings.ui.emerald') }}</option>
+              <option value="rose">{{ t('settings.ui.rose') }}</option>
+              <option value="amber">{{ t('settings.ui.amber') }}</option>
             </select>
           </label>
         </div>
 
         <div class="settings-group">
-          <h4>Messages</h4>
+          <h4>{{ t('settings.ui.messages') }}</h4>
           <label class="settings-select">
-            <span>Message shape</span>
+            <span>{{ t('settings.ui.messageShape') }}</span>
             <select :value="messenger.state.messageStyle" @change="messenger.setMessageStyle(targetValue($event))">
-              <option value="bubble">Bubbles</option>
-              <option value="discord">Discord-style (left line)</option>
+              <option value="bubble">{{ t('settings.ui.bubbles') }}</option>
+              <option value="discord">{{ t('settings.ui.discord') }}</option>
             </select>
           </label>
         </div>
@@ -490,77 +492,77 @@ onBeforeUnmount(() => {
 
       <section v-else-if="activeSection === 'security'" class="settings-page">
         <div class="settings-group">
-          <h4>Account</h4>
+          <h4>{{ t('settings.security.account') }}</h4>
           <dl class="settings-kv">
             <div>
-              <dt>User ID</dt>
+              <dt>{{ t('settings.security.userId') }}</dt>
               <dd>{{ messenger.state.userId || "—" }}</dd>
             </div>
             <div>
-              <dt>Username</dt>
+              <dt>{{ t('settings.security.username') }}</dt>
               <dd>{{ messenger.state.username || "—" }}</dd>
             </div>
           </dl>
           <div class="settings-actions">
             <button type="button" class="btn settings-btn" @click="messenger.downloadRecoveryWords">
-              Download recovery words
+              {{ t('settings.security.downloadRecovery') }}
             </button>
             <button type="button" class="btn settings-btn settings-btn--danger" @click="onLogout">
-              Log out
+              {{ t('settings.security.logout') }}
             </button>
           </div>
           <p class="settings-note">
-            Recovery words are shown only after account creation or recovery on this browser.
+            {{ t('settings.security.recoveryNote') }}
           </p>
         </div>
       </section>
 
       <section v-else-if="activeSection === 'privacy'" class="settings-page">
         <div class="settings-group">
-          <h4>Privacy</h4>
+          <h4>{{ t('settings.privacy.title') }}</h4>
           <label class="settings-check">
-            <span>Delete local room messages when leaving</span>
+            <span>{{ t('settings.privacy.deleteOnLeave') }}</span>
             <input type="checkbox" :checked="messenger.state.deleteMessagesOnLeave"
               @change="messenger.setDeleteMessagesOnLeave(targetChecked($event))" />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <label class="settings-check">
-            <span>Streamer mode</span>
+            <span>{{ t('settings.privacy.streamerMode') }}</span>
             <input type="checkbox" :checked="messenger.state.streamerMode"
               @change="messenger.setStreamerMode(targetChecked($event))" />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <p class="settings-note">
-            Streamer mode hides room IDs in the interface while keeping your rooms connected.
+            {{ t('settings.privacy.streamerNote') }}
           </p>
         </div>
       </section>
 
       <section v-else-if="activeSection === 'notifications'" class="settings-page">
         <div class="settings-group">
-          <h4>Messages</h4>
+          <h4>{{ t('settings.notifications.messages') }}</h4>
           <label class="settings-check">
-            <span>Play a sound for new messages</span>
+            <span>{{ t('settings.notifications.messageSound') }}</span>
             <input type="checkbox" :checked="messenger.state.messageSoundEnabled"
               @change="messenger.setMessageSoundEnabled(targetChecked($event))" />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <label class="settings-check">
-            <span>Show notifications for background messages</span>
+            <span>{{ t('settings.notifications.backgroundNotifs') }}</span>
             <input type="checkbox" :checked="messenger.state.androidNotificationsEnabled"
               @change="messenger.setAndroidNotificationsEnabled(targetChecked($event))" />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
-          <p class="settings-note">Permission: {{ messenger.notificationPermission() }}</p>
+          <p class="settings-note">{{ t('settings.notifications.permission', { status: messenger.notificationPermission() }) }}</p>
         </div>
 
         <div class="settings-group">
-          <h4>Sounds</h4>
+          <h4>{{ t('settings.notifications.sounds') }}</h4>
           <div class="sound-list">
             <div class="sound-row">
               <div class="sound-row__info">
-                <span class="sound-row__label">Message</span>
-                <button type="button" class="sound-row__preview" @click="messenger.previewSound('message')">Preview Sound</button>
+                <span class="sound-row__label">{{ t('settings.notifications.soundMessage') }}</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('message')">{{ t('settings.notifications.previewSound') }}</button>
               </div>
               <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.message }">
                 <input type="checkbox" :checked="messenger.state.soundFlags.message" @change="messenger.setSoundEnabled('message', targetChecked($event))" />
@@ -569,8 +571,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="sound-row">
               <div class="sound-row__info">
-                <span class="sound-row__label">Voice Connected</span>
-                <button type="button" class="sound-row__preview" @click="messenger.previewSound('join')">Preview Sound</button>
+                <span class="sound-row__label">{{ t('settings.notifications.soundJoin') }}</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('join')">{{ t('settings.notifications.previewSound') }}</button>
               </div>
               <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.join }">
                 <input type="checkbox" :checked="messenger.state.soundFlags.join" @change="messenger.setSoundEnabled('join', targetChecked($event))" />
@@ -579,8 +581,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="sound-row">
               <div class="sound-row__info">
-                <span class="sound-row__label">Voice Disconnected</span>
-                <button type="button" class="sound-row__preview" @click="messenger.previewSound('leave')">Preview Sound</button>
+                <span class="sound-row__label">{{ t('settings.notifications.soundLeave') }}</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('leave')">{{ t('settings.notifications.previewSound') }}</button>
               </div>
               <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.leave }">
                 <input type="checkbox" :checked="messenger.state.soundFlags.leave" @change="messenger.setSoundEnabled('leave', targetChecked($event))" />
@@ -589,8 +591,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="sound-row">
               <div class="sound-row__info">
-                <span class="sound-row__label">Mute</span>
-                <button type="button" class="sound-row__preview" @click="messenger.previewSound('mute')">Preview Sound</button>
+                <span class="sound-row__label">{{ t('settings.notifications.soundMute') }}</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('mute')">{{ t('settings.notifications.previewSound') }}</button>
               </div>
               <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.mute }">
                 <input type="checkbox" :checked="messenger.state.soundFlags.mute" @change="messenger.setSoundEnabled('mute', targetChecked($event))" />
@@ -599,8 +601,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="sound-row">
               <div class="sound-row__info">
-                <span class="sound-row__label">Unmute</span>
-                <button type="button" class="sound-row__preview" @click="messenger.previewSound('unmute')">Preview Sound</button>
+                <span class="sound-row__label">{{ t('settings.notifications.soundUnmute') }}</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('unmute')">{{ t('settings.notifications.previewSound') }}</button>
               </div>
               <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.unmute }">
                 <input type="checkbox" :checked="messenger.state.soundFlags.unmute" @change="messenger.setSoundEnabled('unmute', targetChecked($event))" />
@@ -609,8 +611,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="sound-row">
               <div class="sound-row__info">
-                <span class="sound-row__label">Camera On</span>
-                <button type="button" class="sound-row__preview" @click="messenger.previewSound('cameraOn')">Preview Sound</button>
+                <span class="sound-row__label">{{ t('settings.notifications.soundCameraOn') }}</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('cameraOn')">{{ t('settings.notifications.previewSound') }}</button>
               </div>
               <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.cameraOn }">
                 <input type="checkbox" :checked="messenger.state.soundFlags.cameraOn" @change="messenger.setSoundEnabled('cameraOn', targetChecked($event))" />
@@ -619,8 +621,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="sound-row">
               <div class="sound-row__info">
-                <span class="sound-row__label">Camera Off</span>
-                <button type="button" class="sound-row__preview" @click="messenger.previewSound('cameraOff')">Preview Sound</button>
+                <span class="sound-row__label">{{ t('settings.notifications.soundCameraOff') }}</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('cameraOff')">{{ t('settings.notifications.previewSound') }}</button>
               </div>
               <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.cameraOff }">
                 <input type="checkbox" :checked="messenger.state.soundFlags.cameraOff" @change="messenger.setSoundEnabled('cameraOff', targetChecked($event))" />
@@ -629,8 +631,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="sound-row">
               <div class="sound-row__info">
-                <span class="sound-row__label">Screen Share On</span>
-                <button type="button" class="sound-row__preview" @click="messenger.previewSound('screenOn')">Preview Sound</button>
+                <span class="sound-row__label">{{ t('settings.notifications.soundScreenOn') }}</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('screenOn')">{{ t('settings.notifications.previewSound') }}</button>
               </div>
               <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.screenOn }">
                 <input type="checkbox" :checked="messenger.state.soundFlags.screenOn" @change="messenger.setSoundEnabled('screenOn', targetChecked($event))" />
@@ -639,8 +641,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="sound-row">
               <div class="sound-row__info">
-                <span class="sound-row__label">Screen Share Off</span>
-                <button type="button" class="sound-row__preview" @click="messenger.previewSound('screenOff')">Preview Sound</button>
+                <span class="sound-row__label">{{ t('settings.notifications.soundScreenOff') }}</span>
+                <button type="button" class="sound-row__preview" @click="messenger.previewSound('screenOff')">{{ t('settings.notifications.previewSound') }}</button>
               </div>
               <label class="toggle" :class="{ 'is-on': messenger.state.soundFlags.screenOff }">
                 <input type="checkbox" :checked="messenger.state.soundFlags.screenOff" @change="messenger.setSoundEnabled('screenOff', targetChecked($event))" />
@@ -653,26 +655,26 @@ onBeforeUnmount(() => {
 
       <section v-else-if="activeSection === 'calls'" class="settings-page">
         <div class="settings-group">
-          <h4>Calling</h4>
+          <h4>{{ t('settings.calls.calling') }}</h4>
           <label class="settings-check">
-            <span>Enable incoming calls</span>
+            <span>{{ t('settings.calls.enableCalls') }}</span>
             <input type="checkbox" checked disabled />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <label class="settings-check">
-            <span>Play calling sounds</span>
+            <span>{{ t('settings.calls.playCallingSounds') }}</span>
             <input type="checkbox" checked disabled />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
         </div>
 
         <div class="settings-group">
-          <h4>Devices</h4>
+          <h4>{{ t('settings.calls.devices') }}</h4>
           <label class="settings-select">
-            <span>Microphone</span>
+            <span>{{ t('settings.calls.microphone') }}</span>
             <select :value="messenger.state.selectedAudioInputId"
               @change="messenger.setAudioInput(targetValue($event))">
-              <option value="">System default</option>
+              <option value="">{{ t('settings.calls.systemDefault') }}</option>
               <option v-for="(device, index) in microphones" :key="device.deviceId || `mic-${index}`"
                 :value="device.deviceId">
                 {{ deviceLabel(device, `Microphone ${Number(index) + 1}`) }}
@@ -681,10 +683,10 @@ onBeforeUnmount(() => {
           </label>
 
           <label class="settings-select">
-            <span>Speakers</span>
+            <span>{{ t('settings.calls.speakers') }}</span>
             <select :value="messenger.state.selectedAudioOutputId"
               @change="messenger.setAudioOutput(targetValue($event))">
-              <option value="">System default</option>
+              <option value="">{{ t('settings.calls.systemDefault') }}</option>
               <option v-for="(device, index) in headphones" :key="device.deviceId || `speaker-${index}`"
                 :value="device.deviceId">
                 {{ deviceLabel(device, `Output ${Number(index) + 1}`) }}
@@ -693,20 +695,19 @@ onBeforeUnmount(() => {
           </label>
 
           <p class="settings-note" v-if="messenger.state.audioDevicesPermission !== 'granted'">
-            Allow microphone access to reveal the real device names and available inputs/outputs. This does not start a
-            call.
+            {{ t('settings.calls.devicesNote') }}
           </p>
           <button type="button" class="btn settings-btn" :disabled="messenger.state.audioDevicesLoading"
             @click="messenger.unlockAudioDevices">
-            {{ messenger.state.audioDevicesLoading ? "Checking..." : "Allow and refresh devices" }}
+            {{ messenger.state.audioDevicesLoading ? t('settings.calls.checkingDevices') : t('settings.calls.allowDevices') }}
           </button>
         </div>
 
         <div class="settings-group">
-          <h4>Advanced</h4>
+          <h4>{{ t('settings.calls.advanced') }}</h4>
           <label class="settings-range">
-            <span>Microphone noise threshold</span>
-            <small>Raise it to avoid sending background noise.</small>
+            <span>{{ t('settings.calls.micThreshold') }}</span>
+            <small>{{ t('settings.calls.micThresholdHint') }}</small>
             <div class="settings-meter">
               <span class="settings-meter__bar" :style="{ width: `${messenger.state.micTestLevel}%` }"></span>
               <span class="settings-meter__threshold"
@@ -718,80 +719,78 @@ onBeforeUnmount(() => {
           </label>
           <button type="button" class="btn settings-btn" :class="{ 'icon-btn--active': messenger.state.micTestActive }"
             :disabled="messenger.state.micTestLoading" @click="messenger.startMicTest">
-            {{ messenger.state.micTestLoading ? "Starting..." : messenger.state.micTestActive ? "Stop listening" :
-            "Listen and test mic" }}
+            {{ messenger.state.micTestLoading ? t('settings.calls.startingMic') : messenger.state.micTestActive ? t('settings.calls.stopListening') : t('settings.calls.testMic') }}
           </button>
         </div>
       </section>
 
       <section v-else-if="activeSection === 'advanced'" class="settings-page">
         <div class="settings-group">
-          <h4>Connection</h4>
+          <h4>{{ t('settings.advanced.connection') }}</h4>
           <label class="settings-check">
-            <span>Reconnect automatically to chat</span>
+            <span>{{ t('settings.advanced.autoReconnect') }}</span>
             <input type="checkbox" :checked="messenger.state.autoReconnectEnabled"
               @change="messenger.setAutoReconnectEnabled(targetChecked($event))" />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <label class="settings-check">
-            <span>Let the server clear local message cache</span>
+            <span>{{ t('settings.advanced.serverClears') }}</span>
             <input type="checkbox" :checked="messenger.state.serverClearsLocalMessages"
               @change="messenger.setServerClearsLocalMessages(targetChecked($event))" />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <p class="settings-note">
-            Enabled by default. When disabled, reconnecting keeps Android/browser cached room messages even if the
-            server history is empty after a protocol refresh.
+            {{ t('settings.advanced.serverClearsNote') }}
           </p>
         </div>
 
         <div class="settings-group">
-          <h4>Uploads</h4>
+          <h4>{{ t('settings.advanced.uploads') }}</h4>
           <label class="settings-check">
-            <span>Automatically archive files in .zip when upload</span>
+            <span>{{ t('settings.advanced.autoArchive') }}</span>
             <input type="checkbox" :checked="messenger.state.autoArchiveUploads"
               @change="messenger.setAutoArchiveUploads(targetChecked($event))" />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <p class="settings-note">
-            Disabled by default. When enabled, uploaded attachments are wrapped in a ZIP file before sending. Upload limit: 25 MB.
+            {{ t('settings.advanced.autoArchiveNote') }}
           </p>
         </div>
       </section>
 
       <section v-else-if="activeSection === 'admin'" class="settings-page">
         <div class="settings-group">
-          <h4>Admin</h4>
+          <h4>{{ t('settings.admin.title') }}</h4>
           <button type="button" class="btn settings-btn" :disabled="messenger.state.adminLoading"
             @click="messenger.loadAdminOverview">
-            {{ messenger.state.adminLoading ? "Loading..." : "Refresh" }}
+            {{ messenger.state.adminLoading ? t('settings.admin.loading') : t('settings.admin.refresh') }}
           </button>
           <dl class="settings-kv" v-if="messenger.state.adminOverview">
             <div>
-              <dt>Online</dt>
+              <dt>{{ t('settings.admin.online') }}</dt>
               <dd>{{ messenger.state.adminOverview.onlineCount }}</dd>
             </div>
             <div>
-              <dt>Users</dt>
+              <dt>{{ t('settings.admin.users') }}</dt>
               <dd>{{ messenger.state.adminOverview.users?.length || 0 }}</dd>
             </div>
             <div>
-              <dt>Rooms</dt>
+              <dt>{{ t('settings.admin.rooms') }}</dt>
               <dd>{{ messenger.state.adminOverview.rooms?.length || 0 }}</dd>
             </div>
           </dl>
         </div>
 
         <div class="settings-group" v-if="messenger.state.adminOverview?.features">
-          <h4>Features</h4>
+          <h4>{{ t('settings.admin.features') }}</h4>
           <label class="settings-check">
-            <span>Registrations</span>
+            <span>{{ t('settings.admin.registrations') }}</span>
             <input type="checkbox" :checked="messenger.state.adminOverview.features.registerEnabled"
               @change="messenger.setAdminFeature('registerEnabled', targetChecked($event))" />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
           </label>
           <label class="settings-check">
-            <span>Calls</span>
+            <span>{{ t('settings.admin.calls') }}</span>
             <input type="checkbox" :checked="messenger.state.adminOverview.features.callsEnabled"
               @change="messenger.setAdminFeature('callsEnabled', targetChecked($event))" />
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
@@ -813,14 +812,14 @@ onBeforeUnmount(() => {
               </div>
               <button type="button" class="btn settings-btn" :class="{ 'settings-btn--danger': !user.disabled }"
                 @click="messenger.setAdminUserDisabled(user.id, !user.disabled)">
-                {{ user.disabled ? "Enable" : "Disable" }}
+                {{ user.disabled ? t('settings.admin.enable') : t('settings.admin.disable') }}
               </button>
             </div>
           </div>
         </div>
 
         <div class="settings-group" v-if="messenger.state.adminOverview?.rooms?.length">
-          <h4>Rooms</h4>
+          <h4>{{ t('settings.admin.rooms') }}</h4>
           <div class="admin-list">
             <div v-for="room in messenger.state.adminOverview.rooms" :key="room.roomId" class="admin-row">
               <div>
@@ -833,17 +832,14 @@ onBeforeUnmount(() => {
               </div>
             </div>
           </div>
-          <p class="settings-note">Room previews expose metadata only, never message bodies.</p>
+          <p class="settings-note">{{ t('settings.admin.roomsNote') }}</p>
         </div>
       </section>
 
       <section v-else-if="activeSection === 'backups'" class="settings-page">
         <div class="settings-group">
-          <h4>Backups</h4>
-          <p class="settings-note">
-            Backups include username, room list, message history metadata, reactions, and unread counts.
-            Attachment bytes are dropped from persistent storage to keep files small.
-          </p>
+          <h4>{{ t('settings.backups.title') }}</h4>
+          <p class="settings-note">{{ t('settings.backups.note') }}</p>
           <div class="settings-actions">
             <button type="button" class="btn settings-btn" @click="onExport">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -852,7 +848,7 @@ onBeforeUnmount(() => {
                 <path d="m6 9 6-6 6 6" />
                 <path d="M5 21h14" />
               </svg>
-              Export JSON
+              {{ t('settings.backups.export') }}
             </button>
             <button type="button" class="btn settings-btn" @click="onImport">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -861,7 +857,7 @@ onBeforeUnmount(() => {
                 <path d="m6 15 6 6 6-6" />
                 <path d="M5 3h14" />
               </svg>
-              Import JSON
+              {{ t('settings.backups.import') }}
             </button>
             <button type="button" class="btn settings-btn settings-btn--danger" @click="onClear">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -870,7 +866,7 @@ onBeforeUnmount(() => {
                 <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 <path d="m5 6 1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14" />
               </svg>
-              Clear all
+              {{ t('settings.backups.clear') }}
             </button>
           </div>
         </div>
