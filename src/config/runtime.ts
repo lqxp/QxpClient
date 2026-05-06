@@ -167,18 +167,19 @@ export async function initializeRuntimeConfig() {
   if (runtimeInitPromise) return runtimeInitPromise;
 
   runtimeInitPromise = (async () => {
-    applyRuntimeConfig(normalizedRuntimePayload(window.__QXP_RUNTIME__));
+    const injectedRuntime = normalizedRuntimePayload(window.__QXP_RUNTIME__);
+    applyRuntimeConfig(injectedRuntime);
     if (!isEmbeddedAppOrigin()) return;
 
     const fetchedRuntime = await fetchEmbeddedRuntimeConfig(appRuntimeConfig.serverOrigin);
     if (!fetchedRuntime) return;
 
     applyRuntimeConfig({
-      ...normalizedRuntimePayload(window.__QXP_RUNTIME__),
       ...fetchedRuntime,
+      ...injectedRuntime,
       rtc: {
-        ...(normalizedRuntimePayload(window.__QXP_RUNTIME__)?.rtc || {}),
-        ...(fetchedRuntime.rtc || {})
+        ...(fetchedRuntime.rtc || {}),
+        ...(injectedRuntime.rtc || {})
       }
     });
   })();
