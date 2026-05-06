@@ -27,4 +27,12 @@ initializeRuntimeConfig()
   })
   .finally(() => {
     createApp(App).use(router).mount("#app");
+    const splash = document.getElementById("splash");
+    if (splash) {
+      // Laisse un tick pour que Vue finisse le premier rendu
+      requestAnimationFrame(() => {
+        splash.classList.add("is-hidden");
+        splash.addEventListener("transitionend", () => splash.remove(), { once: true });
+      });
+    }
   });
