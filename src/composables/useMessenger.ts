@@ -14,6 +14,7 @@ import {
   parseRoomAccessToken,
   normalizeRoomKey
 } from "@/crypto/e2ee";
+import { playCameraOffSound, playCameraOnSound, playJoinSound, playLeaveSound, playScreenOffSound, playScreenOnSound } from "@/calls/callSounds";
 
 const STORAGE_KEY = "qxprotocol-messenger-v4";
 const PROFILE_STORAGE_KEY = "qxprotocol-profile-v1";
@@ -2413,6 +2414,7 @@ export function useMessenger() {
       connectKnownCallPeers(roomId);
       startCallAudioGate();
       tickCall(Date.now());
+      playJoinSound();
     } catch (err) {
       state.lastError = "Mic access denied.";
       endCall();
@@ -2434,6 +2436,7 @@ export function useMessenger() {
       state.cameraStream = null;
       state.callCameraEnabled = false;
       publishCallState(true);
+      playCameraOffSound();
       return;
     }
 
@@ -2445,12 +2448,14 @@ export function useMessenger() {
       const [track] = stream.getVideoTracks();
       if (!track) throw new Error("Camera has no video track.");
       callManager.setLocalTrack("camera", track, stream);
+      playCameraOnSound();
       track.onended = () => {
         callManager?.removeLocalTrack("camera");
         state.callCameraEnabled = false;
         stopStreamTracks(stream);
         if (state.cameraStream === stream) state.cameraStream = null;
         publishCallState(true);
+        playCameraOffSound();
       };
       for (const extraTrack of stream.getVideoTracks().slice(1)) {
         extraTrack.stop();
@@ -2469,6 +2474,7 @@ export function useMessenger() {
       state.screenStream = null;
       state.callScreenEnabled = false;
       publishCallState(true);
+      playScreenOffSound();
       return;
     }
 
@@ -2486,12 +2492,14 @@ export function useMessenger() {
       const [track] = stream.getVideoTracks();
       if (!track) throw new Error("Screen share has no video track.");
       callManager.setLocalTrack("screen", track, stream);
+      playScreenOnSound();
       track.onended = () => {
         callManager?.removeLocalTrack("screen");
         state.callScreenEnabled = false;
         stopStreamTracks(stream);
         if (state.screenStream === stream) state.screenStream = null;
         publishCallState(true);
+        playScreenOffSound();
       };
       publishCallState(true);
     } catch {
@@ -2532,8 +2540,7 @@ export function useMessenger() {
       if (rawCallStream !== memoStream) stopStreamTracks(rawCallStream);
       state.callStream = null;
     }
-    closeCallAnalyser();
-    if (wasInCall) publishCallState(false);
+    if (wasInCall) { publishCallState(false); playLeaveSound(); }
     state.inCall = false;
     state.voiceEnabled = false;
     state.callRoom = "";
