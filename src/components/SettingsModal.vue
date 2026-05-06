@@ -4,7 +4,7 @@ import { useI18n, LOCALE_LABELS } from "@/composables/useI18n";
 import { appRuntimeConfig } from "@/config/runtime";
 
 const i18n = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
-const { t } = i18n;
+const { t, locale, availableLocales } = i18n;
 
 const props = defineProps({
   messenger: { type: Object, required: true }
@@ -171,6 +171,8 @@ const runtimePlatform = computed(() => {
   return "web";
 });
 
+const browserLanguage = computed(() => navigator.language || "—");
+
 const runtimeDetails = computed(() => {
   const uaData = (navigator as Navigator & { userAgentData?: { platform?: string; mobile?: boolean } }).userAgentData;
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "unknown";
@@ -256,7 +258,7 @@ onBeforeUnmount(() => {
         </span>
       </button>
 
-      <div class="settings__mobile-label">Account Settings</div>
+      <div class="settings__mobile-label">{{ t('settings.title') }}</div>
 
       <nav class="settings__nav" aria-label="Settings sections">
         <button v-for="section in filteredSections" :key="section.id" type="button" class="settings__nav-item"
@@ -489,6 +491,31 @@ onBeforeUnmount(() => {
               <option value="discord">{{ t('settings.ui.discord') }}</option>
             </select>
           </label>
+        </div>
+      </section>
+
+      <section v-else-if="activeSection === 'language'" class="settings-page">
+        <div class="settings-group">
+          <h4>{{ t('settings.language.title') }}</h4>
+          <label class="settings-select">
+            <span>{{ t('settings.language.appLanguage') }}</span>
+            <select v-model="locale">
+              <option v-for="localeCode in availableLocales" :key="localeCode" :value="localeCode">
+                {{ LOCALE_LABELS[localeCode] || localeCode }}
+              </option>
+            </select>
+          </label>
+          <dl class="settings-kv">
+            <div>
+              <dt>{{ t('settings.language.currentLanguage') }}</dt>
+              <dd>{{ LOCALE_LABELS[locale] || locale }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('settings.language.browserLanguage') }}</dt>
+              <dd>{{ browserLanguage }}</dd>
+            </div>
+          </dl>
+          <p class="settings-note">{{ t('settings.language.note') }}</p>
         </div>
       </section>
 

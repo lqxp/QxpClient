@@ -137,6 +137,13 @@
             "bubbles": "Пузыри",
             "discord": "Стиль Discord (левая линия)"
         },
+        "language": {
+            "title": "Язык",
+            "appLanguage": "Язык приложения",
+            "currentLanguage": "Текущий язык",
+            "browserLanguage": "Язык браузера",
+            "note": "Изменения применяются сразу и сохраняются на этом устройстве."
+        },
         "security": {
             "account": "Аккаунт",
             "userId": "ID пользователя",

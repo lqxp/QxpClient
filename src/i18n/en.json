@@ -93,6 +93,7 @@
         "sections": {
             "profile": "Profile",
             "ui": "UI & Appearance",
+            "language": "Language",
             "security": "Security",
             "privacy": "Privacy",
             "notifications": "Notifications",
@@ -135,6 +136,13 @@
             "messageShape": "Message shape",
             "bubbles": "Bubbles",
             "discord": "Discord-style (left line)"
+        },
+        "language": {
+            "title": "Language",
+            "appLanguage": "Application language",
+            "currentLanguage": "Current language",
+            "browserLanguage": "Browser language",
+            "note": "Changes apply immediately and are saved on this device."
         },
         "security": {
             "account": "Account",

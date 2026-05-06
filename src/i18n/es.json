@@ -93,6 +93,7 @@
         "sections": {
             "profile": "Perfil",
             "ui": "Interfaz y apariencia",
+            "language": "Idioma",
             "security": "Seguridad",
             "privacy": "Privacidad",
             "notifications": "Notificaciones",
@@ -100,8 +101,7 @@
             "advanced": "Avanzado",
             "admin": "Admin",
             "backups": "Copias de seguridad",
-            "about": "Acerca de",
-        "language": "Idioma"
+            "about": "Acerca de"
         },
         "profile": {
             "displayName": "Nombre visible",
@@ -136,6 +136,13 @@
             "messageShape": "Estilo de mensajes",
             "bubbles": "Burbujas",
             "discord": "Estilo Discord (línea izquierda)"
+        },
+        "language": {
+            "title": "Idioma",
+            "appLanguage": "Idioma de la aplicación",
+            "currentLanguage": "Idioma actual",
+            "browserLanguage": "Idioma del navegador",
+            "note": "Los cambios se aplican de inmediato y se guardan en este dispositivo."
         },
         "security": {
             "account": "Cuenta",
