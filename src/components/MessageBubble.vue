@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
+import { useI18n } from "@/composables/useI18n";
 import AudioPlayer from "@/components/AudioPlayer.vue";
 import ImageViewer from "@/components/ImageViewer.vue";
 import ProfileCard from "@/components/ProfileCard.vue";
 import VideoPlayer from "@/components/VideoPlayer.vue";
+
+const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
 
 const props = defineProps({
   message: { type: Object, required: true },
@@ -325,7 +328,7 @@ function openImageViewer() {
 
 function onDelete() {
   if (!isOwn.value || deleted.value) return;
-  if (!confirm("Delete this message for everyone in the room?")) return;
+  if (!confirm(t('message.deleteConfirm'))) return;
   props.messenger.deleteMessage(props.message);
 }
 </script>
@@ -467,7 +470,7 @@ function onDelete() {
 
       <template v-if="deleted">
         <div class="bubble__body">
-          <div class="bubble__text bubble__text--deleted">Message deleted</div>
+          <div class="bubble__text bubble__text--deleted">{{ t('message.deleted') }}</div>
         </div>
       </template>
 
@@ -484,7 +487,7 @@ function onDelete() {
           <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
         </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
-          {{ expandedText ? "Show less" : "See more" }}
+          {{ expandedText ? t('message.seeLess') : t('message.seeMore') }}
         </button>
       </template>
 
@@ -497,7 +500,7 @@ function onDelete() {
           <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
         </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
-          {{ expandedText ? "Show less" : "See more" }}
+          {{ expandedText ? t('message.seeLess') : t('message.seeMore') }}
         </button>
       </template>
 
@@ -512,7 +515,7 @@ function onDelete() {
         </div>
         <button v-if="isTextCollapsible && message.text && !message.text.startsWith('[voice:')" type="button"
           class="bubble__more" @click="expandedText = !expandedText">
-          {{ expandedText ? "Show less" : "See more" }}
+          {{ expandedText ? t('message.seeLess') : t('message.seeMore') }}
         </button>
       </template>
 
@@ -547,7 +550,7 @@ function onDelete() {
           <span v-if="isDiscordStyle && edited" class="bubble__edited">(edited)</span>
         </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
-          {{ expandedText ? "Show less" : "See more" }}
+          {{ expandedText ? t('message.seeLess') : t('message.seeMore') }}
         </button>
       </template>
 
@@ -558,7 +561,7 @@ function onDelete() {
           <span v-if="isDiscordStyle && edited && !deleted" class="bubble__edited">(edited)</span>
         </div>
         <button v-if="isTextCollapsible" type="button" class="bubble__more" @click="expandedText = !expandedText">
-          {{ expandedText ? "Show less" : "See more" }}
+          {{ expandedText ? t('message.seeLess') : t('message.seeMore') }}
         </button>
       </template>
 

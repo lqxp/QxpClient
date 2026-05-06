@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
 
 const props = defineProps({
   messenger: { type: Object, required: true }
@@ -31,8 +34,8 @@ onBeforeUnmount(() => {
 const callRoom = computed(() => props.messenger.state.callRoom);
 const screenShareTitle = computed(() =>
   props.messenger.state.callScreenEnabled
-    ? "Stop screen share"
-    : props.messenger.screenShareUnavailableReason.value || "Share screen"
+    ? t('call.stopScreen')
+    : props.messenger.screenShareUnavailableReason.value || t('call.shareScreen')
 );
 
 const members = computed(() => {
@@ -279,7 +282,7 @@ function bindRemoteAudio(el, username) {
       <div class="callpanel__meta">
         <span class="callpanel__status">
           <span class="call-dot"></span>
-          Live
+          {{ t('call.live') }}
         </span>
         <span class="callpanel__title">{{ messenger.displayRoomName(callRoom) }}</span>
         <span class="callpanel__time">{{ callElapsed() }}</span>
@@ -289,7 +292,7 @@ function bindRemoteAudio(el, username) {
           class="icon-btn"
           :class="{ 'icon-btn--danger': messenger.state.callMuted }"
           type="button"
-          :aria-label="messenger.state.callMuted ? 'Unmute' : 'Mute'"
+          :aria-label="messenger.state.callMuted ? t('call.unmute') : t('call.mute')"
           @click="messenger.toggleMute"
         >
           <svg v-if="!messenger.state.callMuted" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10a7 7 0 0 1-14 0"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
@@ -299,7 +302,7 @@ function bindRemoteAudio(el, username) {
           class="icon-btn"
           :class="{ 'icon-btn--active': messenger.state.callCameraEnabled }"
           type="button"
-          :aria-label="messenger.state.callCameraEnabled ? 'Stop camera' : 'Start camera'"
+          :aria-label="messenger.state.callCameraEnabled ? t('call.stopCamera') : t('call.startCamera')"
           @click="messenger.toggleCamera"
         >
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10.5 20 7v10l-5-3.5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.5Z"/></svg>
@@ -308,7 +311,7 @@ function bindRemoteAudio(el, username) {
           class="icon-btn"
           :class="{ 'icon-btn--active': messenger.state.callScreenEnabled }"
           type="button"
-          :aria-label="messenger.state.callScreenEnabled ? 'Stop screen share' : 'Share screen'"
+          :aria-label="messenger.state.callScreenEnabled ? t('call.stopScreen') : t('call.shareScreen')"
           :title="screenShareTitle"
           @click="messenger.toggleScreenShare"
         >
@@ -318,8 +321,8 @@ function bindRemoteAudio(el, username) {
           v-if="!isMobile"
           class="icon-btn"
           type="button"
-          aria-label="Extract voice panel"
-          title="Extract voice panel"
+          :aria-label="t('call.extractPanel')"
+          :title="t('call.extractPanel')"
           @click="openPanelWindow"
         >
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
@@ -327,7 +330,7 @@ function bindRemoteAudio(el, username) {
         <button
           class="icon-btn icon-btn--danger"
           type="button"
-          aria-label="End call"
+          :aria-label="t('call.endCall')"
           @click="messenger.endCall"
         >
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 15.4c3.3-2.1 7.5-2.1 10.8 0l1.45.92c.7.44.92 1.37.48 2.07l-1.15 1.84c-.44.7-1.37.92-2.07.48l-1.55-.97a4.95 4.95 0 0 0-5.12 0l-1.55.97c-.7.44-1.63.22-2.07-.48l-1.15-1.84c-.44-.7-.22-1.63.48-2.07l1.45-.92Z"/><path d="M6 8.5C9.7 6.2 14.3 6.2 18 8.5"/><path d="M3.5 5.2c5.2-3.4 11.8-3.4 17 0"/></svg>
@@ -372,19 +375,19 @@ function bindRemoteAudio(el, username) {
           >{{ initialsOf(tile.username) }}</span>
         </div>
         <div v-if="tile.video" class="calltile__tools">
-          <button type="button" title="Zoom" aria-label="Zoom view" @click="setFocusedTile(tile)">
+          <button type="button"           :title="t('call.zoom')" :aria-label="t('call.zoom')" @click="setFocusedTile(tile)">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/><path d="M11 8v6M8 11h6"/></svg>
           </button>
-          <button type="button" title="Fullscreen" aria-label="Fullscreen view" @click="toggleTileFullscreen(tile)">
+          <button type="button"           :title="t('call.fullscreen')" :aria-label="t('call.fullscreen')" @click="toggleTileFullscreen(tile)">
             <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
           </button>
-          <button v-if="!isMobile" type="button" title="Extract view" aria-label="Extract view" @click="openTileWindow(tile)">
+          <button           v-if="!isMobile" type="button" :title="t('call.extractView')" :aria-label="t('call.extractView')" @click="openTileWindow(tile)">
             <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
           </button>
         </div>
         <div class="calltile__overlay">
           <span class="calltile__name">
-            {{ tile.username }}<span v-if="tile.self" class="calltile__you"> (you)</span>
+            {{ tile.username }}<span v-if="tile.self" class="calltile__you"> {{ t('call.you') }}</span>
           </span>
           <span class="calltile__kind">{{ tileLabel(tile) }}</span>
           <span v-if="tile.self && messenger.state.callMuted" class="calltile__muted-badge" aria-label="muted">
@@ -395,7 +398,7 @@ function bindRemoteAudio(el, username) {
     </div>
 
     <div v-if="focusedTile" class="callpanel__focus" :class="{ 'is-fullscreen': fullscreenTileId === focusedTile.id }">
-      <button class="callpanel__focus-close" type="button" aria-label="Close enlarged view" @click="clearFocusedTile">×</button>
+      <button class="callpanel__focus-close" type="button" :aria-label="t('call.closeView')" @click="clearFocusedTile">×</button>
       <video :ref="bindFocusedVideo" autoplay playsinline :muted="focusedTile.self"></video>
       <div class="callpanel__focus-label">{{ focusedTile.username }} · {{ tileLabel(focusedTile) }}</div>
     </div>

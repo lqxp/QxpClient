@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "@/composables/useI18n";
 
 const props = defineProps({
   src: { type: String, required: true },
   filename: { type: String, default: "Image" },
   sizeLabel: { type: String, default: "" }
 });
+
+const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -70,23 +73,23 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <div class="image-viewer" role="dialog" aria-modal="true" :aria-label="`Image preview: ${filename}`">
-      <button class="image-viewer__scrim" type="button" aria-label="Close image preview" @click="close"></button>
+      <button class="image-viewer__scrim" type="button" :aria-label="t('imageViewer.close')" @click="close"></button>
 
       <div class="image-viewer__toolbar" role="toolbar" aria-label="Image preview controls">
-        <button type="button" aria-label="Zoom out" @click="zoomOut">
+        <button type="button" :aria-label="t('imageViewer.zoomOut')" @click="zoomOut">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M16.5 16.5 21 21"/></svg>
         </button>
-        <button type="button" aria-label="Reset zoom" @click="resetZoom">{{ scaleLabel }}</button>
-        <button type="button" aria-label="Zoom in" @click="zoomIn">
+        <button type="button" :aria-label="t('imageViewer.resetZoom')" @click="resetZoom">{{ scaleLabel }}</button>
+        <button type="button" :aria-label="t('imageViewer.zoomIn')" @click="zoomIn">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M11 8v6M16.5 16.5 21 21"/></svg>
         </button>
-        <button type="button" aria-label="Download image" @click="download">
+        <button type="button" :aria-label="t('imageViewer.download')" @click="download">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
         </button>
-        <button type="button" aria-label="Open image in new tab" @click="openInNewTab">
+        <button type="button" :aria-label="t('imageViewer.openTab')" @click="openInNewTab">
           <svg viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>
         </button>
-        <button class="image-viewer__close" type="button" aria-label="Close image preview" @click="close">
+        <button class="image-viewer__close" type="button" :aria-label="t('imageViewer.close')" @click="close">
           <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       </div>

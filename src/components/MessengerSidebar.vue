@@ -218,7 +218,7 @@ onBeforeUnmount(() => {
         </button>
         <div v-if="statusMenuOpen" class="side-status__menu" role="menu">
           <button
-            v-for="option in statusOptions.value"
+            v-for="option in statusOptions"
             :key="option.value"
             type="button"
             role="menuitemradio"
