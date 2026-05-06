@@ -761,11 +761,18 @@ function onDelete() {
   background-color: rgba(88, 101, 242, 0.16);
 }
 
-:global(:root[data-message-style="discord"] .msg__avatar),
-:global(:root[data-message-style="discord"] .msg__spacer) {
+:global(:root[data-message-style="discord"] .msg__avatar) {
   width: 40px;
   height: 40px;
   margin-top: 5px;
+  flex: none;
+  align-self: flex-start;
+}
+
+:global(:root[data-message-style="discord"] .msg__spacer) {
+  width: 40px;
+  height: 0;
+  margin-top: 0;
   flex: none;
   align-self: flex-start;
 }
@@ -781,8 +788,7 @@ function onDelete() {
   align-self: flex-start;
 }
 
-:global(:root[data-message-style="discord"] .msg.has-discord-reply .msg__avatar),
-:global(:root[data-message-style="discord"] .msg.has-discord-reply .msg__spacer) {
+:global(:root[data-message-style="discord"] .msg.has-discord-reply .msg__avatar) {
   margin-top: 24px;
 }
 

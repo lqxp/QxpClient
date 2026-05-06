@@ -1678,11 +1678,16 @@ textarea {
   background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
-:root[data-message-style="discord"] .msg__avatar,
-:root[data-message-style="discord"] .msg__spacer {
+:root[data-message-style="discord"] .msg__avatar {
   width: 40px;
   height: 40px;
   margin-top: 2px;
+}
+
+:root[data-message-style="discord"] .msg__spacer {
+  width: 40px;
+  height: 0;
+  margin-top: 0;
 }
 
 :root[data-message-style="discord"] .msg.is-own .msg__avatar {
