@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, inject, nextTick, onMounted, ref } from "vue";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
 
 const props = defineProps({
   messenger: { type: Object, required: true }
@@ -54,7 +57,7 @@ onMounted(() => nextTick(() => inputRef.value?.focus()));
     <div class="onboarding__card">
       <div class="onboarding__hero">
         <p class="onboarding__eyebrow">Welcome to QxProtocol</p>
-        <h1>{{ mode === "register" ? "Create account" : mode === "recover" ? "Recover account" : "Log in" }}</h1>
+        <h1>{{ mode === "register" ? t('onboarding.createAccount') : mode === "recover" ? t('onboarding.recoverAccount') : t('onboarding.logIn') }}</h1>
         <p class="onboarding__copy">
           Accounts are required to access rooms, presence and calls.
         </p>
@@ -70,14 +73,14 @@ onMounted(() => nextTick(() => inputRef.value?.focus()));
         </div>
 
         <div class="onboarding__tabs" role="tablist" aria-label="Authentication mode">
-          <button type="button" :class="{ 'is-active': mode === 'login' }" @click="setMode('login')">Login</button>
-          <button type="button" :class="{ 'is-active': mode === 'register' }" @click="setMode('register')">Register</button>
-          <button type="button" :class="{ 'is-active': mode === 'recover' }" @click="setMode('recover')">Recover</button>
+          <button type="button" :class="{ 'is-active': mode === 'login' }" @click="setMode('login')">{{ t('onboarding.login') }}</button>
+          <button type="button" :class="{ 'is-active': mode === 'register' }" @click="setMode('register')">{{ t('onboarding.register') }}</button>
+          <button type="button" :class="{ 'is-active': mode === 'recover' }" @click="setMode('recover')">{{ t('onboarding.recover') }}</button>
         </div>
 
         <form class="onboarding__form" @submit.prevent="submit">
           <label class="onboarding__field" for="onboarding-username">
-            <span>Username</span>
+            <span>Username</span><!-- keep label in English for accessibility -->
             <input
               id="onboarding-username"
               ref="inputRef"
@@ -134,7 +137,7 @@ onMounted(() => nextTick(() => inputRef.value?.focus()));
           <p v-if="errorMessage" class="onboarding__error">{{ errorMessage }}</p>
 
           <button class="btn btn--primary onboarding__submit" type="submit" :disabled="!canSubmit || messenger.state.authLoading">
-            {{ messenger.state.authLoading ? "Please wait..." : mode === "register" ? "Create account" : mode === "recover" ? "Reset password" : "Log in" }}
+            {{ messenger.state.authLoading ? "Please wait..." : mode === "register" ? t('onboarding.createAccount') : mode === "recover" ? t('onboarding.recoverAccount') : t('onboarding.logIn') }}
           </button>
         </form>
       </div>
