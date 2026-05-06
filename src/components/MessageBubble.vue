@@ -346,10 +346,13 @@ function onDelete() {
     </span>
     <span v-else class="msg__spacer"></span>
 
-    <div v-if="jumbo" class="jumbo">
-      <div v-if="showAuthor && !isOwn" class="jumbo__author">{{ message.username }}</div>
+    <div v-if="jumbo" class="jumbo" :class="{ 'jumbo--discord': isDiscordStyle }">
+      <div v-if="showAuthor && !isOwn" class="jumbo__author">
+        {{ message.username }}
+        <span v-if="isDiscordStyle" class="bubble__author-time">{{ messenger.formatTime(message.timestamp) }}</span>
+      </div>
       <div class="jumbo__glyph">{{ message.text }}</div>
-      <span v-if="showTimestamp" class="jumbo__time">
+      <span v-if="showTimestamp && !isDiscordStyle" class="jumbo__time">
         {{ messenger.formatTime(message.timestamp) }}<span v-if="edited"> · edited</span>
       </span>
       <div v-if="message.reactions.length" class="reactions reactions--standalone">
@@ -1024,6 +1027,44 @@ function onDelete() {
 :global(:root[data-message-style="discord"] .jumbo) {
   position: static;
   min-width: 0;
+}
+
+:global(:root[data-message-style="discord"] .jumbo__glyph) {
+  display: inline-block;
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1;
+}
+
+/* Discord jumbo : auteur sur une ligne avec timestamp inline, comme les vrais messages Discord */
+:global(:root[data-message-style="discord"] .jumbo--discord .jumbo__author) {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin: 0 0 2px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+}
+
+/* Timestamp inline quand l'auteur est affiché (run-start / single) */
+:global(:root[data-message-style="discord"] .jumbo--discord .jumbo__author .bubble__author-time) {
+  margin-left: 3px;
+  color: #72767d;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Timestamp flottant pour les messages own ou sans auteur (run-mid / run-end) */
+:global(:root[data-message-style="discord"] .jumbo__time--discord) {
+  display: inline-block;
+  margin-left: 4px;
+  color: #72767d;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  vertical-align: baseline;
 }
 
 :global(:root[data-message-style="discord"] .jumbo__glyph) {
