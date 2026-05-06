@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "@/composables/useI18n";
 import ProfileCard from "@/components/ProfileCard.vue";
+
+const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
 
 const props = defineProps({
   messenger: { type: Object, required: true }
@@ -62,9 +65,9 @@ const sections = computed(() => {
   }
 
   return [
-    { key: "self", label: "You", users: self },
-    { key: "call", label: "In call", users: inCall },
-    { key: "online", label: "Online", users: online }
+    { key: "self", label: t('members.online'), users: self },
+    { key: "call", label: t('call.live'), users: inCall },
+    { key: "online", label: t('members.online'), users: online }
   ].filter((section) => section.users.length);
 });
 
@@ -87,11 +90,11 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
 </script>
 
 <template>
-  <aside class="members" aria-label="Online members">
+  <aside class="members" :aria-label="t('thread.members')">
     <div class="members__head">
       <div>
         <div class="members__eyebrow">Presence</div>
-        <div class="members__title">{{ members.length }} online</div>
+        <div class="members__title">{{ members.length }} {{ t('members.online') }}</div>
       </div>
     </div>
 
@@ -139,7 +142,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
                     'is-invisible': statusFor(username) === 'invisible'
                   }"
                 ></span>
-                {{ voiceMembers.has(username) ? "In voice chat" : statusLabel(username) }}
+                {{ voiceMembers.has(username) ? t('call.live') : statusLabel(username) }}
               </div>
             </div>
           </div>
@@ -147,7 +150,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
       </section>
     </div>
 
-    <div v-else class="members__empty">No one is online in this room yet.</div>
+    <div v-else class="members__empty">{{ t('members.online') }}</div>
 
     <Teleport to="body">
       <ProfileCard
