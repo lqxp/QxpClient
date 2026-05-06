@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "@/composables/useI18n";
 
 const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
@@ -10,7 +10,7 @@ const props = defineProps({
 
 const composerRef = ref<HTMLElement | null>(null);
 const fileInputRef = ref<HTMLInputElement | null>(null);
-const inputRef = ref<HTMLInputElement | null>(null);
+const inputRef = ref<HTMLTextAreaElement | null>(null);
 const emojiWrapRef = ref<HTMLElement | null>(null);
 const cameraVideoRef = ref<HTMLVideoElement | null>(null);
 const cameraCanvasRef = ref<HTMLCanvasElement | null>(null);
@@ -27,6 +27,11 @@ let cameraStream: MediaStream | null = null;
 const canSend = computed(() => props.messenger.state.messageInput.trim().length > 0 && !!props.messenger.state.activeRoom);
 const disabled = computed(() => !props.messenger.state.activeRoom);
 const editing = computed(() => !!props.messenger.state.editingMessage);
+const composerPlaceholder = computed(() => disabled.value
+  ? t('composer.placeholder')
+  : editing.value
+    ? t('composer.editing')
+    : t('composer.placeholder'));
 const mediaDisabled = computed(() => disabled.value || editing.value);
 const recording = computed(() => !!props.messenger.state.recording);
 const mentionSearch = computed(() => {
@@ -60,6 +65,17 @@ const mentionOptions = computed<string[]>(() => {
 });
 const mentionOpen = computed(() => mentionOptions.value.length > 0 && mentionSearch.value?.start !== mentionSuppressedStart.value);
 const selectedMention = computed<string>(() => mentionOptions.value[Math.min(mentionIndex.value, mentionOptions.value.length - 1)] || "");
+
+function syncComposerHeight() {
+  const input = inputRef.value;
+  if (!input) return;
+
+  input.style.height = "auto";
+  const maxHeight = 120;
+  const nextHeight = Math.min(maxHeight, input.scrollHeight);
+  input.style.height = `${Math.max(32, nextHeight)}px`;
+  input.style.overflowY = input.scrollHeight > maxHeight ? "auto" : "hidden";
+}
 
 // Curated emoji palette — intentionally compact (80 glyphs) so it fits one screenful
 // without needing tabs/search.
@@ -157,6 +173,7 @@ function syncCursor() {
   cursorPosition.value = input?.selectionStart ?? String(props.messenger.state.messageInput || "").length;
   mentionIndex.value = 0;
   mentionSuppressedStart.value = -1;
+  syncComposerHeight();
 }
 
 async function insertMention(username: string) {
@@ -303,6 +320,10 @@ function onDocKey(event: KeyboardEvent) {
   if (cameraOpen.value && event.key === "Escape") closeCamera();
 }
 
+function onResize() {
+  syncComposerHeight();
+}
+
 function stopCameraStream() {
   if (!cameraStream) return;
   for (const track of cameraStream.getTracks()) track.stop();
@@ -376,15 +397,23 @@ async function capturePhoto() {
   closeCamera();
 }
 
+watch(() => [props.messenger.state.messageInput, composerPlaceholder.value], async () => {
+  await nextTick();
+  syncComposerHeight();
+}, { immediate: true });
+
 onMounted(() => {
   document.addEventListener("pointerdown", onDocPointerDown);
   document.addEventListener("keydown", onDocKey);
   document.addEventListener("paste", onPaste);
+  window.addEventListener("resize", onResize, { passive: true });
+  nextTick(syncComposerHeight);
 });
 onBeforeUnmount(() => {
   document.removeEventListener("pointerdown", onDocPointerDown);
   document.removeEventListener("keydown", onDocKey);
   document.removeEventListener("paste", onPaste);
+  window.removeEventListener("resize", onResize);
   stopCameraStream();
 });
 </script>
@@ -467,7 +496,7 @@ onBeforeUnmount(() => {
           v-model="messenger.state.messageInput"
           :maxlength="messenger.MESSAGE_LIMIT"
           rows="1"
-          :placeholder="disabled ? t('composer.placeholder') : editing ? t('composer.editing') : t('composer.placeholder')"
+          :placeholder="composerPlaceholder"
           :disabled="disabled"
           autocomplete="off"
           spellcheck="false"
