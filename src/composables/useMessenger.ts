@@ -3518,6 +3518,7 @@ export function useMessenger() {
     setMessageSoundEnabled,
     setCallSoundsEnabled,
     setSoundEnabled,
+    previewSound,
     setAndroidNotificationsEnabled,
     setThemeMode,
     setAppAccent,
