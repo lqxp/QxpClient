@@ -3320,6 +3320,10 @@ textarea {
   background: color-mix(in srgb, var(--surface) 82%, transparent);
 }
 
+.settings-group--language .settings-select {
+  margin-bottom: 14px;
+}
+
 .settings-group--language:first-child {
   border-top: 1px solid var(--line-strong);
 }
