@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, inject } from "vue";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
 
 const props = defineProps({
   messenger: { type: Object, required: true }
@@ -57,7 +60,7 @@ function removeHere() {
     <button
       class="icon-btn thread__back"
       type="button"
-      aria-label="Back to conversations"
+      :aria-label="t('thread.back')"
       @click="$emit('back')"
     >
       <svg viewBox="0 0 24 24"><path d="M15 18 9 12l6-6"/></svg>
@@ -70,7 +73,7 @@ function removeHere() {
         <div class="thread__sub">
           <template v-if="callActiveHere">
             <span class="call-dot"></span>
-            In call · {{ callElapsed }}
+            {{ t('call.live') }} · {{ callElapsed }}
           </template>
           <template v-else-if="callsAvailable">Room conversation · {{ securityLabel }}</template>
           <template v-else>Room conversation · {{ securityLabel }} · Calls unavailable: relay not configured</template>
@@ -82,7 +85,7 @@ function removeHere() {
       <button
         class="icon-btn"
         type="button"
-        aria-label="Copy room token"
+        :aria-label="t('thread.copyToken')"
         @click="copyInvite"
       >
         <svg viewBox="0 0 24 24"><path d="M14 5h5v5"/><path d="M10 14 19 5"/><path d="M19 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg>
@@ -91,14 +94,14 @@ function removeHere() {
         v-if="!callActiveHere"
         class="icon-btn"
         type="button"
-        aria-label="Start call"
-        :title="callsAvailable ? 'Start call' : callsUnavailableReason"
+        :aria-label="t('thread.startCall')"
+        :title="callsAvailable ? t('thread.startCall') : callsUnavailableReason"
         :disabled="!callsAvailable"
         @click="startCall"
       >
         <svg viewBox="0 0 24 24"><path d="M7.6 10.8a14.5 14.5 0 0 0 5.6 5.6l1.9-1.9a1.5 1.5 0 0 1 1.5-.37c1.03.34 2.1.52 3.2.52.83 0 1.5.67 1.5 1.5v3.05c0 .83-.67 1.5-1.5 1.5C10.45 20.7 3.3 13.55 3.3 4.2c0-.83.67-1.5 1.5-1.5h3.05c.83 0 1.5.67 1.5 1.5 0 1.1.18 2.17.52 3.2.17.53.03 1.1-.37 1.5l-1.9 1.9Z"/></svg>
       </button>
-      <button class="icon-btn" type="button" aria-label="Leave room" @click="removeHere">
+      <button class="icon-btn" type="button"       :aria-label="t('thread.leaveRoom')" @click="removeHere">
         <svg viewBox="0 0 24 24"><path d="M9 12h12"/><path d="m17 8 4 4-4 4"/><path d="M9 4h-4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/></svg>
       </button>
     </div>
