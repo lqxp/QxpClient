@@ -3,7 +3,8 @@ import { computed, inject, nextTick, onMounted, onBeforeUnmount, ref, watch } fr
 import { useI18n } from "@/composables/useI18n";
 import { appRuntimeConfig } from "@/config/runtime";
 
-const { t } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
+const i18n = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
+const { t } = i18n;
 
 const props = defineProps({
   messenger: { type: Object, required: true }
@@ -479,6 +480,15 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="settings-group">
+          <h4>Language</h4>
+          <label class="settings-select">
+            <span>Interface language</span>
+            <select :value="i18n.locale.value" @change="i18n.locale.value = targetValue($event)">
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+            </select>
+          </label>
+
           <h4>{{ t('settings.ui.messages') }}</h4>
           <label class="settings-select">
             <span>{{ t('settings.ui.messageShape') }}</span>
