@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
+import { initializeRuntimeConfig } from "./config/runtime";
 import "./styles.css";
 
 function syncViewportHeight() {
@@ -20,4 +21,10 @@ window.addEventListener("resize", syncViewportHeight, { passive: true });
 window.visualViewport?.addEventListener("resize", syncViewportHeight, { passive: true });
 window.visualViewport?.addEventListener("scroll", syncViewportHeight, { passive: true });
 
-createApp(App).use(router).mount("#app");
+initializeRuntimeConfig()
+  .catch(() => {
+    /* Keep the bundled runtime config when the server runtime cannot be fetched. */
+  })
+  .finally(() => {
+    createApp(App).use(router).mount("#app");
+  });
