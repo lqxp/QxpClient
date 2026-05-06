@@ -1,10 +1,19 @@
 import { computed, ref } from "vue";
 import en from "@/i18n/en.json";
 import fr from "@/i18n/fr.json";
+import es from "@/i18n/es.json";
+import ru from "@/i18n/ru.json";
 
 type DeepRecord = { [key: string]: string | DeepRecord };
 
-const locales: Record<string, DeepRecord> = { en, fr };
+const locales: Record<string, DeepRecord> = { en, fr, es, ru };
+
+export const LOCALE_LABELS: Record<string, string> = {
+  en: "English",
+  fr: "Français",
+  es: "Español",
+  ru: "Русский"
+};
 
 // Detect browser language, fallback to "en"
 function detectLocale(): string {
