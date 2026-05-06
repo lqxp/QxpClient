@@ -3313,6 +3313,17 @@ textarea {
   border-top: 1px solid var(--line-strong);
 }
 
+.settings-group--language {
+  padding: 28px 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.settings-group--language:first-child {
+  border-top: 1px solid var(--line-strong);
+}
+
 .settings-group:first-child {
   border-top: 0;
 }
@@ -3895,6 +3906,10 @@ textarea {
 
   .settings-group {
     padding: 20px 0;
+  }
+
+  .settings-group--language {
+    padding: 22px 18px;
   }
 
   .settings-field,
