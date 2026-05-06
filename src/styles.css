@@ -814,7 +814,7 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 
-.msg.is-mentioned .bubble {
+:root:not([data-message-style="discord"]) .msg.is-mentioned .bubble {
   border-color: rgba(247, 194, 101, 0.45);
   box-shadow: inset 3px 0 0 rgba(247, 194, 101, 0.8);
 }
