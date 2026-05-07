@@ -1574,6 +1574,26 @@ export function useMessenger() {
     };
   }
 
+  function mediaErrorMessage(prefix, error) {
+    const name = String(error?.name || "Error").trim();
+    const message = String(error?.message || "").trim();
+    return `${prefix}: ${name}${message ? ` - ${message}` : ""}`;
+  }
+
+  async function getPreferredAudioStream() {
+    try {
+      return await navigator.mediaDevices.getUserMedia(audioConstraints());
+    } catch (error) {
+      const selectedDeviceId = String(state.selectedAudioInputId || "").trim();
+      const errorName = String(error?.name || "").trim();
+      if (!selectedDeviceId || errorName !== "OverconstrainedError") throw error;
+
+      state.selectedAudioInputId = "";
+      persist();
+      return navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    }
+  }
+
   async function refreshAudioDevices() {
     if (!navigator.mediaDevices?.enumerateDevices) return;
     try {
@@ -1596,9 +1616,9 @@ export function useMessenger() {
       state.audioDevicesPermission = "granted";
       await refreshAudioDevices();
       return true;
-    } catch {
+    } catch (error) {
       state.audioDevicesPermission = "denied";
-      state.lastError = "Microphone permission is required to list audio devices.";
+      state.lastError = mediaErrorMessage("Microphone permission is required to list audio devices", error);
       await refreshAudioDevices();
       return false;
     } finally {
@@ -2432,7 +2452,7 @@ export function useMessenger() {
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia(audioConstraints());
+      const stream = await getPreferredAudioStream();
       const outboundStream = setupCallAudioPipeline(stream);
       callOutboundStream = outboundStream;
       refreshAudioDevices();
@@ -2471,8 +2491,8 @@ export function useMessenger() {
       startCallAudioGate();
       tickCall(Date.now());
       playJoinSound();
-    } catch (err) {
-      state.lastError = "Mic access denied.";
+    } catch (error) {
+      state.lastError = mediaErrorMessage("Mic access denied", error);
       endCall();
     }
   }
