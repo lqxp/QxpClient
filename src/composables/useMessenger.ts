@@ -126,7 +126,9 @@ function isAndroidWebViewRuntime() {
 }
 
 function isTauriRuntime() {
-  return typeof window !== "undefined" && Boolean((window as any).__TAURI_INTERNALS__);
+  if (typeof window === "undefined") return false;
+  const candidate = window as any;
+  return Boolean(candidate.__TAURI_INTERNALS__ || candidate.__TAURI__);
 }
 
 function detectClientPlatform() {
