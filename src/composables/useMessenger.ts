@@ -903,9 +903,11 @@ export function useMessenger() {
   let callGateTimer: ReturnType<typeof setInterval> | null = null;
   let callGateOpenUntil = 0;
   const localClientId = getPersistentClientId();
-  const localPlatform = detectClientPlatform();
-
+  function currentLocalPlatform() {
+    return detectClientPlatform();
+  }
   function attachmentUrlFor(message) {
+
     if (!message?.attachment?.dataB64) return null;
     const id = message.messageId;
     if (attachmentUrlCache.has(id)) return attachmentUrlCache.get(id);
@@ -1917,7 +1919,7 @@ export function useMessenger() {
       deleteMessagesOnLeave: state.deleteMessagesOnLeave,
       status: sanitizePresenceStatus(state.status),
       clientId: localClientId,
-      platform: localPlatform
+      platform: currentLocalPlatform()
     };
     if (includeProfile) d.profile = normalizeProfile(state.profile);
     send({ op: 8, d });
@@ -2082,7 +2084,7 @@ export function useMessenger() {
           status: sanitizePresenceStatus(state.status),
           profile: normalizeProfile(state.profile),
           clientId: localClientId,
-          platform: localPlatform,
+          platform: currentLocalPlatform(),
           v: "QxpClient",
           isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
           isSecure: window.isSecureContext
@@ -2321,8 +2323,9 @@ export function useMessenger() {
     const media = isVoiceChat ? currentCallMedia() : { ...EMPTY_CALL_MEDIA };
     state.localCallMedia = media;
     callManager?.setLocalMedia(media);
-    send({ op: 98, d: { isVoiceChat, media, clientId: localClientId, platform: localPlatform } });
-    send({ op: 110, d: { gameId: state.callRoom || state.activeRoom, isVoiceChat, media, clientId: localClientId, platform: localPlatform } });
+    const platform = currentLocalPlatform();
+    send({ op: 98, d: { isVoiceChat, media, clientId: localClientId, platform } });
+    send({ op: 110, d: { gameId: state.callRoom || state.activeRoom, isVoiceChat, media, clientId: localClientId, platform } });
   }
 
   function rememberClientPlatform(username, platform) {
@@ -2348,7 +2351,7 @@ export function useMessenger() {
   function platformsForUser(username) {
     const key = sanitizeUsername(username);
     const platforms = new Set(state.clientPlatformsByUser[key] || []);
-    if (key === sanitizeUsername(state.username)) platforms.add(localPlatform);
+    if (key === sanitizeUsername(state.username)) platforms.add(currentLocalPlatform());
     return [...platforms].map(sanitizePlatform).filter(Boolean).sort();
   }
 
@@ -2442,11 +2445,12 @@ export function useMessenger() {
       state.callCameraEnabled = false;
       state.callScreenEnabled = false;
       state.localCallMedia = currentCallMedia();
+      const platform = currentLocalPlatform();
       callManager = new WebRtcCallManager({
         roomId,
         username: sanitizeUsername(state.username),
         clientId: localClientId,
-        platform: localPlatform,
+        platform,
         localStream: outboundStream,
         sendSignal: (payload: CallSignalPayload) => send({ op: 111, d: payload }),
         onRemoteMedia: storeRemoteCallMedia,
@@ -2460,7 +2464,7 @@ export function useMessenger() {
         state.voiceMembersByRoom[roomId] = [...members];
         if (!state.callClientsByRoom[roomId]) state.callClientsByRoom[roomId] = {};
         state.callClientsByRoom[roomId][me] = [localClientId];
-        rememberClientPlatform(me, localPlatform);
+        rememberClientPlatform(me, platform);
       }
       publishCallState(true);
       connectKnownCallPeers(roomId);
