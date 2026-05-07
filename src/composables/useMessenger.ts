@@ -2091,7 +2091,8 @@ export function useMessenger() {
       try {
         handleMessage(JSON.parse(data));
       } catch {
-        state.lastError = "Malformed payload.";
+        const raw = typeof data === "string" ? data.trim() : "";
+        state.lastError = raw || "Malformed payload.";
       }
     });
     state.ws.addEventListener("close", () => {

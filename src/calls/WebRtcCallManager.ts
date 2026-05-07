@@ -202,6 +202,7 @@ export class WebRtcCallManager {
         this.sendSignal({
           gameId: this.roomId,
           to: callPeerUsername(from),
+          from: this.username,
           toClientId: callPeerClientId(from),
           fromClientId: this.clientId,
           fromPlatform: this.platform,
@@ -243,6 +244,7 @@ export class WebRtcCallManager {
       this.sendSignal({
         gameId: this.roomId,
         to: callPeerUsername(peerName),
+        from: this.username,
         toClientId: callPeerClientId(peerName),
         fromClientId: this.clientId,
         fromPlatform: this.platform,
@@ -285,6 +287,7 @@ export class WebRtcCallManager {
         this.sendSignal({
           gameId: this.roomId,
           to: callPeerUsername(peerName),
+          from: this.username,
           toClientId: callPeerClientId(peerName),
           fromClientId: this.clientId,
           fromPlatform: this.platform,
