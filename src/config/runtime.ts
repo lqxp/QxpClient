@@ -26,6 +26,12 @@ const RUNTIME_SCRIPT_RE = /<script\b[^>]*>\s*window\.__QXP_RUNTIME__\s*=\s*(\{[\
 const envServerOrigin = normalizeHttpUrl(import.meta.env.VITE_QXP_SERVER_ORIGIN);
 const envApiBaseUrl = normalizeHttpUrl(import.meta.env.VITE_QXP_API_BASE_URL);
 const envWsUrl = normalizeWebSocketUrl(import.meta.env.VITE_QXP_WS_URL);
+const envRelayOnly = normalizeBoolean(import.meta.env.VITE_QXP_RELAY_ONLY);
+const envTurnUrls = normalizeEnvStringArray(import.meta.env.VITE_QXP_TURN_URLS);
+const envTurnUsername = normalizeEnvString(import.meta.env.VITE_QXP_TURN_USERNAME);
+const envTurnCredential = normalizeEnvString(import.meta.env.VITE_QXP_TURN_CREDENTIAL);
+const envCallsEnabled = normalizeBoolean(import.meta.env.VITE_QXP_CALLS_ENABLED);
+const envCallsUnavailableReason = normalizeEnvString(import.meta.env.VITE_QXP_CALLS_UNAVAILABLE_REASON);
 
 let runtimeInitPromise: Promise<void> | null = null;
 
@@ -56,6 +62,25 @@ function normalizeWebSocketUrl(value: unknown) {
   } catch {
     return "";
   }
+}
+
+function normalizeEnvString(value: unknown) {
+  return String(value || "").trim();
+}
+
+function normalizeEnvStringArray(value: unknown) {
+  return normalizeEnvString(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeBoolean(value: unknown) {
+  const text = normalizeEnvString(value).toLowerCase();
+  if (!text) return undefined;
+  if (["1", "true", "yes", "on", "enabled"].includes(text)) return true;
+  if (["0", "false", "no", "off", "disabled"].includes(text)) return false;
+  return undefined;
 }
 
 function isEmbeddedAppOrigin() {
@@ -108,12 +133,12 @@ function buildRuntimeConfig(runtime: RuntimeConfigPayload) {
       wsUrl
     },
     rtc: {
-      relayOnly: rawRtc.relayOnly !== false,
-      turnUrls: normalizedStringArray(rawRtc.turnUrls),
-      turnUsername: String(rawRtc.turnUsername || "").trim(),
-      turnCredential: String(rawRtc.turnCredential || "").trim(),
-      callsEnabled: Boolean(rawRtc.callsEnabled),
-      callsUnavailableReason: String(rawRtc.callsUnavailableReason || "").trim()
+      relayOnly: envRelayOnly ?? (rawRtc.relayOnly !== false),
+      turnUrls: envTurnUrls.length ? envTurnUrls : normalizedStringArray(rawRtc.turnUrls),
+      turnUsername: envTurnUsername || String(rawRtc.turnUsername || "").trim(),
+      turnCredential: envTurnCredential || String(rawRtc.turnCredential || "").trim(),
+      callsEnabled: envCallsEnabled ?? Boolean(rawRtc.callsEnabled),
+      callsUnavailableReason: envCallsUnavailableReason || String(rawRtc.callsUnavailableReason || "").trim()
     }
   };
 }

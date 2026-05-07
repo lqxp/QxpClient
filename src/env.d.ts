@@ -1,5 +1,21 @@
 /// <reference types="vite/client" />
 
+interface ImportMetaEnv {
+  readonly VITE_QXP_SERVER_ORIGIN?: string;
+  readonly VITE_QXP_API_BASE_URL?: string;
+  readonly VITE_QXP_WS_URL?: string;
+  readonly VITE_QXP_RELAY_ONLY?: string;
+  readonly VITE_QXP_TURN_URLS?: string;
+  readonly VITE_QXP_TURN_USERNAME?: string;
+  readonly VITE_QXP_TURN_CREDENTIAL?: string;
+  readonly VITE_QXP_CALLS_ENABLED?: string;
+  readonly VITE_QXP_CALLS_UNAVAILABLE_REASON?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 declare global {
   const __APP_VERSION__: string;
 }
