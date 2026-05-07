@@ -1,6 +1,38 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
+function parseDotEnvValue(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return "";
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"'))
+    || (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+async function loadDotEnvFile(filepath) {
+  try {
+    const contents = await readFile(filepath, "utf8");
+    for (const line of contents.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+      if (!match) continue;
+      const [, key, rawValue] = match;
+      if (typeof process.env[key] === "string" && process.env[key].trim()) continue;
+      process.env[key] = parseDotEnvValue(rawValue);
+    }
+  } catch {
+    /* optional dotenv file */
+  }
+}
+
+await loadDotEnvFile(resolve(".env"));
+await loadDotEnvFile(resolve("../.env"));
+
 function argValue(name) {
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] : "";
@@ -64,12 +96,12 @@ function buildEnvRuntimePayload() {
   const serverOriginRaw = argValue("--server-origin") || firstEnv("QXP_SERVER_ORIGIN", "VITE_QXP_SERVER_ORIGIN");
   const apiBaseUrlRaw = argValue("--api-base-url") || firstEnv("QXP_API_BASE_URL", "VITE_QXP_API_BASE_URL");
   const wsUrlRaw = argValue("--ws-url") || firstEnv("QXP_WS_URL", "VITE_QXP_WS_URL");
-  const turnUrlsRaw = argValue("--turn-urls") || firstEnv("QXP_TURN_URLS");
-  const turnUsernameRaw = argValue("--turn-username") || firstEnv("QXP_TURN_USERNAME");
-  const turnCredentialRaw = argValue("--turn-credential") || firstEnv("QXP_TURN_CREDENTIAL");
-  const relayOnlyRaw = argValue("--relay-only") || firstEnv("QXP_RELAY_ONLY");
-  const callsEnabledRaw = argValue("--calls-enabled") || firstEnv("QXP_CALLS_ENABLED");
-  const callsUnavailableReasonRaw = argValue("--calls-unavailable-reason") || firstEnv("QXP_CALLS_UNAVAILABLE_REASON");
+  const turnUrlsRaw = argValue("--turn-urls") || firstEnv("QXP_TURN_URLS", "VITE_QXP_TURN_URLS");
+  const turnUsernameRaw = argValue("--turn-username") || firstEnv("QXP_TURN_USERNAME", "VITE_QXP_TURN_USERNAME");
+  const turnCredentialRaw = argValue("--turn-credential") || firstEnv("QXP_TURN_CREDENTIAL", "VITE_QXP_TURN_CREDENTIAL");
+  const relayOnlyRaw = argValue("--relay-only") || firstEnv("QXP_RELAY_ONLY", "VITE_QXP_RELAY_ONLY");
+  const callsEnabledRaw = argValue("--calls-enabled") || firstEnv("QXP_CALLS_ENABLED", "VITE_QXP_CALLS_ENABLED");
+  const callsUnavailableReasonRaw = argValue("--calls-unavailable-reason") || firstEnv("QXP_CALLS_UNAVAILABLE_REASON", "VITE_QXP_CALLS_UNAVAILABLE_REASON");
 
   const serverOrigin = serverOriginRaw ? httpOrigin(serverOriginRaw) : "";
   const apiBaseUrl = apiBaseUrlRaw ? httpOrigin(apiBaseUrlRaw) : (serverOrigin || "");
