@@ -437,7 +437,7 @@ onBeforeUnmount(() => {
           </template>
         </div>
 
-        <button v-if="pinnedConversations.length && regularConversations.length" class="side__channels-label" type="button" :aria-expanded="!channelsCollapsed" @click="toggleChannelsCollapsed">
+        <button v-if="regularConversations.length" class="side__channels-label" type="button" :aria-expanded="!channelsCollapsed" @click="toggleChannelsCollapsed">
           <svg class="side__section-chevron" :class="{ 'is-collapsed': channelsCollapsed }" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></svg>
           <span>{{ t('sidebar.channels') }}</span>
         </button>
@@ -716,10 +716,9 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 5px;
   width: 100%;
-  margin-top: 12px;
+  margin: 0;
   padding: 12px 10px 4px;
   border: 0;
-  border-top: 1px solid var(--line);
   background: transparent;
   font-family: inherit;
   font-size: 11px;

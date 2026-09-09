@@ -962,8 +962,10 @@ textarea {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px 10px;
+  height: var(--header-h);
+  padding: 0 10px;
   flex: none;
+  border-bottom: 1px solid var(--line);
 }
 
 .search,
