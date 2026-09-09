@@ -566,6 +566,8 @@ const profileTextChanged = computed(() =>
   draftDescription.value.trim() !== String(profile.value.description || "").trim()
   || draftPronouns.value.trim() !== String(profile.value.pronouns || "").trim()
 );
+
+const hasUnsavedChanges = computed(() => nameChanged.value || profileTextChanged.value);
 const connectionStatusLabel = computed(() => {
   if (props.messenger.state.connected && props.messenger.state.identified) {
     switch (props.messenger.state.status) {
@@ -792,6 +794,11 @@ function saveProfileText() {
     description: draftDescription.value,
     pronouns: draftPronouns.value
   });
+}
+
+async function saveAll() {
+  if (nameChanged.value && nameValid.value) await saveName();
+  if (profileTextChanged.value) saveProfileText();
 }
 
 function onAvatarPicked(event) {
@@ -1285,8 +1292,6 @@ onBeforeUnmount(() => {
           <div class="settings-inline">
             <input ref="firstInputRef" v-model="draftName" type="text" maxlength="32" autocomplete="off"
               spellcheck="false" placeholder="@echo" class="settings-input" @keydown.enter.prevent="saveName" />
-            <button type="button" class="btn btn--primary settings-btn" :disabled="!nameValid || !nameChanged"
-              @click="saveName">{{ t('settings.profile.save') }}</button>
           </div>
         </div>
 
@@ -1360,8 +1365,6 @@ onBeforeUnmount(() => {
             <input v-model="draftPronouns" type="text" :maxlength="messenger.MAX_PROFILE_PRONOUNS_LENGTH"
               autocomplete="off" spellcheck="false" :placeholder="t('settings.profile.pronounsPlaceholder')"
               class="settings-input" @keydown.enter.prevent="saveProfileText" />
-            <button type="button" class="btn btn--primary settings-btn" :disabled="!profileTextChanged"
-              @click="saveProfileText">{{ t('settings.profile.save') }}</button>
           </div>
         </div>
 
@@ -2742,6 +2745,15 @@ onBeforeUnmount(() => {
         </div>
       </section>
     </main>
+
+    <Transition name="save-bar">
+      <div v-if="isOpen && activeSection === 'profile' && hasUnsavedChanges" class="settings-save-bar">
+        <span class="settings-save-bar__hint">{{ t('settings.profile.unsavedChanges') }}</span>
+        <button type="button" class="settings-save-bar__btn" :disabled="nameChanged && !nameValid" @click="saveAll">
+          {{ t('settings.profile.save') }}
+        </button>
+      </div>
+    </Transition>
     </div>
   </Transition>
 
@@ -3333,5 +3345,67 @@ onBeforeUnmount(() => {
 .recovery-unsigned {
   color: var(--red) !important;
   font-weight: 600;
+}
+
+/* Barre flottante « Modifications repérées [Sauvegarder] » */
+.settings-save-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 240;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: calc(100vw - 32px);
+  padding: 10px 12px 10px 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface, #1d2129) 94%, transparent);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+}
+
+.settings-save-bar__hint {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.settings-save-bar__btn {
+  flex: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--accent, #2090ea);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms ease, transform 80ms ease;
+}
+
+.settings-save-bar__btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent, #2090ea) 85%, black 15%);
+}
+
+.settings-save-bar__btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.settings-save-bar__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.save-bar-enter-active,
+.save-bar-leave-active {
+  transition: opacity 160ms ease, transform 200ms cubic-bezier(0.16, 0.8, 0.2, 1);
+}
+
+.save-bar-enter-from,
+.save-bar-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(12px);
 }
 </style>

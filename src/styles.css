@@ -1728,7 +1728,7 @@ textarea {
 
 .profile-card__avatar {
   position: relative;
-  margin: -60px 0 0 0;
+  margin: -60px 0 0 16px;
   width: 116px;
   height: 116px;
   border: 6px solid var(--surface);
@@ -1800,6 +1800,7 @@ textarea {
 
 .profile-card__identity {
   min-width: 0;
+  margin-top: 20px;
 }
 
 .profile-card__identity strong,

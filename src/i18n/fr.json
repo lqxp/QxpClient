@@ -293,6 +293,7 @@
             "clearImage": "Supprimer l'image",
             "clearBanner": "Supprimer la bannière",
             "save": "Enregistrer",
+            "unsavedChanges": "Modifications repérées",
             "noteImages": "Image de profil max 10 Mo. Bannière max 15 Mo, PNG/APNG/GIF/JPEG/WEBP.",
             "dangerZone": "Zone dangereuse",
             "deleteAccount": "Supprimer le compte",
