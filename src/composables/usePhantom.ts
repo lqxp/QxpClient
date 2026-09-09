@@ -755,8 +755,16 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
       const roster = JSON.parse(new TextDecoder().decode(plaintext));
       if (Array.isArray(roster.friends)) {
         for (const friend of roster.friends) {
-          if (friend?.peerDisplayName)
+          if (friend?.peerDisplayName) {
             state.friendsByUser[friend.peerDisplayName] = friend;
+          }
+          if (friend?.roomId) {
+            ctx.setLocalRoomTitle?.(
+              friend.roomId,
+              friend.peerDisplayName || friend.roomId,
+            );
+            ctx.registerFriendRoom?.(friend.roomId, friend.peerDisplayName);
+          }
         }
       }
       if (Array.isArray(roster.blocks)) state.blockList = roster.blocks;

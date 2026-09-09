@@ -61,6 +61,16 @@ function friendAvatar(friend: any) {
   return props.messenger.profileImageSrc?.(profile?.avatar, "avatar") || "";
 }
 
+function friendUnread(friend: any) {
+  const roomId = String(friend?.roomId || "").trim();
+  if (!roomId) return 0;
+  return Number(props.messenger.state.unreadByRoom?.[roomId] || 0);
+}
+
+function unreadLabel(count: number) {
+  return count > 99 ? "99+" : String(count);
+}
+
 function blockRequest(request: any) {
   props.phantom.blockUser(request.sender?.prekeyFp);
   props.phantom.ignoreIncoming(request.id);
@@ -124,12 +134,13 @@ function friendMenuAction(action: string) {
         class="phantom-friend"
         @contextmenu.prevent.stop="openFriendMenu($event, friend)"
       >
-        <button type="button" @click="openFriend(friend)">
+        <button type="button" @click="openFriend(friend)" :class="{ 'has-unread': friendUnread(friend) > 0 }">
           <span class="phantom-friend__avatar" :class="{ 'phantom-friend__avatar--image': friendAvatar(friend) }">
             <img v-if="friendAvatar(friend)" :src="friendAvatar(friend)" alt="" />
             <template v-else>{{ (friend.peerDisplayName || "?").slice(0, 1).toUpperCase() }}</template>
           </span>
           <span class="phantom-friend__name">{{ friend.peerDisplayName }}</span>
+          <span v-if="friendUnread(friend) > 0" class="phantom-friend__badge">{{ unreadLabel(friendUnread(friend)) }}</span>
         </button>
       </li>
     </ul>
@@ -268,9 +279,26 @@ function friendMenuAction(action: string) {
   background: transparent;
 }
 .phantom-friend__name {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
+}
+.phantom-friend__badge {
+  flex: none;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
 }
 .phantom-friends__empty {
   margin: 0;

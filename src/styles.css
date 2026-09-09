@@ -1802,6 +1802,15 @@ textarea {
 .profile-card__identity {
   min-width: 0;
   margin-top: 6px;
+  text-align: left;
+}
+
+.profile-card__name-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
 }
 
 .profile-card__identity strong,
@@ -1810,13 +1819,6 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.profile-card__name-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
 }
 
 .profile-card__name-row strong {
