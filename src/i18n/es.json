@@ -127,7 +127,13 @@
         "mutualRooms": "Salas en común",
         "noMutualRooms": "Todavía no hay salas en común.",
         "inVoiceChat": "En chat de voz",
-        "clientPlatforms": "Plataformas del cliente"
+        "clientPlatforms": "Plataformas del cliente",
+        "memberSince": "Miembro desde",
+        "members": "miembros",
+        "community": "Comunidad",
+        "openRoom": "Abrir sala",
+        "previous": "Anterior",
+        "next": "Siguiente"
     },
     "thread": {
         "back": "Volver a conversaciones",

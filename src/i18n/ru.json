@@ -152,7 +152,13 @@
         "mutualRooms": "Общие комнаты",
         "noMutualRooms": "Пока нет общих комнат.",
         "inVoiceChat": "В голосовом чате",
-        "clientPlatforms": "Платформы клиента"
+        "clientPlatforms": "Платформы клиента",
+        "memberSince": "Участник с",
+        "members": "участников",
+        "community": "Сообщество",
+        "openRoom": "Открыть комнату",
+        "previous": "Назад",
+        "next": "Далее"
     },
     "thread": {
         "back": "Назад к разговорам",

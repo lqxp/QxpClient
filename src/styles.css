@@ -1670,7 +1670,7 @@ textarea {
 
 .profile-card__panel {
   position: relative;
-  width: min(520px, calc(100vw - 28px));
+  width: min(720px, calc(100vw - 28px));
   max-height: calc(100vh - 36px);
   overflow-y: auto;
   overflow-x: hidden;
@@ -1682,6 +1682,8 @@ textarea {
 .profile-card__banner {
   width: 100%;
   aspect-ratio: 21 / 9;
+  border-radius: 12px;
+  overflow: hidden;
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, transparent), rgba(63, 207, 111, 0.12)),
     var(--surface-2);
@@ -1700,18 +1702,31 @@ textarea {
 }
 
 .profile-card__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.profile-card__left {
   position: relative;
-  padding: 76px 42px 42px;
+  min-width: 0;
+  padding: 28px 28px 32px;
+  border-right: 1px solid var(--line);
+}
+
+.profile-card__left:only-child {
+  grid-column: 1 / -1;
+  border-right: 0;
 }
 
 .profile-card__avatar {
-  position: absolute;
-  top: -68px;
-  left: 42px;
-  width: 132px;
-  height: 132px;
-  border: 7px solid var(--surface);
-  font-size: 40px;
+  position: relative;
+  margin: -60px 0 0 0;
+  width: 116px;
+  height: 116px;
+  border: 6px solid var(--surface);
+  border-radius: 50%;
+  font-size: 36px;
 }
 
 .profile-card__avatar--image,
@@ -2086,15 +2101,23 @@ textarea {
   }
 
   .profile-card__body {
-    padding: 64px 22px 30px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profile-card__left {
+    padding: 22px 22px 0;
+    border-right: 0;
+  }
+
+  .profile-card__mutual {
+    padding: 22px 22px 28px;
   }
 
   .profile-card__avatar {
-    left: 22px;
-    top: -54px;
-    width: 108px;
-    height: 108px;
-    font-size: 34px;
+    margin: -52px 0 0 0;
+    width: 104px;
+    height: 104px;
+    font-size: 32px;
   }
 
   .profile-card__presence {
@@ -2120,6 +2143,206 @@ textarea {
     height: 36px;
   }
 }
+
+/* ---- Profile card: redesigned content layout ---- */
+.profile-card__mutual {
+  min-width: 0;
+  padding: 28px 28px 32px;
+}
+
+.profile-card__mutual-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.profile-card__mutual-head h4 {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.profile-card__mutual-count {
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profile-card__mutual-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.profile-card__mutual-room {
+  cursor: pointer;
+}
+
+.profile-card__mutual-room.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-2));
+}
+
+.profile-card__mutual-room-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-card__mutual-room-members {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.profile-card__member-since {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile-card__member-since svg {
+  flex: none;
+  opacity: 0.8;
+}
+
+/* Markdown description */
+.profile-card__description.markdown blockquote {
+  margin: 8px 0;
+  padding: 4px 0 4px 12px;
+  border-left: 4px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--muted);
+}
+
+.profile-card__description.markdown a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.profile-card__description.markdown a:hover {
+  text-decoration: underline;
+}
+
+.profile-card__description.markdown strong {
+  font-weight: 800;
+}
+
+.profile-card__description.markdown em {
+  font-style: italic;
+}
+
+/* Mutual room viewer (selected server details) */
+.profile-card__viewer {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.profile-card__viewer-media,
+.profile-card__viewer-fallback {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.profile-card__viewer-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-card__viewer-fallback {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
+  font-weight: 800;
+}
+
+.profile-card__viewer-body {
+  min-width: 0;
+}
+
+.profile-card__viewer-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.profile-card__viewer-head strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+.profile-card__viewer-kind {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.profile-card__viewer-desc {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.profile-card__viewer-members {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.profile-card__viewer-open {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-card__viewer-open:hover {
+  background: color-mix(in srgb, var(--accent) 85%, black 15%);
+}
+
+
 
 .thread__head {
   display: flex;

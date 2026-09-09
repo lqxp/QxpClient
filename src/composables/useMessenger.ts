@@ -22,7 +22,12 @@ import {
   startSystemAudioCapture,
   stopSystemAudioCapture,
 } from "@/calls/screenAudio";
-import { apiUrl, appRuntimeConfig, turnServerList, selectedTurnServerId as runtimeDefaultTurnServerId } from "@/config/runtime";
+import {
+  apiUrl,
+  appRuntimeConfig,
+  turnServerList,
+  selectedTurnServerId as runtimeDefaultTurnServerId,
+} from "@/config/runtime";
 import {
   canonicalDeviceSigningKey,
   cryptoAvailable,
@@ -65,12 +70,16 @@ const SYSTEM_AVATAR_SVG_DARK = `<svg width="180px" height="180px" viewBox="-3.68
 const SYSTEM_AVATAR_SVG_LIGHT = `<svg width="180px" height="180px" viewBox="-3.68 -3.68 23.36 23.36" xmlns="http://www.w3.org/2000/svg"><g transform="translate(16 0) scale(-1 1)"><g transform="translate(0 1)" fill="#1b1b1d"><path d="M5.939 0C2.666 0 0.009 1.987 0.009 4.438c0 2.236 2.215 4.082 5.092 4.387L3.88 11.26l4.249-2.7C10.318 7.906 12 6.309 12 4.438 12 1.988 9.213 0 5.939 0Z"/><path d="M15.947 8.89c0-1.124-1.062-2.288-2.289-2.868-.344 1.95-1.924 3.745-4.417 4.447l-1.187.642c.454.34 1.01.611 1.634.788l3.638 1.971-1.303-1.776c2.217-.225 3.924-1.571 3.924-3.204Z"/></g></g></svg>`;
 
 function systemAvatarB64() {
-  const isLight = typeof document !== "undefined" && document.documentElement.dataset.theme === "light";
+  const isLight =
+    typeof document !== "undefined" &&
+    document.documentElement.dataset.theme === "light";
   return btoa(isLight ? SYSTEM_AVATAR_SVG_LIGHT : SYSTEM_AVATAR_SVG_DARK);
 }
 const CLIENT_LOCK_PBKDF2_ITERATIONS = 250000;
 const CLIENT_LOCK_PIN_LENGTHS = [4, 6, 8];
-const CLIENT_LOCK_AUTOLOCK_TIMEOUTS_MS = [60_000, 600_000, 1_800_000, 3_600_000, 7_200_000, 18_000_000];
+const CLIENT_LOCK_AUTOLOCK_TIMEOUTS_MS = [
+  60_000, 600_000, 1_800_000, 3_600_000, 7_200_000, 18_000_000,
+];
 const CLIENT_LOCK_DEFAULT_AUTOLOCK_TIMEOUT_MS = 600_000;
 const CLIENT_LOCK_DB_NAME = "qxprotocol-client-lock";
 const CLIENT_LOCK_DB_VERSION = 1;
@@ -121,18 +130,90 @@ const TYPING_HEARTBEAT_MS = 4000;
 const PUBLIC_PROFILE_LOOKUP_TTL_MS = 5 * 60 * 1000;
 const PUBLIC_PROFILE_LOOKUP_MAX_USERS = 32;
 export const TEXT_ATTACHMENT_EXTENSIONS = new Set([
-  "bat", "c", "cfg", "conf", "cpp", "cs", "css", "csv", "env", "go", "h", "hpp", "html", "ini", "java", "js", "json", "jsx",
-  "log", "lua", "md", "php", "properties", "py", "rb", "rs", "scss", "sh", "sql", "svelte", "toml", "ts", "tsx", "txt", "vue", "xml", "yaml", "yml"
+  "bat",
+  "c",
+  "cfg",
+  "conf",
+  "cpp",
+  "cs",
+  "css",
+  "csv",
+  "env",
+  "go",
+  "h",
+  "hpp",
+  "html",
+  "ini",
+  "java",
+  "js",
+  "json",
+  "jsx",
+  "log",
+  "lua",
+  "md",
+  "php",
+  "properties",
+  "py",
+  "rb",
+  "rs",
+  "scss",
+  "sh",
+  "sql",
+  "svelte",
+  "toml",
+  "ts",
+  "tsx",
+  "txt",
+  "vue",
+  "xml",
+  "yaml",
+  "yml",
 ]);
 const AUDIO_ATTACHMENT_EXTENSIONS = new Set([
-  "aac", "aif", "aiff", "alac", "amr", "flac", "m4a", "mid", "midi", "mp3",
-  "oga", "ogg", "opus", "wav", "weba", "wma",
+  "aac",
+  "aif",
+  "aiff",
+  "alac",
+  "amr",
+  "flac",
+  "m4a",
+  "mid",
+  "midi",
+  "mp3",
+  "oga",
+  "ogg",
+  "opus",
+  "wav",
+  "weba",
+  "wma",
 ]);
 const IMAGE_ATTACHMENT_EXTENSIONS = new Set([
-  "avif", "bmp", "gif", "heic", "heif", "ico", "jpeg", "jpg", "png", "svg", "webp",
+  "avif",
+  "bmp",
+  "gif",
+  "heic",
+  "heif",
+  "ico",
+  "jpeg",
+  "jpg",
+  "png",
+  "svg",
+  "webp",
 ]);
 const VIDEO_ATTACHMENT_EXTENSIONS = new Set([
-  "3g2", "3gp", "avi", "flv", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ogv", "webm", "wmv",
+  "3g2",
+  "3gp",
+  "avi",
+  "flv",
+  "m4v",
+  "mkv",
+  "mov",
+  "mp4",
+  "mpeg",
+  "mpg",
+  "ogv",
+  "webm",
+  "wmv",
 ]);
 
 const { t, locale } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
@@ -154,7 +235,13 @@ function isSystemUsername(value) {
 
 function systemProfile() {
   return normalizeProfile({
-    avatar: { dataB64: systemAvatarB64(), mimeType: "image/svg+xml", size: 651, width: 180, height: 180 },
+    avatar: {
+      dataB64: systemAvatarB64(),
+      mimeType: "image/svg+xml",
+      size: 651,
+      width: 180,
+      height: 180,
+    },
     description: "Official QxChat system account.",
   });
 }
@@ -168,8 +255,7 @@ function validateUsernameWithMax(value, max) {
     return "Username can only use a-z, 0-9, underscore and period.";
   if (username.includes(".."))
     return "Username cannot contain two consecutive periods.";
-  if (username === SYSTEM_USERNAME)
-    return "Username is reserved.";
+  if (username === SYSTEM_USERNAME) return "Username is reserved.";
   return "";
 }
 
@@ -188,7 +274,17 @@ function sanitizePresenceStatus(value) {
 
 function normalizeUserBadges(value) {
   const badges = Array.isArray(value) ? value : [];
-  return [...new Set(badges.map((badge) => String(badge || "").trim().toLowerCase()).filter(Boolean))];
+  return [
+    ...new Set(
+      badges
+        .map((badge) =>
+          String(badge || "")
+            .trim()
+            .toLowerCase(),
+        )
+        .filter(Boolean),
+    ),
+  ];
 }
 
 function presenceStatusLabel(status) {
@@ -215,12 +311,18 @@ function findFirstLinkPreviewUrl(text) {
 }
 
 function isTextAttachmentByFilename(filename) {
-  const ext = String(filename || "").toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || "";
+  const ext =
+    String(filename || "")
+      .toLowerCase()
+      .match(/\.([a-z0-9]+)$/)?.[1] || "";
   return TEXT_ATTACHMENT_EXTENSIONS.has(ext);
 }
 
 function attachmentKindFromFilename(filename) {
-  const ext = String(filename || "").toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || "";
+  const ext =
+    String(filename || "")
+      .toLowerCase()
+      .match(/\.([a-z0-9]+)$/)?.[1] || "";
   if (AUDIO_ATTACHMENT_EXTENSIONS.has(ext)) return "audio";
   if (IMAGE_ATTACHMENT_EXTENSIONS.has(ext)) return "image";
   if (VIDEO_ATTACHMENT_EXTENSIONS.has(ext)) return "video";
@@ -231,7 +333,18 @@ function isTextAttachmentFile(file) {
   const mimeType = String(file?.type || "").toLowerCase();
   if (isTextAttachmentByFilename(file?.name)) return true;
   if (mimeType.startsWith("text/")) return true;
-  if (["application/json", "application/xml", "application/javascript", "application/x-javascript", "application/typescript", "application/x-sh", "application/x-shellscript"].includes(mimeType)) return true;
+  if (
+    [
+      "application/json",
+      "application/xml",
+      "application/javascript",
+      "application/x-javascript",
+      "application/typescript",
+      "application/x-sh",
+      "application/x-shellscript",
+    ].includes(mimeType)
+  )
+    return true;
   return false;
 }
 
@@ -347,10 +460,16 @@ function normalizeProfilePatch(profile: unknown) {
       : {};
   const patch: Record<string, unknown> = {};
   if (Object.prototype.hasOwnProperty.call(source, "avatar")) {
-    patch.avatar = normalizeProfileImage(source.avatar, MAX_PROFILE_AVATAR_BYTES);
+    patch.avatar = normalizeProfileImage(
+      source.avatar,
+      MAX_PROFILE_AVATAR_BYTES,
+    );
   }
   if (Object.prototype.hasOwnProperty.call(source, "banner")) {
-    patch.banner = normalizeProfileImage(source.banner, MAX_PROFILE_BANNER_BYTES);
+    patch.banner = normalizeProfileImage(
+      source.banner,
+      MAX_PROFILE_BANNER_BYTES,
+    );
   }
   if (Object.prototype.hasOwnProperty.call(source, "description")) {
     patch.description = sanitizeProfileText(
@@ -736,7 +855,11 @@ function parseInviteLink() {
     }
     if (!token) return null;
     const parsed = parseRoomAccessToken(token);
-    return { roomId: parsed.roomId, roomKey: parsed.roomKey, token: parsed.token };
+    return {
+      roomId: parsed.roomId,
+      roomKey: parsed.roomKey,
+      token: parsed.token,
+    };
   } catch {
     return null;
   }
@@ -779,6 +902,7 @@ function defaultPersisted(overrides: Record<string, unknown> = {}) {
     joinedRooms: [],
     usersByRoom: {},
     profilesByUser: {},
+    createdAtByUser: {},
     publicProfileFetchedAtByUser: {},
     badgesByUser: {},
     messagesByRoom: {},
@@ -867,7 +991,12 @@ function defaultPersisted(overrides: Record<string, unknown> = {}) {
 }
 
 function localDataLockedPayload(raw) {
-  return raw && raw.version === 5 && raw.locked === true && (typeof raw.ciphertext === "string" || raw.storage === "indexeddb");
+  return (
+    raw &&
+    raw.version === 5 &&
+    raw.locked === true &&
+    (typeof raw.ciphertext === "string" || raw.storage === "indexeddb")
+  );
 }
 
 function openClientLockDb(): Promise<IDBDatabase> {
@@ -877,7 +1006,8 @@ function openClientLockDb(): Promise<IDBDatabase> {
       request.result.createObjectStore(CLIENT_LOCK_STORE);
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error || new Error("Could not open client lock storage."));
+    request.onerror = () =>
+      reject(request.error || new Error("Could not open client lock storage."));
   });
 }
 
@@ -888,7 +1018,8 @@ async function putClientLockPayload(payload) {
       const tx = db.transaction(CLIENT_LOCK_STORE, "readwrite");
       tx.objectStore(CLIENT_LOCK_STORE).put(payload, CLIENT_LOCK_PAYLOAD_KEY);
       tx.oncomplete = () => resolve(undefined);
-      tx.onerror = () => reject(tx.error || new Error("Could not write client lock storage."));
+      tx.onerror = () =>
+        reject(tx.error || new Error("Could not write client lock storage."));
     });
   } finally {
     db.close();
@@ -900,9 +1031,14 @@ async function getClientLockPayload() {
   try {
     const result = await new Promise((resolve, reject) => {
       const tx = db.transaction(CLIENT_LOCK_STORE, "readonly");
-      const request = tx.objectStore(CLIENT_LOCK_STORE).get(CLIENT_LOCK_PAYLOAD_KEY);
+      const request = tx
+        .objectStore(CLIENT_LOCK_STORE)
+        .get(CLIENT_LOCK_PAYLOAD_KEY);
       request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error || new Error("Could not read client lock storage."));
+      request.onerror = () =>
+        reject(
+          request.error || new Error("Could not read client lock storage."),
+        );
     });
     return result;
   } finally {
@@ -917,7 +1053,8 @@ async function deleteClientLockPayload() {
       const tx = db.transaction(CLIENT_LOCK_STORE, "readwrite");
       tx.objectStore(CLIENT_LOCK_STORE).delete(CLIENT_LOCK_PAYLOAD_KEY);
       tx.oncomplete = () => resolve(undefined);
-      tx.onerror = () => reject(tx.error || new Error("Could not clear client lock storage."));
+      tx.onerror = () =>
+        reject(tx.error || new Error("Could not clear client lock storage."));
     });
   } finally {
     db.close();
@@ -935,40 +1072,62 @@ function loadPersisted() {
         clientLockCiphertext: String(raw.ciphertext || ""),
         clientLockLocked: true,
         clientLockStorage: String(raw.storage || ""),
-        clientLockDisplayName: sanitizeUsername(raw.displayName || raw.username || ""),
-        clientLockAvatar: normalizeProfileImage(raw.avatar, MAX_PROFILE_AVATAR_BYTES),
-        clientLockThemeMode: THEME_MODES.includes(String(raw.themeMode || "").toLowerCase()) ? String(raw.themeMode).toLowerCase() : "system",
-        clientLockPinLength: CLIENT_LOCK_PIN_LENGTHS.includes(Number(raw.pinLength)) ? Number(raw.pinLength) : 6,
+        clientLockDisplayName: sanitizeUsername(
+          raw.displayName || raw.username || "",
+        ),
+        clientLockAvatar: normalizeProfileImage(
+          raw.avatar,
+          MAX_PROFILE_AVATAR_BYTES,
+        ),
+        clientLockThemeMode: THEME_MODES.includes(
+          String(raw.themeMode || "").toLowerCase(),
+        )
+          ? String(raw.themeMode).toLowerCase()
+          : "system",
+        clientLockPinLength: CLIENT_LOCK_PIN_LENGTHS.includes(
+          Number(raw.pinLength),
+        )
+          ? Number(raw.pinLength)
+          : 6,
         clientLockAutolockEnabled: raw.autolockEnabled === true,
-        clientLockAutolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(raw.autolockTimeoutMs),
+        clientLockAutolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(
+          raw.autolockTimeoutMs,
+        ),
         opsecDuressEnabled: raw.opsecDuressEnabled === true,
         opsecDuressSalt: String(raw.opsecDuressSalt || ""),
         opsecDuressHash: String(raw.opsecDuressHash || ""),
-        opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(String(raw.opsecDuressAction || "")) ? String(raw.opsecDuressAction) : "wipe",
-        opsecHideLockIdentity: raw.opsecHideLockIdentity === undefined ? true : raw.opsecHideLockIdentity === true,
+        opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(
+          String(raw.opsecDuressAction || ""),
+        )
+          ? String(raw.opsecDuressAction)
+          : "wipe",
+        opsecHideLockIdentity:
+          raw.opsecHideLockIdentity === undefined
+            ? true
+            : raw.opsecHideLockIdentity === true,
       });
     }
     const profile = loadPersistedProfile();
     const rooms = Array.isArray(raw.rooms)
       ? raw.rooms
-        .filter(
-          (r) => r && typeof r === "object" && typeof r.roomId === "string",
-        )
-        .slice(0, MAX_ROOMS_SHOWN)
-        .map((r) => ({
-          roomId: sanitizeRoomId(r.roomId),
-          title: String(r.title || "")
-            .trim()
-            .slice(0, MAX_LOCAL_ROOM_NAME_LENGTH),
-          lastPreview: String(r.lastPreview || ""),
-          lastTimestamp: Number(r.lastTimestamp) || 0,
-          lastSender: String(r.lastSender || ""),
-          iconUrl: sanitizeHttpUrl(
-            r.iconUrl || r.icon?.url || r.icon?.file?.url,
-          ),
-          members: sanitizeRoomUsers(r.members || []),
-        }))
-        .filter((r) => isValidRoomId(r.roomId))
+          .filter(
+            (r) => r && typeof r === "object" && typeof r.roomId === "string",
+          )
+          .slice(0, MAX_ROOMS_SHOWN)
+          .map((r) => ({
+            roomId: sanitizeRoomId(r.roomId),
+            title: String(r.title || "")
+              .trim()
+              .slice(0, MAX_LOCAL_ROOM_NAME_LENGTH),
+            lastPreview: String(r.lastPreview || ""),
+            lastTimestamp: Number(r.lastTimestamp) || 0,
+            lastSender: String(r.lastSender || ""),
+            iconUrl: sanitizeHttpUrl(
+              r.iconUrl || r.icon?.url || r.icon?.file?.url,
+            ),
+            members: sanitizeRoomUsers(r.members || []),
+          }))
+          .filter((r) => isValidRoomId(r.roomId))
       : [];
 
     const messagesByRoom = {};
@@ -995,12 +1154,12 @@ function loadPersisted() {
 
     const joinedRooms = Array.isArray(raw.joinedRooms)
       ? [
-        ...new Set(
-          raw.joinedRooms
-            .map((roomId) => sanitizeRoomId(roomId))
-            .filter((roomId) => isValidRoomId(roomId)),
-        ),
-      ]
+          ...new Set(
+            raw.joinedRooms
+              .map((roomId) => sanitizeRoomId(roomId))
+              .filter((roomId) => isValidRoomId(roomId)),
+          ),
+        ]
       : [];
 
     const usersByRoom = {};
@@ -1021,13 +1180,28 @@ function loadPersisted() {
       }
     }
 
-    const publicProfileFetchedAtByUser = {};
-    if (raw.publicProfileFetchedAtByUser && typeof raw.publicProfileFetchedAtByUser === "object") {
-      const now = Date.now();
-      for (const [username, timestamp] of Object.entries(raw.publicProfileFetchedAtByUser)) {
+    const createdAtByUser = {};
+    if (raw.createdAtByUser && typeof raw.createdAtByUser === "object") {
+      for (const [username, timestamp] of Object.entries(raw.createdAtByUser)) {
         const key = sanitizeUsername(username);
         const value = Number(timestamp) || 0;
-        if (key && value && now - value <= PUBLIC_PROFILE_LOOKUP_TTL_MS) publicProfileFetchedAtByUser[key] = value;
+        if (key && value) createdAtByUser[key] = value;
+      }
+    }
+
+    const publicProfileFetchedAtByUser = {};
+    if (
+      raw.publicProfileFetchedAtByUser &&
+      typeof raw.publicProfileFetchedAtByUser === "object"
+    ) {
+      const now = Date.now();
+      for (const [username, timestamp] of Object.entries(
+        raw.publicProfileFetchedAtByUser,
+      )) {
+        const key = sanitizeUsername(username);
+        const value = Number(timestamp) || 0;
+        if (key && value && now - value <= PUBLIC_PROFILE_LOOKUP_TTL_MS)
+          publicProfileFetchedAtByUser[key] = value;
       }
     }
 
@@ -1062,9 +1236,9 @@ function loadPersisted() {
       admin: Boolean(raw.admin),
       recoveryWords: Array.isArray(raw.recoveryWords)
         ? raw.recoveryWords
-          .map((word) => String(word || ""))
-          .filter(Boolean)
-          .slice(0, 16)
+            .map((word) => String(word || ""))
+            .filter(Boolean)
+            .slice(0, 16)
         : [],
       username: sanitizeUsername(raw.username),
       status: sanitizePresenceStatus(raw.status),
@@ -1074,6 +1248,7 @@ function loadPersisted() {
       pinnedRooms: sanitizePinnedRooms(raw.pinnedRooms),
       usersByRoom,
       profilesByUser,
+      createdAtByUser,
       publicProfileFetchedAtByUser,
       badgesByUser,
       messagesByRoom,
@@ -1083,7 +1258,11 @@ function loadPersisted() {
       deviceId: String(raw.deviceId || ""),
       deviceSigningPublicKey: raw.deviceSigningPublicKey || null,
       deviceSigningPrivateKey: raw.deviceSigningPrivateKey || null,
-      trustedSenderKeysByRoom: raw.trustedSenderKeysByRoom && typeof raw.trustedSenderKeysByRoom === "object" ? raw.trustedSenderKeysByRoom : {},
+      trustedSenderKeysByRoom:
+        raw.trustedSenderKeysByRoom &&
+        typeof raw.trustedSenderKeysByRoom === "object"
+          ? raw.trustedSenderKeysByRoom
+          : {},
       bannedRooms: sanitizeBannedRooms(raw.bannedRooms),
       selectedAudioInputId: String(raw.selectedAudioInputId || ""),
       selectedAudioOutputId: String(raw.selectedAudioOutputId || ""),
@@ -1127,9 +1306,7 @@ function loadPersisted() {
         screenOff: raw.soundFlags?.screenOff !== false,
         message: raw.soundFlags?.message !== false,
       },
-      themeMode: THEME_MODES.includes(
-        String(raw.themeMode || "").toLowerCase(),
-      )
+      themeMode: THEME_MODES.includes(String(raw.themeMode || "").toLowerCase())
         ? String(raw.themeMode).toLowerCase()
         : "system",
       appAccent: ["blue", "violet", "emerald", "rose", "amber"].includes(
@@ -1169,7 +1346,9 @@ function loadPersisted() {
       ),
       callUserVolumes: sanitizeCallUserVolumes(raw.callUserVolumes),
       roomNotes: sanitizeRoomNotes(raw.roomNotes),
-      selectedTurnServerId: String(raw.selectedTurnServerId || runtimeDefaultTurnServerId()).trim(),
+      selectedTurnServerId: String(
+        raw.selectedTurnServerId || runtimeDefaultTurnServerId(),
+      ).trim(),
       customTurnServers: sanitizeCustomTurnServers(raw.customTurnServers),
       profile,
       clientLockEnabled: false,
@@ -1183,14 +1362,24 @@ function loadPersisted() {
       clientLockThemeMode: "system",
       clientLockFailedAttempts: 0,
       clientLockMaxFailedAttempts: CLIENT_LOCK_MAX_FAILED_ATTEMPTS,
-      clientLockPinLength: CLIENT_LOCK_PIN_LENGTHS.includes(Number(raw.clientLockPinLength)) ? Number(raw.clientLockPinLength) : 6,
+      clientLockPinLength: CLIENT_LOCK_PIN_LENGTHS.includes(
+        Number(raw.clientLockPinLength),
+      )
+        ? Number(raw.clientLockPinLength)
+        : 6,
       clientLockAutolockEnabled: raw.clientLockAutolockEnabled === true,
-      clientLockAutolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(raw.clientLockAutolockTimeoutMs),
+      clientLockAutolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(
+        raw.clientLockAutolockTimeoutMs,
+      ),
       opsecRamOnlyEnabled: false,
       opsecDuressEnabled: raw.opsecDuressEnabled === true,
       opsecDuressSalt: String(raw.opsecDuressSalt || ""),
       opsecDuressHash: String(raw.opsecDuressHash || ""),
-      opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(String(raw.opsecDuressAction || "")) ? String(raw.opsecDuressAction) : "wipe",
+      opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(
+        String(raw.opsecDuressAction || ""),
+      )
+        ? String(raw.opsecDuressAction)
+        : "wipe",
     };
   } catch {
     return defaultPersisted();
@@ -1247,7 +1436,9 @@ function loadAccountsVault() {
     const raw = JSON.parse(localStorage.getItem(ACCOUNTS_STORAGE_KEY) || "[]");
     if (!Array.isArray(raw)) return [];
     return raw
-      .filter((account) => account && typeof account === "object" && account.userId)
+      .filter(
+        (account) => account && typeof account === "object" && account.userId,
+      )
       .slice(0, MAX_ACCOUNTS);
   } catch {
     return [];
@@ -1257,7 +1448,10 @@ function loadAccountsVault() {
 function saveAccountsVault(accounts) {
   try {
     const list = Array.isArray(accounts) ? accounts : [];
-    localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(list.slice(0, MAX_ACCOUNTS)));
+    localStorage.setItem(
+      ACCOUNTS_STORAGE_KEY,
+      JSON.stringify(list.slice(0, MAX_ACCOUNTS)),
+    );
   } catch {
     /* ignore */
   }
@@ -1280,16 +1474,23 @@ function sanitizeCustomTurnServers(raw) {
   const out = [];
   for (const item of raw) {
     if (!item || typeof item !== "object") continue;
-    const label = String(item.label || "").trim().slice(0, 64) || "Custom TURN";
+    const label =
+      String(item.label || "")
+        .trim()
+        .slice(0, 64) || "Custom TURN";
     const urls = Array.isArray(item.urls)
       ? item.urls
-        .map((u) => String(u || "").trim())
-        .filter((u) => /^(turn|turns|stun):/i.test(u))
-        .slice(0, 8)
+          .map((u) => String(u || "").trim())
+          .filter((u) => /^(turn|turns|stun):/i.test(u))
+          .slice(0, 8)
       : [];
     if (!urls.length) continue;
-    const username = String(item.username || "").trim().slice(0, 128);
-    const credential = String(item.credential || "").trim().slice(0, 256);
+    const username = String(item.username || "")
+      .trim()
+      .slice(0, 128);
+    const credential = String(item.credential || "")
+      .trim()
+      .slice(0, 256);
     const id = `custom-${urls[0]}-${username}-${label}`
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -1307,36 +1508,43 @@ function stripAttachmentDataForStorage(arr) {
     const message = normalizeMessage(m, m?.roomId || "");
     const attachment = message.attachment
       ? {
-        id: String(message.attachment.id || "").trim(),
-        url: sanitizeStoredUrl(message.attachment.url),
-        filename: String(message.attachment.filename || "file"),
-        mimeType: String(message.attachment.mimeType || "application/octet-stream"),
-        size: Number(message.attachment.size) || 0,
-      }
+          id: String(message.attachment.id || "").trim(),
+          url: sanitizeStoredUrl(message.attachment.url),
+          filename: String(message.attachment.filename || "file"),
+          mimeType: String(
+            message.attachment.mimeType || "application/octet-stream",
+          ),
+          size: Number(message.attachment.size) || 0,
+        }
       : null;
     const preview =
       message.preview && typeof message.preview === "object"
         ? {
-          url: sanitizeHttpUrl(message.preview.url),
-          title: String(message.preview.title || "").slice(0, 300),
-          description: String(message.preview.description || "").slice(0, 500),
-          image: sanitizeHttpUrl(message.preview.image),
-          siteName: String(message.preview.siteName || "").slice(0, 80),
-        }
+            url: sanitizeHttpUrl(message.preview.url),
+            title: String(message.preview.title || "").slice(0, 300),
+            description: String(message.preview.description || "").slice(
+              0,
+              500,
+            ),
+            image: sanitizeHttpUrl(message.preview.image),
+            siteName: String(message.preview.siteName || "").slice(0, 80),
+          }
         : null;
     const encrypted =
       message.encrypted && typeof message.encrypted === "object"
         ? {
-          v: Number(message.encrypted.v) || 0,
-          alg: String(message.encrypted.alg || ""),
-          iv: String(message.encrypted.iv || ""),
-          salt: String(message.encrypted.salt || ""),
-          n: Number(message.encrypted.n) || 0,
-          senderDeviceId: String(message.encrypted.senderDeviceId || ""),
-          senderSigningKey: message.encrypted.senderSigningKey || null,
-          signature: String(message.encrypted.signature || ""),
-          ciphertext: message.locked ? String(message.encrypted.ciphertext || "") : "",
-        }
+            v: Number(message.encrypted.v) || 0,
+            alg: String(message.encrypted.alg || ""),
+            iv: String(message.encrypted.iv || ""),
+            salt: String(message.encrypted.salt || ""),
+            n: Number(message.encrypted.n) || 0,
+            senderDeviceId: String(message.encrypted.senderDeviceId || ""),
+            senderSigningKey: message.encrypted.senderSigningKey || null,
+            signature: String(message.encrypted.signature || ""),
+            ciphertext: message.locked
+              ? String(message.encrypted.ciphertext || "")
+              : "",
+          }
         : null;
     return {
       messageId: message.messageId,
@@ -1463,10 +1671,25 @@ function buildPersistedPayload(state) {
         ])
         .filter(([username]) => Boolean(username)),
     ),
+    createdAtByUser: Object.fromEntries(
+      Object.entries(state.createdAtByUser || {})
+        .map(([username, timestamp]) => [
+          sanitizeUsername(username),
+          Number(timestamp) || 0,
+        ])
+        .filter(
+          ([username, timestamp]) => Boolean(username) && Boolean(timestamp),
+        ),
+    ),
     publicProfileFetchedAtByUser: Object.fromEntries(
       Object.entries(state.publicProfileFetchedAtByUser || {})
-        .map(([username, timestamp]) => [sanitizeUsername(username), Number(timestamp) || 0])
-        .filter(([username, timestamp]) => Boolean(username) && Boolean(timestamp)),
+        .map(([username, timestamp]) => [
+          sanitizeUsername(username),
+          Number(timestamp) || 0,
+        ])
+        .filter(
+          ([username, timestamp]) => Boolean(username) && Boolean(timestamp),
+        ),
     ),
     messagesByRoom,
     unreadByRoom: state.unreadByRoom,
@@ -1511,13 +1734,23 @@ function buildPersistedPayload(state) {
     selectedTurnServerId: state.selectedTurnServerId,
     customTurnServers: sanitizeCustomTurnServers(state.customTurnServers),
     profile: normalizeProfile(state.profile),
-    clientLockPinLength: CLIENT_LOCK_PIN_LENGTHS.includes(Number(state.clientLockPinLength)) ? Number(state.clientLockPinLength) : 6,
+    clientLockPinLength: CLIENT_LOCK_PIN_LENGTHS.includes(
+      Number(state.clientLockPinLength),
+    )
+      ? Number(state.clientLockPinLength)
+      : 6,
     clientLockAutolockEnabled: state.clientLockAutolockEnabled === true,
-    clientLockAutolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(state.clientLockAutolockTimeoutMs),
+    clientLockAutolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(
+      state.clientLockAutolockTimeoutMs,
+    ),
     opsecDuressEnabled: state.opsecDuressEnabled === true,
     opsecDuressSalt: String(state.opsecDuressSalt || ""),
     opsecDuressHash: String(state.opsecDuressHash || ""),
-    opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(String(state.opsecDuressAction || "")) ? String(state.opsecDuressAction) : "wipe",
+    opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(
+      String(state.opsecDuressAction || ""),
+    )
+      ? String(state.opsecDuressAction)
+      : "wipe",
     opsecHideLockIdentity: state.opsecHideLockIdentity !== false,
   };
   return payload;
@@ -1537,15 +1770,34 @@ async function encryptClientLockPayload(payload, key, salt, pinLength = 6) {
     kdf: "PBKDF2-SHA256",
     iterations: CLIENT_LOCK_PBKDF2_ITERATIONS,
     pinLength,
-    displayName: payload?.opsecHideLockIdentity !== false ? "" : sanitizeUsername(payload?.username || ""),
-    avatar: payload?.opsecHideLockIdentity !== false ? null : normalizeProfileImage(payload?.profile?.avatar, MAX_PROFILE_AVATAR_BYTES),
-    themeMode: THEME_MODES.includes(String(payload?.themeMode || "").toLowerCase()) ? String(payload.themeMode).toLowerCase() : "system",
+    displayName:
+      payload?.opsecHideLockIdentity !== false
+        ? ""
+        : sanitizeUsername(payload?.username || ""),
+    avatar:
+      payload?.opsecHideLockIdentity !== false
+        ? null
+        : normalizeProfileImage(
+            payload?.profile?.avatar,
+            MAX_PROFILE_AVATAR_BYTES,
+          ),
+    themeMode: THEME_MODES.includes(
+      String(payload?.themeMode || "").toLowerCase(),
+    )
+      ? String(payload.themeMode).toLowerCase()
+      : "system",
     autolockEnabled: payload?.clientLockAutolockEnabled === true,
-    autolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(payload?.clientLockAutolockTimeoutMs),
+    autolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(
+      payload?.clientLockAutolockTimeoutMs,
+    ),
     opsecDuressEnabled: payload?.opsecDuressEnabled === true,
     opsecDuressSalt: String(payload?.opsecDuressSalt || ""),
     opsecDuressHash: String(payload?.opsecDuressHash || ""),
-    opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(String(payload?.opsecDuressAction || "")) ? String(payload.opsecDuressAction) : "wipe",
+    opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(
+      String(payload?.opsecDuressAction || ""),
+    )
+      ? String(payload.opsecDuressAction)
+      : "wipe",
     opsecHideLockIdentity: payload?.opsecHideLockIdentity !== false,
     failedAttempts: 0,
     salt,
@@ -1590,8 +1842,12 @@ function writeDecoyPersistedPayload(payload) {
 
 function loadDecoyPersistedPayload() {
   try {
-    const raw = JSON.parse(localStorage.getItem(OPSEC_DECOY_STORAGE_KEY) || "{}");
-    return raw && typeof raw === "object" && !localDataLockedPayload(raw) ? raw : null;
+    const raw = JSON.parse(
+      localStorage.getItem(OPSEC_DECOY_STORAGE_KEY) || "{}",
+    );
+    return raw && typeof raw === "object" && !localDataLockedPayload(raw)
+      ? raw
+      : null;
   } catch {
     return null;
   }
@@ -1656,7 +1912,12 @@ async function savePersisted(state) {
 }
 
 function savePersistedProfile(profile) {
-  if (singleton?.state?.opsecRamOnlyEnabled || singleton?.state?.opsecDecoyActive || singleton?.state?.opsecDecoySetupActive) return;
+  if (
+    singleton?.state?.opsecRamOnlyEnabled ||
+    singleton?.state?.opsecDecoyActive ||
+    singleton?.state?.opsecDecoySetupActive
+  )
+    return;
   try {
     localStorage.setItem(
       PROFILE_STORAGE_KEY,
@@ -1668,11 +1929,16 @@ function savePersistedProfile(profile) {
 }
 
 function parseVoiceLabel(text) {
-  const match = /^\[voice:(\d+:\d{2})(?::([0-9,]+))?\]$/i.exec(String(text || "").trim());
+  const match = /^\[voice:(\d+:\d{2})(?::([0-9,]+))?\]$/i.exec(
+    String(text || "").trim(),
+  );
   if (!match) return { duration: "", waveform: [] };
   const duration = match[1];
   const waveform = match[2]
-    ? match[2].split(",").map(Number).filter((n) => Number.isFinite(n))
+    ? match[2]
+        .split(",")
+        .map(Number)
+        .filter((n) => Number.isFinite(n))
     : [];
   return { duration, waveform };
 }
@@ -1696,12 +1962,12 @@ const RANDOM_UPLOAD_NAME_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
 function randomUploadFilename(originalName) {
   const name = String(originalName || "file");
   const dot = name.lastIndexOf(".");
-  const extension =
-    dot > 0 && dot < name.length - 1 ? name.slice(dot) : "";
+  const extension = dot > 0 && dot < name.length - 1 ? name.slice(dot) : "";
   const bytes = crypto.getRandomValues(new Uint8Array(8));
   let base = "";
   for (const byte of bytes) {
-    base += RANDOM_UPLOAD_NAME_ALPHABET[byte % RANDOM_UPLOAD_NAME_ALPHABET.length];
+    base +=
+      RANDOM_UPLOAD_NAME_ALPHABET[byte % RANDOM_UPLOAD_NAME_ALPHABET.length];
   }
   return (base + extension).slice(0, 128);
 }
@@ -1844,8 +2110,17 @@ function stripPngExif(bytes) {
 // size and stays structurally valid, only the metadata is gone.
 
 const HEIC_MAJOR_BRANDS = new Set([
-  "heic", "heix", "hevc", "hevx", "heim", "heis", "hevm", "hevs",
-  "mif1", "msf1", "heif",
+  "heic",
+  "heix",
+  "hevc",
+  "hevx",
+  "heim",
+  "heis",
+  "hevm",
+  "hevs",
+  "mif1",
+  "msf1",
+  "heif",
 ]);
 
 function readU16(bytes, off) {
@@ -1853,7 +2128,13 @@ function readU16(bytes, off) {
 }
 
 function readU32(bytes, off) {
-  return ((bytes[off] << 24) | (bytes[off + 1] << 16) | (bytes[off + 2] << 8) | bytes[off + 3]) >>> 0;
+  return (
+    ((bytes[off] << 24) |
+      (bytes[off + 1] << 16) |
+      (bytes[off + 2] << 8) |
+      bytes[off + 3]) >>>
+    0
+  );
 }
 
 function readUInt(bytes, off, size) {
@@ -1865,7 +2146,12 @@ function readUInt(bytes, off, size) {
 }
 
 function fourcc(bytes, off) {
-  return String.fromCharCode(bytes[off], bytes[off + 1], bytes[off + 2], bytes[off + 3]);
+  return String.fromCharCode(
+    bytes[off],
+    bytes[off + 1],
+    bytes[off + 2],
+    bytes[off + 3],
+  );
 }
 
 function readIsoBox(bytes, off, limit) {
@@ -2061,7 +2347,7 @@ function stripHeicExif(bytes) {
   if (!isHeicFile(bytes)) return null;
 
   let meta = null;
-  for (let off = 0; off + 8 <= bytes.length; ) {
+  for (let off = 0; off + 8 <= bytes.length;) {
     const box = readIsoBox(bytes, off, bytes.length);
     if (!box) break;
     if (box.type === "meta") {
@@ -2076,7 +2362,7 @@ function stripHeicExif(bytes) {
   let iinf = null;
   let iloc = null;
   let idatDataStart = -1;
-  for (let off = childrenStart; off + 8 <= meta.end; ) {
+  for (let off = childrenStart; off + 8 <= meta.end;) {
     const box = readIsoBox(bytes, off, meta.end);
     if (!box) break;
     if (box.type === "iinf") iinf = box;
@@ -2115,7 +2401,9 @@ async function stripImageExif(file) {
         : stripJpegExif(bytes);
     if (!stripped) return file;
     return new File([stripped], file.name, {
-      type: file.type || (isPng ? "image/png" : isHeic ? "image/heic" : "image/jpeg"),
+      type:
+        file.type ||
+        (isPng ? "image/png" : isHeic ? "image/heic" : "image/jpeg"),
       lastModified: file.lastModified || Date.now(),
     });
   } catch {
@@ -2135,13 +2423,20 @@ function messagePreviewLabel(message) {
 }
 
 function isTransientPresenceSystemMessage(message) {
-  return Boolean(message?.system) && String(message?.systemKind || "") === "presence";
+  return (
+    Boolean(message?.system) && String(message?.systemKind || "") === "presence"
+  );
 }
 
 function latestSidebarRoomMessage(messages) {
   for (let i = (messages?.length || 0) - 1; i >= 0; i -= 1) {
     const message = messages?.[i];
-    if (!message || message.deleted || isTransientPresenceSystemMessage(message)) continue;
+    if (
+      !message ||
+      message.deleted ||
+      isTransientPresenceSystemMessage(message)
+    )
+      continue;
     return message;
   }
   return null;
@@ -2177,29 +2472,29 @@ function normalizeMessage(message, fallbackRoomId) {
   const attachment =
     message.attachment && typeof message.attachment === "object"
       ? {
-        id: String(message.attachment.id || "").trim(),
-        url: sanitizeHttpUrl(message.attachment.url),
-        filename: String(message.attachment.filename || "file"),
-        mimeType: String(
-          message.attachment.mimeType || "application/octet-stream",
-        ),
-        size: Number(message.attachment.size) || 0,
-        dataB64: String(message.attachment.dataB64 || ""),
-      }
+          id: String(message.attachment.id || "").trim(),
+          url: sanitizeHttpUrl(message.attachment.url),
+          filename: String(message.attachment.filename || "file"),
+          mimeType: String(
+            message.attachment.mimeType || "application/octet-stream",
+          ),
+          size: Number(message.attachment.size) || 0,
+          dataB64: String(message.attachment.dataB64 || ""),
+        }
       : null;
   const encrypted =
     message.encrypted && typeof message.encrypted === "object"
       ? {
-        v: Number(message.encrypted.v) || 0,
-        alg: String(message.encrypted.alg || ""),
-        iv: String(message.encrypted.iv || ""),
-        salt: String(message.encrypted.salt || ""),
-        n: Number(message.encrypted.n) || 0,
-        senderDeviceId: String(message.encrypted.senderDeviceId || ""),
-        senderSigningKey: message.encrypted.senderSigningKey || null,
-        signature: String(message.encrypted.signature || ""),
-        ciphertext: String(message.encrypted.ciphertext || ""),
-      }
+          v: Number(message.encrypted.v) || 0,
+          alg: String(message.encrypted.alg || ""),
+          iv: String(message.encrypted.iv || ""),
+          salt: String(message.encrypted.salt || ""),
+          n: Number(message.encrypted.n) || 0,
+          senderDeviceId: String(message.encrypted.senderDeviceId || ""),
+          senderSigningKey: message.encrypted.senderSigningKey || null,
+          signature: String(message.encrypted.signature || ""),
+          ciphertext: String(message.encrypted.ciphertext || ""),
+        }
       : null;
 
   let kind = "text";
@@ -2219,20 +2514,24 @@ function normalizeMessage(message, fallbackRoomId) {
   const preview =
     message.preview && typeof message.preview === "object"
       ? {
-        url: sanitizeHttpUrl(message.preview.url),
-        title: String(message.preview.title || "").slice(0, 300),
-        description: String(message.preview.description || "").slice(0, 500),
-        image: sanitizeHttpUrl(message.preview.image),
-        siteName: String(message.preview.siteName || "").slice(0, 80),
-      }
+          url: sanitizeHttpUrl(message.preview.url),
+          title: String(message.preview.title || "").slice(0, 300),
+          description: String(message.preview.description || "").slice(0, 500),
+          image: sanitizeHttpUrl(message.preview.image),
+          siteName: String(message.preview.siteName || "").slice(0, 80),
+        }
       : null;
 
   return {
     messageId: message.messageId,
     roomId: message.roomId || fallbackRoomId || "",
     clientNonce: String(message.clientNonce || ""),
-    user: message.system ? SYSTEM_USERNAME : (message.user || message.username || "Unknown"),
-    username: message.system ? SYSTEM_USERNAME : (message.username || extractUsername(message.user)),
+    user: message.system
+      ? SYSTEM_USERNAME
+      : message.user || message.username || "Unknown",
+    username: message.system
+      ? SYSTEM_USERNAME
+      : message.username || extractUsername(message.user),
     userId: String(message.userId || ""),
     text: voiceDuration ? "" : rawText,
     rawText,
@@ -2265,7 +2564,10 @@ function blobToBase64(blob, onProgress) {
     reader.onerror = () => reject(new Error("read failed"));
     reader.onprogress = (event) => {
       if (onProgress && event.lengthComputable) {
-        const pct = Math.min(100, Math.round((event.loaded / event.total) * 100));
+        const pct = Math.min(
+          100,
+          Math.round((event.loaded / event.total) * 100),
+        );
         onProgress(pct);
       }
     };
@@ -2415,20 +2717,43 @@ export function useMessenger() {
     clientLockCiphertext: persisted.clientLockCiphertext,
     clientLockLoading: false,
     clientLockProgress: 0,
-    clientLockPinLength: CLIENT_LOCK_PIN_LENGTHS.includes(Number((persisted as any).clientLockPinLength)) ? Number((persisted as any).clientLockPinLength) : 6,
-    clientLockAutolockEnabled: (persisted as any).clientLockAutolockEnabled === true,
-    clientLockAutolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs((persisted as any).clientLockAutolockTimeoutMs),
+    clientLockPinLength: CLIENT_LOCK_PIN_LENGTHS.includes(
+      Number((persisted as any).clientLockPinLength),
+    )
+      ? Number((persisted as any).clientLockPinLength)
+      : 6,
+    clientLockAutolockEnabled:
+      (persisted as any).clientLockAutolockEnabled === true,
+    clientLockAutolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(
+      (persisted as any).clientLockAutolockTimeoutMs,
+    ),
     clientLockStorage: (persisted as any).clientLockStorage || "",
-    clientLockDisplayName: String((persisted as any).clientLockDisplayName || ""),
-    clientLockAvatar: normalizeProfileImage((persisted as any).clientLockAvatar, MAX_PROFILE_AVATAR_BYTES),
-    clientLockThemeMode: THEME_MODES.includes(String((persisted as any).clientLockThemeMode || "").toLowerCase()) ? String((persisted as any).clientLockThemeMode).toLowerCase() : "system",
-    clientLockFailedAttempts: Math.max(0, Number((persisted as any).clientLockFailedAttempts) || 0),
+    clientLockDisplayName: String(
+      (persisted as any).clientLockDisplayName || "",
+    ),
+    clientLockAvatar: normalizeProfileImage(
+      (persisted as any).clientLockAvatar,
+      MAX_PROFILE_AVATAR_BYTES,
+    ),
+    clientLockThemeMode: THEME_MODES.includes(
+      String((persisted as any).clientLockThemeMode || "").toLowerCase(),
+    )
+      ? String((persisted as any).clientLockThemeMode).toLowerCase()
+      : "system",
+    clientLockFailedAttempts: Math.max(
+      0,
+      Number((persisted as any).clientLockFailedAttempts) || 0,
+    ),
     clientLockMaxFailedAttempts: CLIENT_LOCK_MAX_FAILED_ATTEMPTS,
     opsecRamOnlyEnabled: (persisted as any).opsecRamOnlyEnabled === true,
     opsecDuressEnabled: (persisted as any).opsecDuressEnabled === true,
     opsecDuressSalt: String((persisted as any).opsecDuressSalt || ""),
     opsecDuressHash: String((persisted as any).opsecDuressHash || ""),
-    opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(String((persisted as any).opsecDuressAction || "")) ? String((persisted as any).opsecDuressAction) : "wipe",
+    opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(
+      String((persisted as any).opsecDuressAction || ""),
+    )
+      ? String((persisted as any).opsecDuressAction)
+      : "wipe",
     opsecHideLockIdentity: (persisted as any).opsecHideLockIdentity !== false,
     opsecDecoySetupActive: false,
     opsecDecoyConfigured: Boolean(loadDecoyPersistedPayload()),
@@ -2459,7 +2784,10 @@ export function useMessenger() {
     messagesByRoom: persisted.messagesByRoom,
     usersByRoom: persisted.usersByRoom,
     profilesByUser: { ...persisted.profilesByUser },
-    publicProfileFetchedAtByUser: { ...(persisted as any).publicProfileFetchedAtByUser },
+    createdAtByUser: { ...(persisted as any).createdAtByUser },
+    publicProfileFetchedAtByUser: {
+      ...(persisted as any).publicProfileFetchedAtByUser,
+    },
     badgesByUser: { ...persisted.badgesByUser },
     statusesByUser: {},
     userIdsByUsername: {},
@@ -2583,7 +2911,14 @@ export function useMessenger() {
   let speakingSampler: ReturnType<typeof setInterval> | null = null;
   const DEAFEN_SOUND_WINDOW_MS = 1000;
   const remoteDeafenAt = new Map<string, number>();
-  const remoteCallAnalysers = new Map<string, { context: AudioContext; analyser: AnalyserNode; data: Uint8Array<ArrayBuffer> }>();
+  const remoteCallAnalysers = new Map<
+    string,
+    {
+      context: AudioContext;
+      analyser: AnalyserNode;
+      data: Uint8Array<ArrayBuffer>;
+    }
+  >();
   const localClientId = getPersistentClientId();
   const typingExpiryTimers = new Map<string, ReturnType<typeof setTimeout>>();
   let typingIdleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -2757,32 +3092,73 @@ export function useMessenger() {
       authToken: String(payload?.authToken || ""),
       userId: String(payload?.userId || ""),
       admin: Boolean(payload?.admin),
-      recoveryWords: Array.isArray(payload?.recoveryWords) ? payload.recoveryWords : [],
+      recoveryWords: Array.isArray(payload?.recoveryWords)
+        ? payload.recoveryWords
+        : [],
       username: sanitizeUsername(payload?.username),
       status: sanitizePresenceStatus(payload?.status),
-      activeRoom: isValidRoomId(payload?.activeRoom) ? sanitizeRoomId(payload.activeRoom) : "",
+      activeRoom: isValidRoomId(payload?.activeRoom)
+        ? sanitizeRoomId(payload.activeRoom)
+        : "",
       rooms: Array.isArray(payload?.rooms) ? payload.rooms : [],
-      joinedRooms: Array.isArray(payload?.joinedRooms) ? payload.joinedRooms : [],
+      joinedRooms: Array.isArray(payload?.joinedRooms)
+        ? payload.joinedRooms
+        : [],
       pinnedRooms: sanitizePinnedRooms(payload?.pinnedRooms),
-      usersByRoom: payload?.usersByRoom && typeof payload.usersByRoom === "object" ? payload.usersByRoom : {},
-      profilesByUser: payload?.profilesByUser && typeof payload.profilesByUser === "object" ? payload.profilesByUser : {},
-      publicProfileFetchedAtByUser: payload?.publicProfileFetchedAtByUser && typeof payload.publicProfileFetchedAtByUser === "object" ? payload.publicProfileFetchedAtByUser : {},
-      badgesByUser: payload?.badgesByUser && typeof payload.badgesByUser === "object" ? payload.badgesByUser : {},
-      messagesByRoom: payload?.messagesByRoom && typeof payload.messagesByRoom === "object" ? payload.messagesByRoom : {},
-      unreadByRoom: payload?.unreadByRoom && typeof payload.unreadByRoom === "object" ? payload.unreadByRoom : {},
+      usersByRoom:
+        payload?.usersByRoom && typeof payload.usersByRoom === "object"
+          ? payload.usersByRoom
+          : {},
+      profilesByUser:
+        payload?.profilesByUser && typeof payload.profilesByUser === "object"
+          ? payload.profilesByUser
+          : {},
+      createdAtByUser:
+        payload?.createdAtByUser && typeof payload.createdAtByUser === "object"
+          ? payload.createdAtByUser
+          : {},
+      publicProfileFetchedAtByUser:
+        payload?.publicProfileFetchedAtByUser &&
+        typeof payload.publicProfileFetchedAtByUser === "object"
+          ? payload.publicProfileFetchedAtByUser
+          : {},
+      badgesByUser:
+        payload?.badgesByUser && typeof payload.badgesByUser === "object"
+          ? payload.badgesByUser
+          : {},
+      messagesByRoom:
+        payload?.messagesByRoom && typeof payload.messagesByRoom === "object"
+          ? payload.messagesByRoom
+          : {},
+      unreadByRoom:
+        payload?.unreadByRoom && typeof payload.unreadByRoom === "object"
+          ? payload.unreadByRoom
+          : {},
       roomKeysByRoom: sanitizeRoomKeys(payload?.roomKeysByRoom),
       profile: normalizeProfile(payload?.profile),
       callUserVolumes: sanitizeCallUserVolumes(payload?.callUserVolumes),
       roomNotes: sanitizeRoomNotes(payload?.roomNotes),
-      selectedTurnServerId: String(payload?.selectedTurnServerId || runtimeDefaultTurnServerId()).trim(),
+      selectedTurnServerId: String(
+        payload?.selectedTurnServerId || runtimeDefaultTurnServerId(),
+      ).trim(),
       customTurnServers: sanitizeCustomTurnServers(payload?.customTurnServers),
-      clientLockPinLength: CLIENT_LOCK_PIN_LENGTHS.includes(Number(payload?.clientLockPinLength)) ? Number(payload.clientLockPinLength) : 6,
+      clientLockPinLength: CLIENT_LOCK_PIN_LENGTHS.includes(
+        Number(payload?.clientLockPinLength),
+      )
+        ? Number(payload.clientLockPinLength)
+        : 6,
       clientLockAutolockEnabled: payload?.clientLockAutolockEnabled === true,
-      clientLockAutolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(payload?.clientLockAutolockTimeoutMs),
+      clientLockAutolockTimeoutMs: sanitizeClientLockAutolockTimeoutMs(
+        payload?.clientLockAutolockTimeoutMs,
+      ),
       opsecDuressEnabled: payload?.opsecDuressEnabled === true,
       opsecDuressSalt: String(payload?.opsecDuressSalt || ""),
       opsecDuressHash: String(payload?.opsecDuressHash || ""),
-      opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(String(payload?.opsecDuressAction || "")) ? String(payload.opsecDuressAction) : "wipe",
+      opsecDuressAction: OPSEC_DURESS_ACTIONS.includes(
+        String(payload?.opsecDuressAction || ""),
+      )
+        ? String(payload.opsecDuressAction)
+        : "wipe",
       opsecHideLockIdentity: payload?.opsecHideLockIdentity !== false,
     });
     state.authToken = normalized.authToken;
@@ -2798,7 +3174,10 @@ export function useMessenger() {
     state.pinnedRooms = normalized.pinnedRooms;
     state.usersByRoom = normalized.usersByRoom;
     state.profilesByUser = { ...normalized.profilesByUser };
-    state.publicProfileFetchedAtByUser = { ...(normalized as any).publicProfileFetchedAtByUser };
+    state.createdAtByUser = { ...(normalized as any).createdAtByUser };
+    state.publicProfileFetchedAtByUser = {
+      ...(normalized as any).publicProfileFetchedAtByUser,
+    };
     state.messagesByRoom = normalized.messagesByRoom;
     state.unreadByRoom = normalized.unreadByRoom;
     state.roomKeysByRoom = normalized.roomKeysByRoom;
@@ -2848,8 +3227,12 @@ export function useMessenger() {
     applyPersistedPayload({ ...payload, messagesByRoom: {}, unreadByRoom: {} });
     state.clientLockProgress = 75;
     await yieldToBrowser();
-    state.messagesByRoom = messagesByRoom && typeof messagesByRoom === "object" ? messagesByRoom : {};
-    state.unreadByRoom = unreadByRoom && typeof unreadByRoom === "object" ? unreadByRoom : {};
+    state.messagesByRoom =
+      messagesByRoom && typeof messagesByRoom === "object"
+        ? messagesByRoom
+        : {};
+    state.unreadByRoom =
+      unreadByRoom && typeof unreadByRoom === "object" ? unreadByRoom : {};
     state.clientLockProgress = 90;
     await yieldToBrowser();
   }
@@ -2893,7 +3276,9 @@ export function useMessenger() {
           persistPending = false;
           try {
             await savePersisted(state);
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
           resolve(undefined);
         }, 800);
       });
@@ -2932,8 +3317,13 @@ export function useMessenger() {
   function scheduleClientLockAutolock() {
     clearClientLockAutolockTimer();
     if (!shouldRunClientLockAutolock()) return;
-    const timeoutMs = sanitizeClientLockAutolockTimeoutMs(state.clientLockAutolockTimeoutMs);
-    const remainingMs = Math.max(0, timeoutMs - (Date.now() - lastClientActivityAt));
+    const timeoutMs = sanitizeClientLockAutolockTimeoutMs(
+      state.clientLockAutolockTimeoutMs,
+    );
+    const remainingMs = Math.max(
+      0,
+      timeoutMs - (Date.now() - lastClientActivityAt),
+    );
     clientLockAutolockTimer = setTimeout(async () => {
       if (!shouldRunClientLockAutolock()) return;
       if (Date.now() - lastClientActivityAt >= timeoutMs) {
@@ -2956,7 +3346,8 @@ export function useMessenger() {
   }
 
   function setClientLockAutolockTimeoutMs(value) {
-    state.clientLockAutolockTimeoutMs = sanitizeClientLockAutolockTimeoutMs(value);
+    state.clientLockAutolockTimeoutMs =
+      sanitizeClientLockAutolockTimeoutMs(value);
     markClientActivity();
     persist();
   }
@@ -2982,7 +3373,9 @@ export function useMessenger() {
       state.clientLockLocked = false;
       state.clientLockPinLength = String(pin).length;
       state.clientLockAutolockEnabled = false;
-      state.clientLockAutolockTimeoutMs = sanitizeClientLockAutolockTimeoutMs(state.clientLockAutolockTimeoutMs);
+      state.clientLockAutolockTimeoutMs = sanitizeClientLockAutolockTimeoutMs(
+        state.clientLockAutolockTimeoutMs,
+      );
       markClientActivity();
       await persist();
       showToast("Client lock enabled.");
@@ -3013,17 +3406,27 @@ export function useMessenger() {
   }
 
   async function hashOpsecPin(pin, saltB64 = "") {
-    const salt = saltB64 ? base64ToBytes(saltB64) : crypto.getRandomValues(new Uint8Array(16));
+    const salt = saltB64
+      ? base64ToBytes(saltB64)
+      : crypto.getRandomValues(new Uint8Array(16));
     const bytes = new Uint8Array([
       ...salt,
       ...new TextEncoder().encode(String(pin || "")),
     ]);
     const digest = await crypto.subtle.digest("SHA-256", bytes);
-    return { salt: bytesToBase64(salt), hash: bytesToBase64(new Uint8Array(digest)) };
+    return {
+      salt: bytesToBase64(salt),
+      hash: bytesToBase64(new Uint8Array(digest)),
+    };
   }
 
   async function matchesOpsecDuressPin(pin) {
-    if (!state.opsecDuressEnabled || !state.opsecDuressSalt || !state.opsecDuressHash) return false;
+    if (
+      !state.opsecDuressEnabled ||
+      !state.opsecDuressSalt ||
+      !state.opsecDuressHash
+    )
+      return false;
     const result = await hashOpsecPin(pin, state.opsecDuressSalt);
     return result.hash === state.opsecDuressHash;
   }
@@ -3032,13 +3435,15 @@ export function useMessenger() {
     const random = crypto.getRandomValues(new Uint8Array(4096));
     const noise = bytesToBase64(random);
     try {
-      for (const key of Object.keys(localStorage)) localStorage.setItem(key, noise);
+      for (const key of Object.keys(localStorage))
+        localStorage.setItem(key, noise);
       localStorage.clear();
     } catch {
       /* ignore */
     }
     try {
-      for (const key of Object.keys(sessionStorage)) sessionStorage.setItem(key, noise);
+      for (const key of Object.keys(sessionStorage))
+        sessionStorage.setItem(key, noise);
       sessionStorage.clear();
     } catch {
       /* ignore */
@@ -3050,21 +3455,32 @@ export function useMessenger() {
           databases
             .map((db) => db.name)
             .filter(Boolean)
-            .map((name) => new Promise((resolve) => {
-              const request = indexedDB.deleteDatabase(name as string);
-              request.onsuccess = request.onerror = request.onblocked = () => resolve(undefined);
-            })),
+            .map(
+              (name) =>
+                new Promise((resolve) => {
+                  const request = indexedDB.deleteDatabase(name as string);
+                  request.onsuccess =
+                    request.onerror =
+                    request.onblocked =
+                      () => resolve(undefined);
+                }),
+            ),
         );
       } catch {
-        await deleteClientLockPayload().catch(() => { });
+        await deleteClientLockPayload().catch(() => {});
       }
     } else {
-      await deleteClientLockPayload().catch(() => { });
+      await deleteClientLockPayload().catch(() => {});
     }
   }
 
   async function startOpsecDecoySetup() {
-    if (!state.clientLockEnabled || state.clientLockLocked || !activeClientLockKey || !state.clientLockSalt) {
+    if (
+      !state.clientLockEnabled ||
+      state.clientLockLocked ||
+      !activeClientLockKey ||
+      !state.clientLockSalt
+    ) {
       state.lastError = t("settings.opsec.requiresUnlockedLock");
       showToast(state.lastError);
       return false;
@@ -3085,17 +3501,22 @@ export function useMessenger() {
     state.joinedRooms = [];
     state.usersByRoom = {};
     state.profilesByUser = {};
+    state.createdAtByUser = {};
     state.messagesByRoom = {};
     state.unreadByRoom = {};
     state.roomKeysByRoom = {};
     state.roomRatchetsByRoom = {};
     state.trustedSenderKeysByRoom = {};
     state.activeRoom = "";
-    writeDecoyPersistedPayload(decoyPersistedPayload(buildPersistedPayload(state)));
+    writeDecoyPersistedPayload(
+      decoyPersistedPayload(buildPersistedPayload(state)),
+    );
     localStorage.removeItem(PROFILE_STORAGE_KEY);
     state.settingsOpen = false;
     state.lastError = "";
-    showToast("Decoy setup started. Register or log in to the decoy account, customize it, then refresh the app to return to the real lock screen.");
+    showToast(
+      "Decoy setup started. Register or log in to the decoy account, customize it, then refresh the app to return to the real lock screen.",
+    );
     return true;
   }
 
@@ -3166,6 +3587,7 @@ export function useMessenger() {
     state.trustedSenderKeysByRoom = {};
     state.usersByRoom = {};
     state.profilesByUser = {};
+    state.createdAtByUser = {};
     state.badgesByUser = {};
     state.statusesByUser = {};
     state.userIdsByUsername = {};
@@ -3198,7 +3620,10 @@ export function useMessenger() {
         : await getClientLockPayload();
       state.clientLockProgress = 18;
       await yieldToBrowser();
-      const key = await deriveClientLockKey(pin, base64ToBytes(state.clientLockSalt));
+      const key = await deriveClientLockKey(
+        pin,
+        base64ToBytes(state.clientLockSalt),
+      );
       state.clientLockProgress = 42;
       await yieldToBrowser();
       const decrypted = await crypto.subtle.decrypt(
@@ -3257,7 +3682,12 @@ export function useMessenger() {
   }
 
   async function lockClient() {
-    if (!state.clientLockEnabled || state.clientLockLocked || !activeClientLockKey) return false;
+    if (
+      !state.clientLockEnabled ||
+      state.clientLockLocked ||
+      !activeClientLockKey
+    )
+      return false;
     clearClientLockAutolockTimer();
     await flushPersist();
     const lockedPayload = await encryptClientLockPayload(
@@ -3266,7 +3696,8 @@ export function useMessenger() {
       state.clientLockSalt,
       state.clientLockPinLength,
     );
-    const storedLockedPayload = await writeLockedPersistedPayload(lockedPayload);
+    const storedLockedPayload =
+      await writeLockedPersistedPayload(lockedPayload);
     localStorage.removeItem(PROFILE_STORAGE_KEY);
     disconnect();
     activeClientLockKey = null;
@@ -3280,24 +3711,41 @@ export function useMessenger() {
     state.joinedRooms = [];
     state.usersByRoom = {};
     state.profilesByUser = {};
+    state.createdAtByUser = {};
     state.messagesByRoom = {};
     state.unreadByRoom = {};
     state.roomKeysByRoom = {};
     state.roomRatchetsByRoom = {};
     state.trustedSenderKeysByRoom = {};
-    state.clientLockSalt = String(lockedPayload.salt || state.clientLockSalt || "");
+    state.clientLockSalt = String(
+      lockedPayload.salt || state.clientLockSalt || "",
+    );
     state.clientLockIv = String(storedLockedPayload.iv || "");
     state.clientLockCiphertext = String(storedLockedPayload.ciphertext || "");
     state.clientLockDisplayName = String(lockedPayload.displayName || "");
-    state.clientLockAvatar = normalizeProfileImage(lockedPayload.avatar, MAX_PROFILE_AVATAR_BYTES);
-    state.clientLockThemeMode = THEME_MODES.includes(String(lockedPayload.themeMode || "").toLowerCase()) ? String(lockedPayload.themeMode).toLowerCase() : "system";
+    state.clientLockAvatar = normalizeProfileImage(
+      lockedPayload.avatar,
+      MAX_PROFILE_AVATAR_BYTES,
+    );
+    state.clientLockThemeMode = THEME_MODES.includes(
+      String(lockedPayload.themeMode || "").toLowerCase(),
+    )
+      ? String(lockedPayload.themeMode).toLowerCase()
+      : "system";
     state.clientLockAutolockEnabled = lockedPayload.autolockEnabled === true;
-    state.clientLockAutolockTimeoutMs = sanitizeClientLockAutolockTimeoutMs(lockedPayload.autolockTimeoutMs);
+    state.clientLockAutolockTimeoutMs = sanitizeClientLockAutolockTimeoutMs(
+      lockedPayload.autolockTimeoutMs,
+    );
     state.opsecDuressEnabled = lockedPayload.opsecDuressEnabled === true;
     state.opsecDuressSalt = String(lockedPayload.opsecDuressSalt || "");
     state.opsecDuressHash = String(lockedPayload.opsecDuressHash || "");
-    state.opsecDuressAction = OPSEC_DURESS_ACTIONS.includes(String(lockedPayload.opsecDuressAction || "")) ? String(lockedPayload.opsecDuressAction) : "wipe";
-    state.opsecHideLockIdentity = (lockedPayload as any).opsecHideLockIdentity !== false;
+    state.opsecDuressAction = OPSEC_DURESS_ACTIONS.includes(
+      String(lockedPayload.opsecDuressAction || ""),
+    )
+      ? String(lockedPayload.opsecDuressAction)
+      : "wipe";
+    state.opsecHideLockIdentity =
+      (lockedPayload as any).opsecHideLockIdentity !== false;
     state.clientLockLocked = true;
     state.settingsOpen = false;
     showToast("QxChat locked.");
@@ -3311,7 +3759,13 @@ export function useMessenger() {
       showToast(validation);
       return false;
     }
-    if (!state.clientLockEnabled || state.clientLockLocked || !activeClientLockKey || !state.clientLockSalt) return false;
+    if (
+      !state.clientLockEnabled ||
+      state.clientLockLocked ||
+      !activeClientLockKey ||
+      !state.clientLockSalt
+    )
+      return false;
     try {
       const probe = crypto.getRandomValues(new Uint8Array(12));
       const encrypted = await crypto.subtle.encrypt(
@@ -3319,7 +3773,10 @@ export function useMessenger() {
         activeClientLockKey,
         new TextEncoder().encode("verify"),
       );
-      const candidateKey = await deriveClientLockKey(pin, base64ToBytes(state.clientLockSalt));
+      const candidateKey = await deriveClientLockKey(
+        pin,
+        base64ToBytes(state.clientLockSalt),
+      );
       await crypto.subtle.decrypt(
         { name: "AES-GCM", iv: probe },
         candidateKey,
@@ -3334,7 +3791,12 @@ export function useMessenger() {
   }
 
   async function setOpsecDuressPin(pin) {
-    if (!state.clientLockEnabled || state.clientLockLocked || !activeClientLockKey || !state.clientLockSalt) {
+    if (
+      !state.clientLockEnabled ||
+      state.clientLockLocked ||
+      !activeClientLockKey ||
+      !state.clientLockSalt
+    ) {
       state.lastError = t("settings.opsec.requiresUnlockedLock");
       showToast(state.lastError);
       return false;
@@ -3367,14 +3829,21 @@ export function useMessenger() {
   }
 
   function setOpsecDuressAction(value) {
-    state.opsecDuressAction = OPSEC_DURESS_ACTIONS.includes(String(value || "")) ? String(value) : "wipe";
+    state.opsecDuressAction = OPSEC_DURESS_ACTIONS.includes(String(value || ""))
+      ? String(value)
+      : "wipe";
     persist();
   }
 
   async function setOpsecHideLockIdentity(value) {
     state.opsecHideLockIdentity = Boolean(value);
     await persist();
-    if (state.clientLockEnabled && !state.clientLockLocked && activeClientLockKey && state.clientLockSalt) {
+    if (
+      state.clientLockEnabled &&
+      !state.clientLockLocked &&
+      activeClientLockKey &&
+      state.clientLockSalt
+    ) {
       const lockedPayload = await encryptClientLockPayload(
         buildPersistedPayload(state),
         activeClientLockKey,
@@ -3388,7 +3857,7 @@ export function useMessenger() {
   async function setOpsecRamOnlyEnabled(value) {
     state.opsecRamOnlyEnabled = Boolean(value);
     if (state.opsecRamOnlyEnabled) {
-      await deleteClientLockPayload().catch(() => { });
+      await deleteClientLockPayload().catch(() => {});
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(PROFILE_STORAGE_KEY);
       localStorage.removeItem(OPSEC_DECOY_STORAGE_KEY);
@@ -3418,7 +3887,8 @@ export function useMessenger() {
   }
 
   function installClientActivityListeners() {
-    if (typeof window === "undefined" || typeof document === "undefined") return;
+    if (typeof window === "undefined" || typeof document === "undefined")
+      return;
     const events = ["pointerdown", "keydown", "wheel", "touchstart"];
     for (const eventName of events) {
       window.addEventListener(eventName, markClientActivity, { passive: true });
@@ -3518,6 +3988,10 @@ export function useMessenger() {
     state.admin = Boolean(data.user.admin);
     state.profile = mergeProfiles(state.profile, data.user.profile);
     state.status = sanitizePresenceStatus(data.user.status);
+    const selfCreatedAt = Number(data.user.createdAt) || 0;
+    if (selfCreatedAt)
+      state.createdAtByUser[sanitizeUsername(data.user.username)] =
+        selfCreatedAt;
     Object.assign(state, preservedSettings);
     if (Array.isArray(data.recoveryWords)) {
       state.recoveryWords = data.recoveryWords
@@ -3603,9 +4077,12 @@ export function useMessenger() {
       if (capToken) {
         payload.capToken = capToken;
       } else {
-        const challengeData = await apiRequest(`/api/auth/challenge?action=register&target=${encodeURIComponent(cleanUsername)}`, {
-          method: "GET",
-        });
+        const challengeData = await apiRequest(
+          `/api/auth/challenge?action=register&target=${encodeURIComponent(cleanUsername)}`,
+          {
+            method: "GET",
+          },
+        );
         if (!challengeData) {
           throw new Error("Unable to obtain security challenge.");
         }
@@ -3615,20 +4092,39 @@ export function useMessenger() {
         let nullifier = null;
         let quotaToken = null;
 
-        if (challengeData.quotaToken?.ticket && challengeData.quotaToken?.epoch !== undefined) {
+        if (
+          challengeData.quotaToken?.ticket &&
+          challengeData.quotaToken?.epoch !== undefined
+        ) {
           quotaToken = challengeData.quotaToken;
-          nullifier = await computeNullifier(quotaToken.ticket, quotaToken.epoch, "register");
+          nullifier = await computeNullifier(
+            quotaToken.ticket,
+            quotaToken.epoch,
+            "register",
+          );
         }
 
-        if (challengeData.vdf?.x && challengeData.vdf?.modulus && challengeData.vdf?.t) {
+        if (
+          challengeData.vdf?.x &&
+          challengeData.vdf?.modulus &&
+          challengeData.vdf?.t
+        ) {
           vdfChallenge = challengeData.vdf;
-          vdfProof = await solveVdf(vdfChallenge.x, vdfChallenge.t, vdfChallenge.modulus);
+          vdfProof = await solveVdf(
+            vdfChallenge.x,
+            vdfChallenge.t,
+            vdfChallenge.modulus,
+          );
         } else {
-          throw new Error("Invalid VDF security challenge received from server.");
+          throw new Error(
+            "Invalid VDF security challenge received from server.",
+          );
         }
 
         if (!challengeData.pqcKey?.keyId || !challengeData.pqcKey?.ekHex) {
-          throw new Error("Post-quantum security challenge missing from server.");
+          throw new Error(
+            "Post-quantum security challenge missing from server.",
+          );
         }
 
         let pqcCiphertext = null;
@@ -3636,7 +4132,9 @@ export function useMessenger() {
           const pqcRes = await encapsulatePqcSecret(challengeData.pqcKey);
           pqcCiphertext = pqcRes.ciphertext;
         } catch {
-          throw new Error("Your browser does not support post-quantum lattice cryptography (Ring-LWE). Please update your browser.");
+          throw new Error(
+            "Your browser does not support post-quantum lattice cryptography (Ring-LWE). Please update your browser.",
+          );
         }
 
         payload.vdfChallenge = vdfChallenge;
@@ -3689,7 +4187,11 @@ export function useMessenger() {
         });
       } catch (firstErr: any) {
         const msg = String(firstErr?.message || "").toLowerCase();
-        if (msg.includes("security challenge") || msg.includes("challenge") || msg.includes("too many failed")) {
+        if (
+          msg.includes("security challenge") ||
+          msg.includes("challenge") ||
+          msg.includes("too many failed")
+        ) {
           state.requireCaptcha = true;
           throw firstErr;
         } else {
@@ -3709,7 +4211,12 @@ export function useMessenger() {
     }
   }
 
-  async function recoverAccount(username, recoveryWords, newPassword, capToken = null) {
+  async function recoverAccount(
+    username,
+    recoveryWords,
+    newPassword,
+    capToken = null,
+  ) {
     const validation = validateUsername(username);
     if (validation) {
       state.lastError = validation;
@@ -3838,7 +4345,8 @@ export function useMessenger() {
         method: "POST",
         body: JSON.stringify({ roomId: id, roomKey, title }),
       });
-      if (state.adminOverview) state.adminOverview.defaultRoom = data.defaultRoom;
+      if (state.adminOverview)
+        state.adminOverview.defaultRoom = data.defaultRoom;
       return true;
     } catch (error) {
       state.lastError = error?.message || "Default room update failed.";
@@ -3854,7 +4362,8 @@ export function useMessenger() {
         method: "POST",
         body: JSON.stringify({ clear: true }),
       });
-      if (state.adminOverview) state.adminOverview.defaultRoom = data.defaultRoom;
+      if (state.adminOverview)
+        state.adminOverview.defaultRoom = data.defaultRoom;
       return true;
     } catch (error) {
       state.lastError = error?.message || "Default room clear failed.";
@@ -3904,9 +4413,12 @@ export function useMessenger() {
   async function deleteAdminUser(userId) {
     if (!state.admin) return false;
     try {
-      await apiRequest(`/api/admin/users/${encodeURIComponent(userId)}/delete`, {
-        method: "POST",
-      });
+      await apiRequest(
+        `/api/admin/users/${encodeURIComponent(userId)}/delete`,
+        {
+          method: "POST",
+        },
+      );
       await loadAdminOverview();
       return true;
     } catch (error) {
@@ -3949,6 +4461,12 @@ export function useMessenger() {
     if (!key) return [];
     if (isSystemUsername(key)) return ["system"];
     return normalizeUserBadges(state.badgesByUser[key]);
+  }
+
+  function createdAtFor(username) {
+    const key = sanitizeUsername(username);
+    if (!key || isSystemUsername(key)) return 0;
+    return Number(state.createdAtByUser[key]) || 0;
   }
 
   function statusFor(username) {
@@ -4005,7 +4523,8 @@ export function useMessenger() {
     const parsed = parseRoomAccessToken(token);
     importRoomKey(parsed.roomId, parsed.roomKey);
     selectConversation(parsed.roomId);
-    if (state.connected && state.identified) requestJoin(parsed.roomId, { force: true });
+    if (state.connected && state.identified)
+      requestJoin(parsed.roomId, { force: true });
     return parsed.roomId;
   }
 
@@ -4047,8 +4566,12 @@ export function useMessenger() {
       );
     }
     const roomTrust = state.trustedSenderKeysByRoom[roomId] || {};
-    const senderDeviceId = String(message.encrypted.senderDeviceId || "").trim();
-    const trustedKey = senderDeviceId ? roomTrust[senderDeviceId] || null : null;
+    const senderDeviceId = String(
+      message.encrypted.senderDeviceId || "",
+    ).trim();
+    const trustedKey = senderDeviceId
+      ? roomTrust[senderDeviceId] || null
+      : null;
     try {
       const decrypted = await decryptRoomPayload(
         roomKey,
@@ -4056,28 +4579,39 @@ export function useMessenger() {
         message.encrypted,
         trustedKey,
       );
-      if (senderDeviceId && !trustedKey && canonicalDeviceSigningKey(message.encrypted.senderSigningKey)) {
-        state.trustedSenderKeysByRoom[roomId] = { ...roomTrust, [senderDeviceId]: message.encrypted.senderSigningKey };
+      if (
+        senderDeviceId &&
+        !trustedKey &&
+        canonicalDeviceSigningKey(message.encrypted.senderSigningKey)
+      ) {
+        state.trustedSenderKeysByRoom[roomId] = {
+          ...roomTrust,
+          [senderDeviceId]: message.encrypted.senderSigningKey,
+        };
         persist();
       }
       return normalizeMessage(
         {
           ...message,
           text: String(decrypted?.text || ""),
-          clientNonce: String(decrypted?.clientNonce || message.clientNonce || ""),
-          replyToMessageId: String(decrypted?.replyToMessageId || message.replyToMessageId || ""),
+          clientNonce: String(
+            decrypted?.clientNonce || message.clientNonce || "",
+          ),
+          replyToMessageId: String(
+            decrypted?.replyToMessageId || message.replyToMessageId || "",
+          ),
           attachment:
             decrypted?.attachment && typeof decrypted.attachment === "object"
               ? {
-                id: String(decrypted.attachment.id || "").trim(),
-                url: sanitizeHttpUrl(decrypted.attachment.url),
-                filename: String(decrypted.attachment.filename || "file"),
-                mimeType: String(
-                  decrypted.attachment.mimeType || "application/octet-stream",
-                ),
-                size: Number(decrypted.attachment.size) || 0,
-                dataB64: String(decrypted.attachment.dataB64 || ""),
-              }
+                  id: String(decrypted.attachment.id || "").trim(),
+                  url: sanitizeHttpUrl(decrypted.attachment.url),
+                  filename: String(decrypted.attachment.filename || "file"),
+                  mimeType: String(
+                    decrypted.attachment.mimeType || "application/octet-stream",
+                  ),
+                  size: Number(decrypted.attachment.size) || 0,
+                  dataB64: String(decrypted.attachment.dataB64 || ""),
+                }
               : null,
           preview: message.preview || null,
           locked: false,
@@ -4085,7 +4619,11 @@ export function useMessenger() {
         roomId,
       );
     } catch {
-      return encryptedPlaceholderMessage(message, roomId, trustedKey ? "sender key mismatch" : "wrong room key");
+      return encryptedPlaceholderMessage(
+        message,
+        roomId,
+        trustedKey ? "sender key mismatch" : "wrong room key",
+      );
     }
   }
 
@@ -4112,8 +4650,15 @@ export function useMessenger() {
         "This room needs its room token key before you can send encrypted messages.",
       );
     }
-    const nextCounter = Math.max(0, Math.floor(Number(state.roomRatchetsByRoom[id]) || 0)) + 1;
-    const encrypted = await encryptRoomPayload(roomKey, id, payload, nextCounter, await ensureDeviceSigner());
+    const nextCounter =
+      Math.max(0, Math.floor(Number(state.roomRatchetsByRoom[id]) || 0)) + 1;
+    const encrypted = await encryptRoomPayload(
+      roomKey,
+      id,
+      payload,
+      nextCounter,
+      await ensureDeviceSigner(),
+    );
     state.roomRatchetsByRoom[id] = nextCounter;
     persist();
     return encrypted;
@@ -4186,12 +4731,24 @@ export function useMessenger() {
     }
     return {
       kind: meta.kind === "community" ? "community" : "classic",
-      description: String(meta.description || "").slice(0, MAX_ROOM_DESCRIPTION_LENGTH),
+      description: String(meta.description || "").slice(
+        0,
+        MAX_ROOM_DESCRIPTION_LENGTH,
+      ),
       ownerId: String(meta.ownerId || ""),
       chatLocked: Boolean(meta.chatLocked),
-      roles: meta.roles && typeof meta.roles === "object" ? { ...meta.roles } : {},
-      banned: meta.banned && typeof meta.banned === "object" && !Array.isArray(meta.banned) ? { ...meta.banned } : {},
-      timeouts: meta.timeouts && typeof meta.timeouts === "object" ? { ...meta.timeouts } : {},
+      roles:
+        meta.roles && typeof meta.roles === "object" ? { ...meta.roles } : {},
+      banned:
+        meta.banned &&
+        typeof meta.banned === "object" &&
+        !Array.isArray(meta.banned)
+          ? { ...meta.banned }
+          : {},
+      timeouts:
+        meta.timeouts && typeof meta.timeouts === "object"
+          ? { ...meta.timeouts }
+          : {},
       modPermissions: normalizeModPermissions(meta.modPermissions),
       callsEnabled: meta.callsEnabled !== false,
     };
@@ -4199,14 +4756,26 @@ export function useMessenger() {
 
   function roomMeta(roomId) {
     const id = sanitizeRoomId(roomId);
-    return id ? (state.roomMetaByRoom[id] || normalizeRoomMeta(null)) : normalizeRoomMeta(null);
+    return id
+      ? state.roomMetaByRoom[id] || normalizeRoomMeta(null)
+      : normalizeRoomMeta(null);
   }
 
-  function roomKind(roomId) { return roomMeta(roomId).kind; }
-  function roomDescription(roomId) { return roomMeta(roomId).description; }
-  function roomOwnerId(roomId) { return roomMeta(roomId).ownerId; }
-  function roomChatLocked(roomId) { return roomMeta(roomId).chatLocked; }
-  function roomModPermissions(roomId) { return roomMeta(roomId).modPermissions; }
+  function roomKind(roomId) {
+    return roomMeta(roomId).kind;
+  }
+  function roomDescription(roomId) {
+    return roomMeta(roomId).description;
+  }
+  function roomOwnerId(roomId) {
+    return roomMeta(roomId).ownerId;
+  }
+  function roomChatLocked(roomId) {
+    return roomMeta(roomId).chatLocked;
+  }
+  function roomModPermissions(roomId) {
+    return roomMeta(roomId).modPermissions;
+  }
 
   function bannedMembers(roomId) {
     const meta = roomMeta(roomId);
@@ -4223,10 +4792,14 @@ export function useMessenger() {
 
   function roleLabel(role) {
     switch (String(role)) {
-      case "administrator": return t("rooms.roleAdmin");
-      case "subAdmin": return t("rooms.roleSubAdmin");
-      case "moderator": return t("rooms.roleModerator");
-      default: return t("rooms.roleMember");
+      case "administrator":
+        return t("rooms.roleAdmin");
+      case "subAdmin":
+        return t("rooms.roleSubAdmin");
+      case "moderator":
+        return t("rooms.roleModerator");
+      default:
+        return t("rooms.roleMember");
     }
   }
 
@@ -4262,14 +4835,22 @@ export function useMessenger() {
       ? roleForUserId(roomId, message.userId)
       : roleForUsername(roomId, message.username);
     switch (actorRole) {
-      case "administrator": return true;
-      case "subAdmin": return authorRole === "member" || authorRole === "moderator";
-      case "moderator": return meta.modPermissions.canDelete !== false && authorRole === "member";
-      default: return false;
+      case "administrator":
+        return true;
+      case "subAdmin":
+        return authorRole === "member" || authorRole === "moderator";
+      case "moderator":
+        return (
+          meta.modPermissions.canDelete !== false && authorRole === "member"
+        );
+      default:
+        return false;
     }
   }
 
-  function isCommunityRoom(roomId) { return roomKind(roomId) === "community"; }
+  function isCommunityRoom(roomId) {
+    return roomKind(roomId) === "community";
+  }
   function isBannedFromRoom(roomId) {
     const id = sanitizeRoomId(roomId);
     return Boolean(id && state.bannedRooms[id]);
@@ -4306,11 +4887,15 @@ export function useMessenger() {
   }
   function canModerateRoom(roomId) {
     const role = myRoleInRoom(roomId);
-    return role === "administrator" || role === "subAdmin" || role === "moderator";
+    return (
+      role === "administrator" || role === "subAdmin" || role === "moderator"
+    );
   }
   function canConfigureModeratorPermissions(roomId) {
     const role = myRoleInRoom(roomId);
-    return role === "administrator" || role === "subAdmin" || isRoomOwner(roomId);
+    return (
+      role === "administrator" || role === "subAdmin" || isRoomOwner(roomId)
+    );
   }
   function canSpeakInRoom(roomId) {
     const id = sanitizeRoomId(roomId);
@@ -4319,7 +4904,8 @@ export function useMessenger() {
     if (meta.kind !== "community") return true;
     const myId = String(state.userId || "");
     if (meta.banned[myId]) return false;
-    if (meta.timeouts[myId] && Number(meta.timeouts[myId]) > Date.now()) return false;
+    if (meta.timeouts[myId] && Number(meta.timeouts[myId]) > Date.now())
+      return false;
     if (meta.chatLocked) {
       const role = myRoleInRoom(id);
       return role === "administrator" || role === "subAdmin";
@@ -4334,7 +4920,8 @@ export function useMessenger() {
     if (meta.kind !== "community") return "";
     const myId = String(state.userId || "");
     if (meta.banned[myId]) return "banned";
-    if (meta.timeouts[myId] && Number(meta.timeouts[myId]) > Date.now()) return "timeout";
+    if (meta.timeouts[myId] && Number(meta.timeouts[myId]) > Date.now())
+      return "timeout";
     if (meta.chatLocked) {
       const role = myRoleInRoom(id);
       if (role !== "administrator" && role !== "subAdmin") return "locked";
@@ -4387,7 +4974,9 @@ export function useMessenger() {
     return true;
   }
 
-  function roomCallsEnabled(roomId) { return roomMeta(roomId).callsEnabled; }
+  function roomCallsEnabled(roomId) {
+    return roomMeta(roomId).callsEnabled;
+  }
 
   function canCallInRoom(roomId) {
     const id = sanitizeRoomId(roomId);
@@ -4423,7 +5012,12 @@ export function useMessenger() {
       const myId = String(state.userId || "");
       if (myId && d.room.ownerId === myId) {
         state.myRoleByRoom[id] = "administrator";
-      } else if (myId && d.room.roles && typeof d.room.roles === "object" && d.room.roles[myId]) {
+      } else if (
+        myId &&
+        d.room.roles &&
+        typeof d.room.roles === "object" &&
+        d.room.roles[myId]
+      ) {
         state.myRoleByRoom[id] = String(d.room.roles[myId]);
       }
     }
@@ -4476,12 +5070,15 @@ export function useMessenger() {
     try {
       const form = new FormData();
       form.append("file", file, String(file.name || "room-icon"));
-      const payload = await apiFormRequest(`/api/rooms/${encodeURIComponent(id)}/icon`, form);
+      const payload = await apiFormRequest(
+        `/api/rooms/${encodeURIComponent(id)}/icon`,
+        form,
+      );
       const iconUrl = sanitizeHttpUrl(
         payload?.room?.icon?.url ||
-        payload?.room?.icon?.file?.url ||
-        payload?.icon?.url ||
-        payload?.icon?.file?.url,
+          payload?.room?.icon?.file?.url ||
+          payload?.icon?.url ||
+          payload?.icon?.file?.url,
       );
       if (!iconUrl) {
         state.lastError = "Invalid room icon URL returned by server.";
@@ -4514,8 +5111,13 @@ export function useMessenger() {
       return null;
     }
 
-    const title = String(options.title || "").trim().slice(0, MAX_LOCAL_ROOM_NAME_LENGTH) || id;
-    const description = String(options.description || "").trim().slice(0, MAX_ROOM_DESCRIPTION_LENGTH);
+    const title =
+      String(options.title || "")
+        .trim()
+        .slice(0, MAX_LOCAL_ROOM_NAME_LENGTH) || id;
+    const description = String(options.description || "")
+      .trim()
+      .slice(0, MAX_ROOM_DESCRIPTION_LENGTH);
     const modPermissions = normalizeModPermissions(options.modPermissions);
 
     const d: any = {
@@ -4526,7 +5128,11 @@ export function useMessenger() {
       modPermissions,
     };
 
-    if (options.file && typeof options.file === "object" && options.file.size != null) {
+    if (
+      options.file &&
+      typeof options.file === "object" &&
+      options.file.size != null
+    ) {
       try {
         const file = options.file;
         if (Number(file.size) > 5 * 1024 * 1024) {
@@ -4554,7 +5160,15 @@ export function useMessenger() {
   function updateRoomDescription(roomId, description) {
     const id = sanitizeRoomId(roomId);
     if (!id || !isValidRoomId(id)) return;
-    send({ op: 41, d: { gameId: id, description: String(description || "").trim().slice(0, MAX_ROOM_DESCRIPTION_LENGTH) } });
+    send({
+      op: 41,
+      d: {
+        gameId: id,
+        description: String(description || "")
+          .trim()
+          .slice(0, MAX_ROOM_DESCRIPTION_LENGTH),
+      },
+    });
   }
 
   function setMemberRole(roomId, targetUserId, role) {
@@ -4584,7 +5198,10 @@ export function useMessenger() {
   function timeoutMember(roomId, targetUserId, seconds) {
     const id = sanitizeRoomId(roomId);
     if (!id || !isValidRoomId(id)) return;
-    send({ op: 46, d: { gameId: id, targetUserId, durationSecs: Number(seconds) || 60 } });
+    send({
+      op: 46,
+      d: { gameId: id, targetUserId, durationSecs: Number(seconds) || 60 },
+    });
   }
 
   function unmuteMember(roomId, targetUserId) {
@@ -4620,7 +5237,10 @@ export function useMessenger() {
   function setModeratorPermissions(roomId, permissions) {
     const id = sanitizeRoomId(roomId);
     if (!id || !isValidRoomId(id)) return;
-    send({ op: 49, d: { gameId: id, modPermissions: normalizeModPermissions(permissions) } });
+    send({
+      op: 49,
+      d: { gameId: id, modPermissions: normalizeModPermissions(permissions) },
+    });
   }
 
   function setDeleteMessagesOnLeave(value) {
@@ -4719,9 +5339,7 @@ export function useMessenger() {
   }
 
   function setScreenShareQuality(value) {
-    const quality = SCREEN_SHARE_QUALITIES.some(
-      (option) => option.id === value,
-    )
+    const quality = SCREEN_SHARE_QUALITIES.some((option) => option.id === value)
       ? String(value)
       : SCREEN_SHARE_DEFAULT_QUALITY;
     if (state.screenShareQuality === quality) return;
@@ -4800,9 +5418,7 @@ export function useMessenger() {
   }
 
   function setThemeMode(value) {
-    const next = THEME_MODES.includes(
-      String(value || "").toLowerCase(),
-    )
+    const next = THEME_MODES.includes(String(value || "").toLowerCase())
       ? String(value).toLowerCase()
       : "system";
     state.themeMode = next;
@@ -4810,9 +5426,7 @@ export function useMessenger() {
   }
 
   function setClientLockThemeMode(value) {
-    const next = THEME_MODES.includes(
-      String(value || "").toLowerCase(),
-    )
+    const next = THEME_MODES.includes(String(value || "").toLowerCase())
       ? String(value).toLowerCase()
       : "system";
     state.clientLockThemeMode = next;
@@ -5003,7 +5617,7 @@ export function useMessenger() {
       if (!AudioCtx) return null;
       if (!notificationAudioContext) notificationAudioContext = new AudioCtx();
       if (notificationAudioContext.state === "suspended") {
-        notificationAudioContext.resume().catch(() => { });
+        notificationAudioContext.resume().catch(() => {});
       }
       return notificationAudioContext;
     } catch {
@@ -5078,7 +5692,7 @@ export function useMessenger() {
             });
           }
         })
-        .catch(() => { });
+        .catch(() => {});
       return;
     }
     if (
@@ -5203,7 +5817,8 @@ export function useMessenger() {
     } catch (error) {
       const selectedDeviceId = String(state.selectedVideoInputId || "").trim();
       const errorName = String(error?.name || "").trim();
-      if (!selectedDeviceId || errorName !== "OverconstrainedError") throw error;
+      if (!selectedDeviceId || errorName !== "OverconstrainedError")
+        throw error;
 
       state.selectedVideoInputId = "";
       persist();
@@ -5263,10 +5878,18 @@ export function useMessenger() {
       gate.connect(destination);
       // Mirror the actual outbound (post-gate) audio so the speaker indicator
       // uses the same signal the other peers receive, not the raw mic.
-      const outboundMonitor = context.createMediaStreamSource(destination.stream);
+      const outboundMonitor = context.createMediaStreamSource(
+        destination.stream,
+      );
       outboundMonitor.connect(outAnalyser);
-      context.resume?.().catch?.(() => { });
-      state.callAnalyser = { context, analyser, outAnalyser, gate, monitorStream };
+      context.resume?.().catch?.(() => {});
+      state.callAnalyser = {
+        context,
+        analyser,
+        outAnalyser,
+        gate,
+        monitorStream,
+      };
       state.callAnalyserData = new Uint8Array(analyser.fftSize);
       state.callAnalyserOutData = new Uint8Array(outAnalyser.fftSize);
       return destination.stream;
@@ -5289,7 +5912,7 @@ export function useMessenger() {
     state.callAnalyser = null;
     state.callAnalyserData = null;
     state.callAnalyserOutData = null;
-    if (context) context.close().catch(() => { });
+    if (context) context.close().catch(() => {});
   }
 
   function attachRemoteCallAnalyser(username: string, stream: MediaStream) {
@@ -5299,14 +5922,17 @@ export function useMessenger() {
     const audioTrack = stream.getAudioTracks()[0];
     if (!audioTrack || audioTrack.readyState !== "live") return;
     try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
       const context = new AudioCtx();
-      const source = context.createMediaStreamSource(new MediaStream([audioTrack]));
+      const source = context.createMediaStreamSource(
+        new MediaStream([audioTrack]),
+      );
       const analyser = context.createAnalyser();
       analyser.fftSize = 1024;
       source.connect(analyser);
-      context.resume?.().catch?.(() => { });
+      context.resume?.().catch?.(() => {});
       remoteCallAnalysers.set(key, {
         context,
         analyser,
@@ -5322,11 +5948,12 @@ export function useMessenger() {
     const entry = remoteCallAnalysers.get(key);
     if (!entry) return;
     remoteCallAnalysers.delete(key);
-    entry.context.close().catch(() => { });
+    entry.context.close().catch(() => {});
   }
 
   function clearRemoteCallAnalysers() {
-    for (const key of [...remoteCallAnalysers.keys()]) removeRemoteCallAnalyser(key);
+    for (const key of [...remoteCallAnalysers.keys()])
+      removeRemoteCallAnalyser(key);
   }
 
   function startSpeakingSampler() {
@@ -5345,12 +5972,19 @@ export function useMessenger() {
 
       // Local microphone (via the outbound post-gate analyser, so the speaker
       // indicator sees the same signal other peers receive).
-      if (!state.callMuted && state.callAnalyser?.outAnalyser && state.callAnalyserOutData) {
-        state.callAnalyser.outAnalyser.getByteTimeDomainData(state.callAnalyserOutData);
+      if (
+        !state.callMuted &&
+        state.callAnalyser?.outAnalyser &&
+        state.callAnalyserOutData
+      ) {
+        state.callAnalyser.outAnalyser.getByteTimeDomainData(
+          state.callAnalyserOutData,
+        );
         const level = microphoneLevelFromSamples(state.callAnalyserOutData);
         if (level >= threshold) {
           if (!state.speakingByRoom[roomId]) state.speakingByRoom[roomId] = {};
-          state.speakingByRoom[roomId][sanitizeUsername(state.username)] = Date.now();
+          state.speakingByRoom[roomId][sanitizeUsername(state.username)] =
+            Date.now();
         }
       } else if (state.callMuted && state.speakingByRoom[roomId]) {
         // When muted, drop our own timestamp immediately so the ring clears.
@@ -5464,7 +6098,7 @@ export function useMessenger() {
     const context = micTestAnalyser?.context;
     micTestAnalyser = null;
     micTestAnalyserData = null;
-    if (context) context.close().catch(() => { });
+    if (context) context.close().catch(() => {});
     state.micTestActive = false;
     state.micTestLoading = false;
     state.micTestLevel = 0;
@@ -5507,7 +6141,7 @@ export function useMessenger() {
       micTestAudio.srcObject = stream;
       micTestAudio.volume = 0.75;
       await applyAudioOutput(micTestAudio);
-      micTestAudio.play().catch(() => { });
+      micTestAudio.play().catch(() => {});
 
       state.micTestActive = true;
       const tick = () => {
@@ -5539,7 +6173,8 @@ export function useMessenger() {
     if (!id) return;
 
     const latest = latestSidebarRoomMessage(state.messagesByRoom[id] || []);
-    const sidebarMessage = latest || (isTransientPresenceSystemMessage(message) ? null : message);
+    const sidebarMessage =
+      latest || (isTransientPresenceSystemMessage(message) ? null : message);
     const preview = messagePreviewLabel(sidebarMessage);
     const sender = sidebarMessage?.username || "";
     const ts = Number(sidebarMessage?.timestamp || 0);
@@ -5728,7 +6363,8 @@ export function useMessenger() {
       void stopSystemAudioCapture();
       const rawCallStream = state.callStream;
       const outboundStream = callOutboundStream;
-      if (outboundStream && outboundStream !== rawCallStream) stopStreamTracks(outboundStream);
+      if (outboundStream && outboundStream !== rawCallStream)
+        stopStreamTracks(outboundStream);
       callOutboundStream = null;
       if (rawCallStream) stopStreamTracks(rawCallStream);
       state.callStream = null;
@@ -5741,6 +6377,7 @@ export function useMessenger() {
     state.pendingJoinRooms = [];
     state.usersByRoom = {};
     state.profilesByUser = {};
+    state.createdAtByUser = {};
     state.publicProfileFetchedAtByUser = {};
     state.badgesByUser = {};
     state.statusesByUser = {};
@@ -5792,10 +6429,15 @@ export function useMessenger() {
     if (state.joinedRooms.includes(id)) return;
     if (state.pendingJoinRooms.includes(id)) {
       if (!options?.force) return;
-      state.pendingJoinRooms = state.pendingJoinRooms.filter((roomId) => roomId !== id);
+      state.pendingJoinRooms = state.pendingJoinRooms.filter(
+        (roomId) => roomId !== id,
+      );
     }
     state.pendingJoinRooms.push(id);
-    send({ op: 3, d: { gameId: id, silentJoin: options?.silentJoin === true } });
+    send({
+      op: 3,
+      d: { gameId: id, silentJoin: options?.silentJoin === true },
+    });
   }
 
   function fetchHistory(roomId) {
@@ -5929,9 +6571,13 @@ export function useMessenger() {
         }
         if (!tokenFromUrl) {
           try {
-            const url = new URL(input.startsWith("http") ? input : `https://${input}`);
+            const url = new URL(
+              input.startsWith("http") ? input : `https://${input}`,
+            );
             tokenFromUrl = String(url.searchParams.get("token") || "").trim();
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         }
         if (/^[0-9a-f]{96}$/i.test(tokenFromUrl)) {
           openImportedRoomToken(tokenFromUrl);
@@ -5967,12 +6613,19 @@ export function useMessenger() {
     return tryJoinRoom(raw);
   }
 
-  function showToast(message, options: { badge?: string; badgeAvatarSrc?: string; error?: boolean } = {}) {
+  function showToast(
+    message,
+    options: { badge?: string; badgeAvatarSrc?: string; error?: boolean } = {},
+  ) {
     state.toastMessage = message;
     state.toastBadge = String(options?.badge || "");
     state.toastBadgeAvatarSrc = String(options?.badgeAvatarSrc || "");
     // Infer an error toast when the caller passed the current error state.
-    const isError = options?.error === true || (typeof options?.error !== "boolean" && !!state.lastError && message === state.lastError);
+    const isError =
+      options?.error === true ||
+      (typeof options?.error !== "boolean" &&
+        !!state.lastError &&
+        message === state.lastError);
     state.toastError = isError;
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
@@ -6278,7 +6931,8 @@ export function useMessenger() {
       const rawWaveSamples: number[] = [];
 
       try {
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const AudioContextClass =
+          window.AudioContext || (window as any).webkitAudioContext;
         if (AudioContextClass) {
           audioCtx = new AudioContextClass();
           const source = audioCtx.createMediaStreamSource(stream);
@@ -6335,7 +6989,10 @@ export function useMessenger() {
   async function stopRecordingVoiceMemo(cancel = false) {
     const rec = state.recording;
     if (!rec) return;
-    const durationSeconds = Math.max(1, Math.round((Date.now() - rec.startedAt) / 1000));
+    const durationSeconds = Math.max(
+      1,
+      Math.round((Date.now() - rec.startedAt) / 1000),
+    );
     if (rec.waveInterval) clearInterval(rec.waveInterval);
     try {
       if (rec.audioCtx) await rec.audioCtx.close();
@@ -6388,7 +7045,10 @@ export function useMessenger() {
       const finalWave: number[] = [];
       for (let i = 0; i < targetCount; i++) {
         const startIdx = Math.floor((i / targetCount) * samples.length);
-        const endIdx = Math.max(startIdx + 1, Math.floor(((i + 1) / targetCount) * samples.length));
+        const endIdx = Math.max(
+          startIdx + 1,
+          Math.floor(((i + 1) / targetCount) * samples.length),
+        );
         let sliceMax = 0;
         for (let j = startIdx; j < endIdx && j < samples.length; j++) {
           if (samples[j] > sliceMax) sliceMax = samples[j];
@@ -6484,7 +7144,8 @@ export function useMessenger() {
     const key = sanitizeUsername(username);
     if (!key) return "";
     if (isSystemUsername(key)) return "qxchat-system";
-    if (key === sanitizeUsername(state.username)) return String(state.userId || state.uuid || "").trim();
+    if (key === sanitizeUsername(state.username))
+      return String(state.userId || state.uuid || "").trim();
     return String(state.userIdsByUsername[key] || "").trim();
   }
 
@@ -6672,19 +7333,19 @@ export function useMessenger() {
       state.callScreenEnabled = false;
       state.localCallMedia = currentCallMedia();
       const platform = currentLocalPlatform();
-	      callManager = new WebRtcCallManager({
-	        roomId,
-	        username: sanitizeUsername(state.username),
-	        clientId: localClientId,
-	        platform,
-	        localStream: outboundStream,
-	        turnServerId: state.selectedTurnServerId,
-	        turnServer,
-	        sendSignal: (payload: CallSignalPayload) =>
-	          send({ op: 111, d: payload }),
-	        onRemoteMedia: storeRemoteCallMedia,
-	        onRemoteLeft: removeRemoteCallMedia,
-	      });
+      callManager = new WebRtcCallManager({
+        roomId,
+        username: sanitizeUsername(state.username),
+        clientId: localClientId,
+        platform,
+        localStream: outboundStream,
+        turnServerId: state.selectedTurnServerId,
+        turnServer,
+        sendSignal: (payload: CallSignalPayload) =>
+          send({ op: 111, d: payload }),
+        onRemoteMedia: storeRemoteCallMedia,
+        onRemoteLeft: removeRemoteCallMedia,
+      });
       // Register self as voice member locally so our tile shows up immediately.
       const me = sanitizeUsername(state.username);
       if (me) {
@@ -6784,12 +7445,21 @@ export function useMessenger() {
   function addCustomTurnServer(server) {
     if (!server || typeof server !== "object") return false;
     const urls = Array.isArray(server.urls)
-      ? server.urls.map((u) => String(u || "").trim()).filter((u) => /^(turn|turns|stun):/i.test(u))
+      ? server.urls
+          .map((u) => String(u || "").trim())
+          .filter((u) => /^(turn|turns|stun):/i.test(u))
       : [];
     if (!urls.length) return false;
-    const label = String(server.label || "").trim().slice(0, 64) || "Custom TURN";
-    const username = String(server.username || "").trim().slice(0, 128);
-    const credential = String(server.credential || "").trim().slice(0, 256);
+    const label =
+      String(server.label || "")
+        .trim()
+        .slice(0, 64) || "Custom TURN";
+    const username = String(server.username || "")
+      .trim()
+      .slice(0, 128);
+    const credential = String(server.credential || "")
+      .trim()
+      .slice(0, 256);
     const next = sanitizeCustomTurnServers([
       ...(state.customTurnServers || []),
       { label, urls, username, credential, hint: server.hint || "" },
@@ -6891,9 +7561,9 @@ export function useMessenger() {
       }
       // Otherwise start the native system capture when the user opted in.
       if (
-        stream.getAudioTracks().length === 0
-        && state.shareScreenAudio
-        && isTauriDesktopRuntime()
+        stream.getAudioTracks().length === 0 &&
+        state.shareScreenAudio &&
+        isTauriDesktopRuntime()
       ) {
         const nativeTrack = await startSystemAudioCapture();
         if (nativeTrack && nativeTrack.readyState === "live") {
@@ -7059,7 +7729,11 @@ export function useMessenger() {
     const members = new Set(state.voiceMembersByRoom[roomId] || []);
     const wasKnownMember = members.has(user);
     const prevMedia = state.remoteCallMediaByUser[user] || EMPTY_CALL_MEDIA;
-    const hearRemote = user !== me && state.inCall && state.callRoom === roomId && !state.callDeafened;
+    const hearRemote =
+      user !== me &&
+      state.inCall &&
+      state.callRoom === roomId &&
+      !state.callDeafened;
     if (d.isVoiceChat === true) {
       members.add(user);
       if (clientId) {
@@ -7101,7 +7775,8 @@ export function useMessenger() {
         ...d.media,
       });
       if (prevMedia.audio !== nextMedia.audio) {
-        const deafenWindow = Date.now() - (remoteDeafenAt.get(user) || 0) < DEAFEN_SOUND_WINDOW_MS;
+        const deafenWindow =
+          Date.now() - (remoteDeafenAt.get(user) || 0) < DEAFEN_SOUND_WINDOW_MS;
         if (deafenWindow) {
           remoteDeafenAt.delete(user);
         } else if (nextMedia.audio) {
@@ -7164,7 +7839,11 @@ export function useMessenger() {
     }
     const members = new Set(state.voiceMembersByRoom[roomId] || []);
     const wasKnownMember = members.has(user);
-    const hearRemote = user !== sanitizeUsername(state.username) && state.inCall && state.callRoom === roomId && !state.callDeafened;
+    const hearRemote =
+      user !== sanitizeUsername(state.username) &&
+      state.inCall &&
+      state.callRoom === roomId &&
+      !state.callDeafened;
     if (d.isVoiceChat === true) {
       members.add(user);
       if (hearRemote && !wasKnownMember) playJoinSound();
@@ -7303,6 +7982,7 @@ export function useMessenger() {
     state.bannedRooms = {};
     state.usersByRoom = {};
     state.profilesByUser = {};
+    state.createdAtByUser = {};
     state.badgesByUser = {};
     state.statusesByUser = {};
     state.userIdsByUsername = {};
@@ -7339,7 +8019,9 @@ export function useMessenger() {
     applyDeletion({ messageId: message.messageId, gameId });
     const room = state.rooms.find((entry) => entry.roomId === gameId);
     if (room) {
-      const latest = latestSidebarRoomMessage(state.messagesByRoom[gameId] || []);
+      const latest = latestSidebarRoomMessage(
+        state.messagesByRoom[gameId] || [],
+      );
       room.lastPreview = messagePreviewLabel(latest) || "";
       room.lastSender = latest?.username || "";
       room.lastTimestamp = Number(latest?.timestamp || 0);
@@ -7654,7 +8336,8 @@ export function useMessenger() {
     const index = arr.findIndex(
       (message) =>
         String(message?.clientNonce || "").trim() === clientNonce &&
-        String(message?.messageId || "") !== String(normalized?.messageId || ""),
+        String(message?.messageId || "") !==
+          String(normalized?.messageId || ""),
     );
     if (index === -1) return false;
     const previousAttachmentUrl = String(arr[index]?.attachment?.url || "");
@@ -7679,15 +8362,19 @@ export function useMessenger() {
         "i",
       ).test(String(normalized.text || ""));
     }
-    const replacedOptimistic = isOwnMessage(normalized) &&
+    const replacedOptimistic =
+      isOwnMessage(normalized) &&
       replaceOptimisticMessageByClientNonce(roomId, normalized);
-    const added = replacedOptimistic ? false : pushMessageToRoom(roomId, normalized);
+    const added = replacedOptimistic
+      ? false
+      : pushMessageToRoom(roomId, normalized);
     touchRoom(roomId, normalized);
 
     const mine = isOwnMessage(normalized);
     const isDnd = sanitizePresenceStatus(state.status) === "dnd";
     const isSilentSystem = Boolean(normalized.system);
-    if (added && !mine && !isDnd && !isSilentSystem) playMessageNotificationSound();
+    if (added && !mine && !isDnd && !isSilentSystem)
+      playMessageNotificationSound();
     if (added && !mine && !isDnd && !isSilentSystem)
       showAndroidMessageNotification(normalized, roomId);
     if (!mine && roomId !== state.activeRoom) {
@@ -7748,7 +8435,8 @@ export function useMessenger() {
         state.userId = String(d?.userId || d?.id || state.userId || "");
         if (d?.username) state.username = sanitizeUsername(d.username);
         state.admin = Boolean(d?.admin || state.admin);
-        if (state.username) state.badgesByUser[state.username] = normalizeUserBadges(d?.badges);
+        if (state.username)
+          state.badgesByUser[state.username] = normalizeUserBadges(d?.badges);
         state.identified = true;
         const persistedJoinedRooms = [
           ...new Set(
@@ -7816,7 +8504,9 @@ export function useMessenger() {
               importRoomKey(defaultRoomId, defaultRoomKey);
               const defaultTitle = String(d.defaultRoom.title || "");
               if (defaultTitle) {
-                const existing = state.rooms.find((room) => room.roomId === defaultRoomId);
+                const existing = state.rooms.find(
+                  (room) => room.roomId === defaultRoomId,
+                );
                 if (existing) existing.title = defaultTitle;
               }
               if (
@@ -7960,7 +8650,9 @@ export function useMessenger() {
         break;
       case 51:
         if (d?.gameId) {
-          state.callAccessOpenByRoom[sanitizeRoomId(d.gameId)] = Boolean(d.allowMembers);
+          state.callAccessOpenByRoom[sanitizeRoomId(d.gameId)] = Boolean(
+            d.allowMembers,
+          );
         }
         break;
       case 34:
@@ -8030,6 +8722,7 @@ export function useMessenger() {
     state.messagesByRoom = {};
     state.usersByRoom = {};
     state.profilesByUser = {};
+    state.createdAtByUser = {};
     state.roomKeysByRoom = {};
     state.roomRatchetsByRoom = {};
     state.trustedSenderKeysByRoom = {};
@@ -8087,7 +8780,6 @@ export function useMessenger() {
     connect();
     return true;
   }
-
 
   function handleJoinOp(d) {
     if (d?.error && /banned/i.test(String(d.error))) {
@@ -8151,8 +8843,12 @@ export function useMessenger() {
       const key = sanitizeUsername(user?.username || user?.user);
       if (!key) continue;
       rememberUserId(key, user?.userId || user?.id || user?.uuid);
-      if (user?.profile) state.profilesByUser[key] = normalizeProfile(user.profile);
-      if (Array.isArray(user?.badges)) state.badgesByUser[key] = normalizeUserBadges(user.badges);
+      if (user?.profile)
+        state.profilesByUser[key] = normalizeProfile(user.profile);
+      if (Array.isArray(user?.badges))
+        state.badgesByUser[key] = normalizeUserBadges(user.badges);
+      const createdAt = Number(user?.createdAt) || 0;
+      if (createdAt) state.createdAtByUser[key] = createdAt;
       state.publicProfileFetchedAtByUser[key] = now;
     }
     persist();
@@ -8163,14 +8859,27 @@ export function useMessenger() {
     const now = Date.now();
     const payloadUsers = [];
     for (const raw of Array.isArray(users) ? users : []) {
-      const username = sanitizeUsername(typeof raw === "string" ? raw : raw?.username || raw?.user);
-      const userId = String(typeof raw === "object" ? raw?.userId || raw?.id || raw?.uuid || "" : "").trim();
+      const username = sanitizeUsername(
+        typeof raw === "string" ? raw : raw?.username || raw?.user,
+      );
+      const userId = String(
+        typeof raw === "object"
+          ? raw?.userId || raw?.id || raw?.uuid || ""
+          : "",
+      ).trim();
       if (isSystemUsername(username)) continue;
       if (!username && !userId) continue;
-      const hasAvatar = Boolean(username && state.profilesByUser[username]?.avatar);
+      const hasAvatar = Boolean(
+        username && state.profilesByUser[username]?.avatar,
+      );
       const hasBadges = Boolean(username && state.badgesByUser[username]);
       if (hasAvatar && hasBadges) continue;
-      if (username && now - Number(state.publicProfileFetchedAtByUser[username] || 0) < PUBLIC_PROFILE_LOOKUP_TTL_MS) continue;
+      if (
+        username &&
+        now - Number(state.publicProfileFetchedAtByUser[username] || 0) <
+          PUBLIC_PROFILE_LOOKUP_TTL_MS
+      )
+        continue;
       payloadUsers.push({ username, userId });
       if (payloadUsers.length >= PUBLIC_PROFILE_LOOKUP_MAX_USERS) break;
     }
@@ -8186,8 +8895,11 @@ export function useMessenger() {
 
   function applyPlayerBadges(players) {
     for (const player of Array.isArray(players) ? players : []) {
-      const key = sanitizeUsername(player?.user || player?.username || player?.name);
-      if (key && Array.isArray(player?.badges)) state.badgesByUser[key] = normalizeUserBadges(player.badges);
+      const key = sanitizeUsername(
+        player?.user || player?.username || player?.name,
+      );
+      if (key && Array.isArray(player?.badges))
+        state.badgesByUser[key] = normalizeUserBadges(player.badges);
     }
   }
 
@@ -8233,13 +8945,17 @@ export function useMessenger() {
     state.voiceMembersByRoom[roomId] = [...members];
   }
 
-  function applyRoomSnapshot(d, fallbackRoomId = "", options: { preserveTokenTitle?: boolean } = {}) {
+  function applyRoomSnapshot(
+    d,
+    fallbackRoomId = "",
+    options: { preserveTokenTitle?: boolean } = {},
+  ) {
     const roomId = sanitizeRoomId(
       d?.room?.room_id ||
-      d?.room?.roomId ||
-      d?.gameId ||
-      fallbackRoomId ||
-      state.activeRoom,
+        d?.room?.roomId ||
+        d?.gameId ||
+        fallbackRoomId ||
+        state.activeRoom,
     );
     if (!roomId) return "";
     applyRoomMeta(roomId, d);
@@ -8247,21 +8963,23 @@ export function useMessenger() {
     const roomPayload = d?.room && typeof d.room === "object" ? d.room : null;
     const room = state.rooms.find((entry) => entry.roomId === roomId);
     const existingTitle = String(room?.title || "").trim();
-    const hasTitle = roomPayload && Object.prototype.hasOwnProperty.call(roomPayload, "title");
+    const hasTitle =
+      roomPayload && Object.prototype.hasOwnProperty.call(roomPayload, "title");
     const incomingTitle = hasTitle
       ? String(roomPayload?.title || "")
-        .trim()
-        .slice(0, MAX_LOCAL_ROOM_NAME_LENGTH)
+          .trim()
+          .slice(0, MAX_LOCAL_ROOM_NAME_LENGTH)
       : "";
     const nextTitle =
-      hasTitle && !(options.preserveTokenTitle && existingTitle && incomingTitle === roomId)
+      hasTitle &&
+      !(options.preserveTokenTitle && existingTitle && incomingTitle === roomId)
         ? incomingTitle
         : existingTitle;
     const nextIconUrl = sanitizeHttpUrl(
       roomPayload?.icon?.file?.url ?? // format Rust RoomIcon { file: StoredFile { url } }
-      roomPayload?.icon?.url ?? // format plat potentiel
-      roomPayload?.iconUrl ?? // champ direct
-      "",
+        roomPayload?.icon?.url ?? // format plat potentiel
+        roomPayload?.iconUrl ?? // champ direct
+        "",
     );
     const mergedIconUrl = nextIconUrl || sanitizeHttpUrl(room?.iconUrl);
     const nextMembers = normalizeRoomUsers(roomPayload?.members || []);
@@ -8295,7 +9013,10 @@ export function useMessenger() {
     }
     applyPlayerBadges(d?.players);
     applyPlatformsMap(d?.platforms);
-    requestPublicProfilesForUsers([...(Array.isArray(d?.players) ? d.players : []), ...nextMembers]);
+    requestPublicProfilesForUsers([
+      ...(Array.isArray(d?.players) ? d.players : []),
+      ...nextMembers,
+    ]);
     if (Array.isArray(d?.voicePlayers)) {
       state.voiceMembersByRoom[roomId] = normalizeRoomUsers(d.voicePlayers);
     }
@@ -8362,7 +9083,9 @@ export function useMessenger() {
   }
 
   function applyPresenceStatus(d) {
-    const roomId = applyRoomSnapshot(d, d?.gameId, { preserveTokenTitle: true });
+    const roomId = applyRoomSnapshot(d, d?.gameId, {
+      preserveTokenTitle: true,
+    });
     const key = sanitizeUsername(d?.user);
     const me = sanitizeUsername(state.username);
 
@@ -8473,8 +9196,8 @@ export function useMessenger() {
     }
     const serverMessages = Array.isArray(d.messages)
       ? await Promise.all(
-        d.messages.map((m) => hydrateIncomingMessage(m, roomId)),
-      )
+          d.messages.map((m) => hydrateIncomingMessage(m, roomId)),
+        )
       : [];
     const localMessages = state.messagesByRoom[roomId] || [];
     const serverMessageIds = new Set(
@@ -8485,10 +9208,10 @@ export function useMessenger() {
     const keptLocalMessages = state.serverClearsLocalMessages
       ? []
       : localMessages.filter((message) => {
-        if (message?.system) return false;
-        const messageId = String(message?.messageId || "");
-        return !messageId || !serverMessageIds.has(messageId);
-      });
+          if (message?.system) return false;
+          const messageId = String(message?.messageId || "");
+          return !messageId || !serverMessageIds.has(messageId);
+        });
     const messages = mergeRoomHistory(
       keptLocalMessages,
       serverMessages,
@@ -8507,9 +9230,10 @@ export function useMessenger() {
     const id = sanitizeRoomId(roomId);
     const user = sanitizeUsername(username);
     if (!id || !user) return;
-    const text = eventKind === "leave"
-      ? t("thread.roomLeft", { user })
-      : t("thread.roomJoined", { user });
+    const text =
+      eventKind === "leave"
+        ? t("thread.roomLeft", { user })
+        : t("thread.roomJoined", { user });
     pushMessageToRoom(
       id,
       normalizeMessage(
@@ -8636,7 +9360,9 @@ export function useMessenger() {
               const hasTitle = Object.prototype.hasOwnProperty.call(r, "title");
               const previousTitle = String(previous.title || "").trim();
               const incomingTitle = hasTitle
-                ? String(r.title || "").trim().slice(0, MAX_LOCAL_ROOM_NAME_LENGTH)
+                ? String(r.title || "")
+                    .trim()
+                    .slice(0, MAX_LOCAL_ROOM_NAME_LENGTH)
                 : "";
               return {
                 roomId,
@@ -8647,8 +9373,7 @@ export function useMessenger() {
                 lastPreview: String(r.lastPreview || ""),
                 lastTimestamp: Number(r.lastTimestamp) || 0,
                 lastSender: String(r.lastSender || ""),
-                iconUrl:
-                  sanitizeHttpUrl(r.iconUrl) || previous.iconUrl || "",
+                iconUrl: sanitizeHttpUrl(r.iconUrl) || previous.iconUrl || "",
               };
             })
             .filter((r) => isValidRoomId(r.roomId));
@@ -8789,6 +9514,7 @@ export function useMessenger() {
     roomAccessToken,
     profileFor,
     badgesFor,
+    createdAtFor,
     statusFor,
     presenceStatusLabel,
     profileImageSrc,
@@ -8988,7 +9714,7 @@ export function useMessenger() {
     setLocalRoomIconFromFile,
     clearAllData,
     logout,
-    triggerBan
+    triggerBan,
   };
 
   return singleton;

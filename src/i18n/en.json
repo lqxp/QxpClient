@@ -127,7 +127,13 @@
         "mutualRooms": "Mutual rooms",
         "noMutualRooms": "No mutual rooms yet.",
         "inVoiceChat": "In voice chat",
-        "clientPlatforms": "Client platforms"
+        "clientPlatforms": "Client platforms",
+        "memberSince": "Member since",
+        "members": "members",
+        "community": "Community",
+        "openRoom": "Open room",
+        "previous": "Previous",
+        "next": "Next"
     },
     "thread": {
         "back": "Back to conversations",
