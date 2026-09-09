@@ -188,9 +188,10 @@ function renderProfileMarkdown(value: unknown) {
       <div class="profile-card__handle" aria-hidden="true"></div>
       <div class="profile-card__body">
         <div class="profile-card__left">
-          <div class="profile-card__banner" :class="{ 'has-image': bannerSrc }">
-            <img v-if="bannerSrc" :src="bannerSrc" alt="" />
-          </div>
+          <div class="profile-card__left-box">
+            <div class="profile-card__banner" :class="{ 'has-image': bannerSrc }">
+              <img v-if="bannerSrc" :src="bannerSrc" alt="" />
+            </div>
         <span v-if="avatarSrc" class="profile-card__avatar profile-card__avatar--image">
           <span class="profile-card__avatar-clip">
             <img :src="avatarSrc" alt="" />
@@ -343,10 +344,11 @@ function renderProfileMarkdown(value: unknown) {
           </div>
         </div>
 
-          <div class="profile-card__section">
-            <h4>{{ t('profile.about') }}</h4>
-            <div v-if="profile.description" class="profile-card__description markdown" v-html="descriptionHtml"></div>
-            <p v-else class="profile-card__empty">{{ t('profile.noDescription') }}</p>
+            <div class="profile-card__section">
+              <h4>{{ t('profile.about') }}</h4>
+              <div v-if="profile.description" class="profile-card__description markdown" v-html="descriptionHtml"></div>
+              <p v-else class="profile-card__empty">{{ t('profile.noDescription') }}</p>
+            </div>
           </div>
         </div>
 

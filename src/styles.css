@@ -1710,8 +1710,15 @@ textarea {
 .profile-card__left {
   position: relative;
   min-width: 0;
-  padding: 28px 28px 32px;
+  padding: 20px 16px 20px 20px;
   border-right: 1px solid var(--line);
+}
+
+.profile-card__left-box {
+  padding: 24px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
 }
 
 .profile-card__left:only-child {
@@ -2105,8 +2112,12 @@ textarea {
   }
 
   .profile-card__left {
-    padding: 22px 22px 0;
+    padding: 16px;
     border-right: 0;
+  }
+
+  .profile-card__left-box {
+    padding: 18px;
   }
 
   .profile-card__mutual {
