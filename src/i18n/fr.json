@@ -729,7 +729,14 @@
         "usernameWarning": "Le serveur saura que vous cherchez ce pseudo.",
         "removeFriend": "Retirer des amis",
         "clearMessages": "Nettoyer les messages",
-        "recoveryNeeded": "Ressaisis tes mots de récupération (Réglages → Sécurité) pour voir tes amis."
+        "recoveryNeeded": "Ressaisis tes mots de récupération (Réglages → Sécurité) pour voir tes amis.",
+        "polling": "Sondage des amis",
+        "pollingToggle": "Sonder les demandes d'ami",
+        "pollInterval": "Intervalle de sondage (secondes)",
+        "pollIntervalAuto": "Auto",
+        "pollIntervalHint": "Entre 3 et 40 secondes. Vide = automatique (15–30 s).",
+        "pollUniformityNote": "Attention : le protocole repose sur un sondage à cadence uniforme pour garantir l'anonymat. Modifier cet intervalle brise l'empreinte par défaut (polling constant sur la valeur normative) et rend votre client plus identifiable.",
+        "pollingNote": "Sondage désactivé : le système d'amis est en pause, les nouvelles demandes et mises à jour ne seront plus reçues."
     },
     "crop": {
         "titleAvatar": "Recadrer l'image de profil",

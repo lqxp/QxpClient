@@ -4877,6 +4877,23 @@ textarea {
   color: var(--text);
 }
 
+.settings-note--danger {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--red, #ff6b70) 10%, transparent);
+  border-left: 3px solid var(--red, #ff6b70);
+  color: var(--text);
+}
+
+.settings-note--danger svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--red, #ff6b70);
+}
+
 .settings-check + .settings-note {
   margin-top: 4px;
 }

@@ -938,6 +938,22 @@ function targetNumber(event: Event) {
   return Number((event.target as HTMLInputElement | HTMLSelectElement | null)?.value) || 0;
 }
 
+function onPollIntervalChange(event: Event) {
+  const input = event.target as HTMLInputElement | null;
+  if (!input) return;
+  const raw = input.value.trim();
+  if (raw === "") {
+    phantom.setPollInterval(null);
+    return;
+  }
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 3 || n > 40) {
+    input.value = phantom.state.pollIntervalSeconds == null ? "" : String(phantom.state.pollIntervalSeconds);
+    return;
+  }
+  phantom.setPollInterval(n);
+}
+
 const microphones = computed(() =>
   props.messenger.state.audioDevices.filter((device) => device.kind === "audioinput")
 );
@@ -2466,6 +2482,33 @@ onBeforeUnmount(() => {
               <button type="button" class="btn settings-btn" @click="phantom.unblockUser(fp)">{{ t("phantom.unblock") }}</button>
             </div>
           </div>
+        </div>
+        <div class="settings-group">
+          <h4>{{ t("phantom.polling") }}</h4>
+          <label class="settings-check">
+            <span>{{ t("phantom.pollingToggle") }}</span>
+            <span class="toggle" :class="{ 'is-on': phantom.state.pollingEnabled }">
+              <input type="checkbox" :checked="phantom.state.pollingEnabled"
+                @change="phantom.setPollingEnabled(($event.target as HTMLInputElement).checked)" />
+              <span class="toggle__track"><span class="toggle__thumb"></span></span>
+            </span>
+          </label>
+          <p class="settings-note settings-note--danger">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+              <path d="M12 9v4" />
+              <path d="M12 17h.01" />
+            </svg>
+            <span>{{ t("phantom.pollUniformityNote") }}</span>
+          </p>
+          <label class="settings-select">
+            <span>{{ t("phantom.pollInterval") }}</span>
+            <input class="settings-input" type="number" min="3" max="40" step="1" inputmode="numeric"
+              :value="phantom.state.pollIntervalSeconds ?? ''" :placeholder="t('phantom.pollIntervalAuto')"
+              :disabled="!phantom.state.pollingEnabled" @change="onPollIntervalChange" />
+          </label>
+          <p class="settings-note">{{ t("phantom.pollIntervalHint") }}</p>
+          <p v-if="!phantom.state.pollingEnabled" class="settings-note">{{ t("phantom.pollingNote") }}</p>
         </div>
       </section>
       <section v-else-if="activeSection === 'backups'" class="settings-page">

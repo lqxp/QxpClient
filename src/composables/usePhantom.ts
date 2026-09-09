@@ -35,6 +35,9 @@ const SETTINGS_STORAGE_KEY = "qxphantom-settings-v1";
 // push WS trahirait la corrélation compte↔slot (S6/INV13).
 const PHANTOM_POLL_MIN_MS = 15 * 1000;
 const PHANTOM_POLL_MAX_MS = 30 * 1000;
+// Bornes du réglage utilisateur de l'intervalle de poll (3s → 40s).
+const PHANTOM_POLL_USER_MIN_SEC = 3;
+const PHANTOM_POLL_USER_MAX_SEC = 40;
 
 export interface PhantomMessengerCtx {
   state: any;
@@ -44,9 +47,15 @@ export interface PhantomMessengerCtx {
   ensureRoomKey: (roomId: string) => string;
   importRoomKey: (roomId: string, roomKey: string) => string;
   hasRoomKey: (roomId: string) => boolean;
-  generateRoomAccessToken: () => { roomId: string; roomKey: string; token: string };
+  generateRoomAccessToken: () => {
+    roomId: string;
+    roomKey: string;
+    token: string;
+  };
   requestJoin: (roomId: string) => void;
-  mutualRoomsWith: (username: string) => Array<{ roomId: string; name: string; icon: string }>;
+  mutualRoomsWith: (
+    username: string,
+  ) => Array<{ roomId: string; name: string; icon: string }>;
   showToast?: (msg: string, opts?: any) => void;
 }
 
@@ -61,7 +70,8 @@ interface StoredPrekey {
 
 function bytesToB64(bytes: Uint8Array): string {
   let binary = "";
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  for (let i = 0; i < bytes.length; i++)
+    binary += String.fromCharCode(bytes[i]);
   return btoa(binary);
 }
 
@@ -105,6 +115,8 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
     acceptUnknown: "all" as "off" | "filter" | "all",
     blockList: [] as string[],
     friendsCollapsed: false,
+    pollIntervalSeconds: null as number | null,
+    pollingEnabled: true,
     schedulerRunning: false,
     lastError: "",
   });
@@ -117,7 +129,12 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
       const parsed = JSON.parse(raw);
       if (parsed.acceptUnknown) state.acceptUnknown = parsed.acceptUnknown;
       if (Array.isArray(parsed.blockList)) state.blockList = parsed.blockList;
-      if (typeof parsed.friendsCollapsed === "boolean") state.friendsCollapsed = parsed.friendsCollapsed;
+      if (typeof parsed.friendsCollapsed === "boolean")
+        state.friendsCollapsed = parsed.friendsCollapsed;
+      if (typeof parsed.pollIntervalSeconds === "number")
+        state.pollIntervalSeconds = parsed.pollIntervalSeconds;
+      if (typeof parsed.pollingEnabled === "boolean")
+        state.pollingEnabled = parsed.pollingEnabled;
     } catch {
       /* ignore */
     }
@@ -131,6 +148,8 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
           acceptUnknown: state.acceptUnknown,
           blockList: state.blockList,
           friendsCollapsed: state.friendsCollapsed,
+          pollIntervalSeconds: state.pollIntervalSeconds,
+          pollingEnabled: state.pollingEnabled,
         }),
       );
     } catch {
@@ -189,7 +208,10 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
     // Publie via op 36 (idempotent — UPSERT serveur). Réémis à chaque
     // `ensurePrekey` pour réparer les cas où l'op 36 a été lâché faute de WS
     // prêt lors du premier essai.
-    ctx.send({ op: 36, d: { ...prekey.bundle, requestId: globalThis.crypto.randomUUID() } });
+    ctx.send({
+      op: 36,
+      d: { ...prekey.bundle, requestId: globalThis.crypto.randomUUID() },
+    });
   }
 
   async function ensurePrekey(): Promise<StoredPrekey | null> {
@@ -235,8 +257,12 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
 
   async function fetchPrekey(username: string): Promise<PrekeyBundle | null> {
     try {
-      const data = await anonymousFetch(`/api/phantom/prekey/${encodeURIComponent(username)}`);
-      return data && typeof data === "object" && data.mlkem768Pk ? (data as PrekeyBundle) : null;
+      const data = await anonymousFetch(
+        `/api/phantom/prekey/${encodeURIComponent(username)}`,
+      );
+      return data && typeof data === "object" && data.mlkem768Pk
+        ? (data as PrekeyBundle)
+        : null;
     } catch {
       return null;
     }
@@ -268,7 +294,10 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
 
       if (inner.kind === "intro") {
         if (state.acceptUnknown === "off") return;
-        state.pendingIncoming.push({ id: globalThis.crypto.randomUUID(), ...inner });
+        state.pendingIncoming.push({
+          id: globalThis.crypto.randomUUID(),
+          ...inner,
+        });
       } else if (inner.kind === "welcome") {
         await handleWelcome(inner);
       }
@@ -313,16 +342,25 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
   }
 
   // ── Dépôt (gating) ──────────────────────────────────────────────────────────
-  async function obtainQuotaToken(): Promise<{ quotaToken: any; nullifier: string } | null> {
+  async function obtainQuotaToken(): Promise<{
+    quotaToken: any;
+    nullifier: string;
+  } | null> {
     try {
-      const challenge = await anonymousFetch("/api/auth/challenge?target=phantom");
+      const challenge = await anonymousFetch(
+        "/api/auth/challenge?target=phantom",
+      );
       const quotaToken = challenge?.quotaToken;
       if (!quotaToken?.ticket || typeof quotaToken?.epoch !== "number") {
         setError("Anonymous quota token unavailable.");
         return null;
       }
       const action = `phantom_deposit:${epochDay(Date.now())}`;
-      const nullifier = await computeNullifier(quotaToken.ticket, quotaToken.epoch, action);
+      const nullifier = await computeNullifier(
+        quotaToken.ticket,
+        quotaToken.epoch,
+        action,
+      );
       return { quotaToken, nullifier };
     } catch {
       setError("Anonymous quota token failed.");
@@ -336,12 +374,25 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
       const challenge = await anonymousFetch(
         `/api/auth/cap/challenge?scope=${encodeURIComponent(scope)}`,
       );
-      if (!challenge?.challengeId || !challenge?.vdf?.x || !challenge?.quotaToken?.ticket || !challenge?.pqcKey) {
+      if (
+        !challenge?.challengeId ||
+        !challenge?.vdf?.x ||
+        !challenge?.quotaToken?.ticket ||
+        !challenge?.pqcKey
+      ) {
         setError("Anti-spam challenge unavailable.");
         return null;
       }
-      const vdfProof = await solveVdf(challenge.vdf.x, challenge.vdf.t, challenge.vdf.modulus);
-      const nullifier = await computeNullifier(challenge.quotaToken.ticket, challenge.quotaToken.epoch, scope);
+      const vdfProof = await solveVdf(
+        challenge.vdf.x,
+        challenge.vdf.t,
+        challenge.vdf.modulus,
+      );
+      const nullifier = await computeNullifier(
+        challenge.quotaToken.ticket,
+        challenge.quotaToken.epoch,
+        scope,
+      );
       const pqcRes = await encapsulatePqcSecret(challenge.pqcKey);
       const data = await anonymousFetch("/api/auth/cap/redeem", {
         method: "POST",
@@ -400,7 +451,11 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
     targetBundle: PrekeyBundle,
     roomId: string | null,
     introText: string,
-  ): Promise<{ outer: PhantomOuter; slotId: string; recipientFp: string } | null> {
+  ): Promise<{
+    outer: PhantomOuter;
+    slotId: string;
+    recipientFp: string;
+  } | null> {
     const prekey = state.prekey;
     if (!prekey) {
       setError("No local prekey available.");
@@ -444,12 +499,18 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
     return { outer, slotId, recipientFp };
   }
 
-  async function sendIntroByContext(username: string, roomId: string, introText: string): Promise<boolean> {
+  async function sendIntroByContext(
+    username: string,
+    roomId: string,
+    introText: string,
+  ): Promise<boolean> {
     const prekey = await ensurePrekey();
     if (!prekey) return false;
     const target = await fetchPrekey(username);
     if (!target) {
-      setError("This user hasn't published a prekey yet (are they using the app?).");
+      setError(
+        "This user hasn't published a prekey yet (are they using the app?).",
+      );
       return false;
     }
     const sealed = await sealIntro(target, roomId, introText);
@@ -458,7 +519,10 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
     return depositEnvelope(sealed.outer);
   }
 
-  async function sendIntroByUsername(username: string, introText: string): Promise<boolean> {
+  async function sendIntroByUsername(
+    username: string,
+    introText: string,
+  ): Promise<boolean> {
     return sendIntroByContext(username, "", introText);
   }
 
@@ -559,7 +623,8 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
 
   function removeFriendLocal(prekeyFp: string): void {
     for (const [name, friend] of Object.entries(state.friendsByUser)) {
-      if ((friend as any)?.peerFp === prekeyFp) delete state.friendsByUser[name];
+      if ((friend as any)?.peerFp === prekeyFp)
+        delete state.friendsByUser[name];
     }
   }
 
@@ -585,11 +650,40 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
     saveSettings();
   }
 
+  function setPollInterval(seconds: number | null): void {
+    if (seconds == null) {
+      state.pollIntervalSeconds = null;
+    } else {
+      const n = Number(seconds);
+      if (
+        !Number.isFinite(n) ||
+        n < PHANTOM_POLL_USER_MIN_SEC ||
+        n > PHANTOM_POLL_USER_MAX_SEC
+      )
+        return;
+      state.pollIntervalSeconds = n;
+    }
+    saveSettings();
+    restartScheduler();
+  }
+
+  function setPollingEnabled(enabled: boolean): void {
+    state.pollingEnabled = Boolean(enabled);
+    saveSettings();
+    if (state.pollingEnabled) startScheduler();
+    else stopScheduler();
+  }
+
   // ── Roster blob (multi-device, chiffré côté client) ─────────────────────────
   async function rosterKey(): Promise<CryptoKey | null> {
     const master = await deriveMasterSecret();
     if (!master) return null;
-    const bytes = await hkdfSha256(master, new Uint8Array(0), "qxphantom:roster", 32);
+    const bytes = await hkdfSha256(
+      master,
+      new Uint8Array(0),
+      "qxphantom:roster",
+      32,
+    );
     return globalThis.crypto.subtle.importKey(
       "raw",
       bytes as BufferSource,
@@ -650,11 +744,13 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
       const roster = JSON.parse(new TextDecoder().decode(plaintext));
       if (Array.isArray(roster.friends)) {
         for (const friend of roster.friends) {
-          if (friend?.peerDisplayName) state.friendsByUser[friend.peerDisplayName] = friend;
+          if (friend?.peerDisplayName)
+            state.friendsByUser[friend.peerDisplayName] = friend;
         }
       }
       if (Array.isArray(roster.blocks)) state.blockList = roster.blocks;
-      if (roster.settings?.acceptUnknown) state.acceptUnknown = roster.settings.acceptUnknown;
+      if (roster.settings?.acceptUnknown)
+        state.acceptUnknown = roster.settings.acceptUnknown;
     } catch {
       /* silencieux */
     }
@@ -663,13 +759,35 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
   // ── Scheduler (poll cadencé + jitter) ───────────────────────────────────────
   let schedulerTimer: any = null;
 
+  // Délai avant le prochain poll : intervalle utilisateur explicite (3–40 s)
+  // si défini, sinon jitter par défaut (15–30 s) pour la discrétion.
+  function pollDelayMs(): number {
+    const s = state.pollIntervalSeconds;
+    if (
+      typeof s === "number" &&
+      s >= PHANTOM_POLL_USER_MIN_SEC &&
+      s <= PHANTOM_POLL_USER_MAX_SEC
+    ) {
+      return s * 1000;
+    }
+    return (
+      PHANTOM_POLL_MIN_MS +
+      Math.random() * (PHANTOM_POLL_MAX_MS - PHANTOM_POLL_MIN_MS)
+    );
+  }
+
   function startScheduler(): void {
     if (state.schedulerRunning) return;
+    if (!state.pollingEnabled) return;
     state.schedulerRunning = true;
     const tick = () => {
+      if (!state.pollingEnabled) {
+        state.schedulerRunning = false;
+        schedulerTimer = null;
+        return;
+      }
       pollNow();
-      const jitter = PHANTOM_POLL_MIN_MS + Math.random() * (PHANTOM_POLL_MAX_MS - PHANTOM_POLL_MIN_MS);
-      schedulerTimer = setTimeout(tick, jitter);
+      schedulerTimer = setTimeout(tick, pollDelayMs());
     };
     tick();
   }
@@ -680,6 +798,13 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
       clearTimeout(schedulerTimer);
       schedulerTimer = null;
     }
+  }
+
+  // Relance le scheduler si actif afin d'appliquer un nouvel intervalle.
+  function restartScheduler(): void {
+    if (!state.schedulerRunning) return;
+    stopScheduler();
+    startScheduler();
   }
 
   // ── Pont WS (réponses aux ops 36/37/38/39) ─────────────────────────────────
@@ -710,6 +835,8 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
     removeFriend,
     setAcceptUnknown,
     setFriendsCollapsed,
+    setPollInterval,
+    setPollingEnabled,
     syncRoster,
     loadRoster,
   };

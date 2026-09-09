@@ -729,7 +729,14 @@
         "usernameWarning": "The server will know you searched for this username.",
         "removeFriend": "Remove friend",
         "clearMessages": "Clear messages",
-        "recoveryNeeded": "Re-enter your recovery words (Settings → Security) to load your friends."
+        "recoveryNeeded": "Re-enter your recovery words (Settings → Security) to load your friends.",
+        "polling": "Friend polling",
+        "pollingToggle": "Poll friend requests",
+        "pollInterval": "Poll interval (seconds)",
+        "pollIntervalAuto": "Auto",
+        "pollIntervalHint": "Between 3 and 40 seconds. Leave empty for automatic (15–30 s).",
+        "pollUniformityNote": "Caution: the protocol relies on a uniform polling cadence to guarantee anonymity. Changing this interval breaks the default fingerprint (constant polling at the normative value) and makes your client more identifiable.",
+        "pollingNote": "Polling is off: the friend system is paused and new requests or updates will not be received."
     },
     "crop": {
         "titleAvatar": "Crop profile image",
