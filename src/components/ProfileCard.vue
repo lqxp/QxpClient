@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "@/composables/useI18n";
 
 const { t, locale } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
@@ -57,6 +57,18 @@ const descriptionHtml = computed(() => renderProfileMarkdown(profile.value.descr
 const isMobileProfile = ref(false);
 let mobileMedia: MediaQueryList | null = null;
 
+// ── Récupère le profil public (dont le timestamp de création) de l'utilisateur
+// consulté, même quand la carte est ouverte directement (member click, search…).
+watch(
+  () => props.username,
+  (username) => {
+    const key = String(username || "").trim();
+    if (!key || isSelf.value || isSystem.value) return;
+    props.messenger.requestPublicProfilesForUsers?.([{ username: key }]);
+  },
+  { immediate: true },
+);
+
 // ── Relations ami / bloqué (via phantom) ────────────────────────────────────
 const friends = computed<any[]>(() => Object.values(phantom?.state?.friendsByUser || {}) as any[]);
 const isFriend = computed(() =>
@@ -103,6 +115,9 @@ const tabRooms = computed(() =>
 function openFriend(friend: any) {
   const roomId = String(friend?.roomId || "").trim();
   if (!roomId) return;
+  // Titre le salon ami avec son nom (sinon il apparaît comme un salon
+  // « classique » à hash brut en haut de la liste des rooms).
+  props.messenger.setLocalRoomTitle?.(roomId, friend?.peerDisplayName || roomId);
   props.messenger.selectConversation?.(roomId);
   emit("close");
 }
@@ -421,15 +436,6 @@ function renderProfileMarkdown(value: unknown) {
                 :title="messenger.platformLabel(platform)">{{ messenger.platformIcon(platform) }}</span>
             </span>
           </small>
-          <div v-if="memberSinceLabel" class="profile-card__member-since">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <path d="M16 2v4" />
-              <path d="M8 2v4" />
-              <path d="M3 10h18" />
-            </svg>
-            <span>{{ t('profile.memberSince') }} {{ memberSinceLabel }}</span>
-          </div>
 
           <div v-if="!isSelf && !isSystem" class="profile-card__actions">
             <button v-if="!isFriend" type="button" class="profile-card__action-btn profile-card__action-btn--primary"
@@ -452,6 +458,16 @@ function renderProfileMarkdown(value: unknown) {
               <h4>{{ t('profile.about') }}</h4>
               <div v-if="profile.description" class="profile-card__description markdown" v-html="descriptionHtml"></div>
               <p v-else class="profile-card__empty">{{ t('profile.noDescription') }}</p>
+            </div>
+
+            <div v-if="memberSinceLabel" class="profile-card__joined">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4" />
+                <path d="M8 2v4" />
+                <path d="M3 10h18" />
+              </svg>
+              <span>{{ t('profile.memberSince') }} {{ memberSinceLabel }}</span>
             </div>
           </div>
         </div>

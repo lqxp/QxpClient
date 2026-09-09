@@ -5052,6 +5052,31 @@ export function useMessenger() {
     send({ op: 33, d: { gameId: id, title: "" } });
   }
 
+  // Titre purement local (sans aller-retour serveur) — utilisé pour les salons
+  // E2EE ami↔ami qui n'ont pas d'enregistrement côté serveur.
+  function setLocalRoomTitle(roomId, name) {
+    const id = sanitizeRoomId(roomId);
+    if (!id || !isValidRoomId(id)) return;
+    const clean = String(name || "")
+      .trim()
+      .slice(0, MAX_LOCAL_ROOM_NAME_LENGTH);
+    let room = state.rooms.find((entry) => entry.roomId === id);
+    if (!room) {
+      room = {
+        roomId: id,
+        title: "",
+        lastPreview: "",
+        lastTimestamp: 0,
+        lastSender: "",
+        iconUrl: "",
+        members: [],
+      };
+      state.rooms.unshift(room);
+    }
+    room.title = clean;
+    persist();
+  }
+
   async function setLocalRoomIconFromFile(roomId, file) {
     const id = sanitizeRoomId(roomId);
     if (!id || !isValidRoomId(id)) return false;
@@ -8873,7 +8898,13 @@ export function useMessenger() {
         username && state.profilesByUser[username]?.avatar,
       );
       const hasBadges = Boolean(username && state.badgesByUser[username]);
-      if (hasAvatar && hasBadges) continue;
+      const hasCreatedAt = Boolean(
+        username && Number(state.createdAtByUser[username]) > 0,
+      );
+      // On saute seulement si tout est déjà connu ; sinon on re-demande pour
+      // récupérer le timestamp de création (dont l'absence casserait l'affichage
+      // « Membre depuis » sur le profil des autres).
+      if (hasAvatar && hasBadges && hasCreatedAt) continue;
       if (
         username &&
         now - Number(state.publicProfileFetchedAtByUser[username] || 0) <
@@ -9685,6 +9716,7 @@ export function useMessenger() {
     MAX_PINNED_ROOMS,
     setLocalRoomName,
     clearLocalRoomName,
+    setLocalRoomTitle,
     roomIcon,
     roomKind,
     roomDescription,

@@ -2083,6 +2083,8 @@ textarea {
     width: 100%;
     max-height: calc(100vh - 18px);
     border-radius: 16px 16px 0 0;
+    border: 0;
+    overflow: hidden;
     animation: profile-sheet-in 220ms cubic-bezier(0.16, 0.8, 0.2, 1);
   }
 
@@ -2112,16 +2114,46 @@ textarea {
   }
 
   .profile-card__left {
-    padding: 16px;
+    padding: 0;
     border-right: 0;
   }
 
   .profile-card__left-box {
-    padding: 18px;
+    padding: 0 0 24px;
+    border-radius: 0;
+    background: none;
+    border: 0;
+  }
+
+  .profile-card__banner {
+    border-radius: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .profile-card__avatar {
+    margin-left: 18px;
+  }
+
+  .profile-card__identity,
+  .profile-card__section {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .profile-card__section {
+    margin-top: 24px;
+    border-left: 0;
+    padding-left: 18px;
+  }
+
+  .profile-card__joined {
+    padding-left: 18px;
+    padding-right: 18px;
   }
 
   .profile-card__mutual {
-    padding: 22px 22px 28px;
+    display: none;
   }
 
   .profile-card__avatar {
@@ -2312,6 +2344,34 @@ textarea {
 .profile-card__member-since svg {
   flex: none;
   opacity: 0.8;
+}
+
+.profile-card__member-since--bio {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Champ « Membre depuis » (discret, sous la bio). */
+.profile-card__joined {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.profile-card__joined svg {
+  flex: none;
+  opacity: 0.8;
+}
+
+.profile-card__joined span {
+  min-width: 0;
 }
 
 /* Markdown description */

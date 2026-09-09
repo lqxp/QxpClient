@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref, watch, nextTick } from "vue";
+import { inject, ref, watch, nextTick, onBeforeUnmount } from "vue";
 import { useI18n } from "@/composables/useI18n";
 import type { useDialog as UseDialogType } from "@/composables/useDialog";
 
@@ -8,6 +8,7 @@ const dialogApi = inject<ReturnType<typeof UseDialogType>>("dialog")!;
 
 const inputValue = ref("");
 const inputRef = ref<HTMLInputElement | null>(null);
+const okRef = ref<HTMLButtonElement | null>(null);
 
 watch(
   () => dialogApi.dialogState.open,
@@ -17,11 +18,18 @@ watch(
       await nextTick();
       inputRef.value?.focus();
       inputRef.value?.select();
+    } else if (open) {
+      // Donne le focus au bouton OK (défaut) pour que Entrée/Échap répondent
+      // sans dépendre de l'attribut `autofocus` (peu fiable dans un Teleport).
+      await nextTick();
+      okRef.value?.focus();
     }
   },
 );
 
-function onSubmit() {
+function onSubmit(event?: Event) {
+  event?.preventDefault();
+  event?.stopPropagation();
   if (dialogApi.dialogState.kind === "prompt") {
     dialogApi.closeDialog(inputValue.value);
   } else if (dialogApi.dialogState.kind === "confirm") {
@@ -31,7 +39,9 @@ function onSubmit() {
   }
 }
 
-function onCancel() {
+function onCancel(event?: Event) {
+  event?.preventDefault();
+  event?.stopPropagation();
   if (dialogApi.dialogState.kind === "confirm") {
     dialogApi.closeDialog(false);
   } else if (dialogApi.dialogState.kind === "prompt") {
@@ -41,15 +51,18 @@ function onCancel() {
   }
 }
 
+// Gestion clavier au niveau de la fenêtre (fiable quel que soit le focus).
 function onKeydown(event: KeyboardEvent) {
+  if (!dialogApi.dialogState.open) return;
   if (event.key === "Enter") {
-    event.preventDefault();
-    onSubmit();
+    onSubmit(event);
   } else if (event.key === "Escape") {
-    event.preventDefault();
-    onCancel();
+    onCancel(event);
   }
 }
+
+window.addEventListener("keydown", onKeydown);
+onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 </script>
 
 <template>
@@ -62,7 +75,6 @@ function onKeydown(event: KeyboardEvent) {
           aria-modal="true"
           :aria-label="dialogApi.dialogState.title || dialogApi.dialogState.message"
           @click.stop
-          @keydown="onKeydown"
         >
           <div v-if="dialogApi.dialogState.title" class="dialog-card__title">
             {{ dialogApi.dialogState.title }}
@@ -89,9 +101,9 @@ function onKeydown(event: KeyboardEvent) {
               {{ t("message.cancel") }}
             </button>
             <button
+              ref="okRef"
               class="dialog-btn dialog-btn--primary"
               type="button"
-              autofocus
               @click="onSubmit"
             >
               {{ t("message.ok") }}

@@ -46,9 +46,13 @@ onBeforeUnmount(() => {
   document.removeEventListener("click", closeFriendMenu);
 });
 
-function openFriend(roomId: string) {
-  if (roomId && props.messenger?.selectConversation) {
-    props.messenger.selectConversation(roomId);
+function openFriend(friend: any) {
+  if (!friend?.roomId) return;
+  // Titre le salon ami avec son nom pour qu'il s'intègre proprement
+  // (sinon il apparaît comme un salon « classique » à hash brut).
+  props.messenger.setLocalRoomTitle?.(friend.roomId, friend.peerDisplayName || friend.roomId);
+  if (props.messenger?.selectConversation) {
+    props.messenger.selectConversation(friend.roomId);
   }
 }
 
@@ -120,7 +124,7 @@ function friendMenuAction(action: string) {
         class="phantom-friend"
         @contextmenu.prevent.stop="openFriendMenu($event, friend)"
       >
-        <button type="button" @click="openFriend(friend.roomId)">
+        <button type="button" @click="openFriend(friend)">
           <span class="phantom-friend__avatar" :class="{ 'phantom-friend__avatar--image': friendAvatar(friend) }">
             <img v-if="friendAvatar(friend)" :src="friendAvatar(friend)" alt="" />
             <template v-else>{{ (friend.peerDisplayName || "?").slice(0, 1).toUpperCase() }}</template>
