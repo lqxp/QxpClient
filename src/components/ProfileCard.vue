@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "@/composables/useI18n";
 
 const { t, locale } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
@@ -38,29 +38,8 @@ const mutualRoomOptions = computed(() =>
   mutualRooms.value.map((room) => ({
     ...room,
     label: room.name,
-    previewSrc: room.icon?.startsWith("data:image/") ? "" : room.icon,
-    description: props.messenger.roomDescription?.(room.roomId) || "",
-    kind: props.messenger.roomKind?.(room.roomId) || "classic",
-    members: (props.messenger.state.usersByRoom?.[room.roomId] || []).length
+    previewSrc: room.icon?.startsWith("data:image/") ? "" : room.icon
   }))
-);
-const selectedMutualRoom = ref("");
-const selectedRoom = computed(
-  () =>
-    mutualRoomOptions.value.find((room) => room.roomId === selectedMutualRoom.value) ||
-    mutualRoomOptions.value[0] ||
-    null
-);
-watch(
-  mutualRoomOptions,
-  (rooms) => {
-    if (rooms.length && !rooms.some((room) => room.roomId === selectedMutualRoom.value)) {
-      selectedMutualRoom.value = rooms[0].roomId;
-    } else if (!rooms.length) {
-      selectedMutualRoom.value = "";
-    }
-  },
-  { immediate: true }
 );
 const createdAt = computed(() => props.messenger.createdAtFor?.(props.username) || 0);
 const memberSinceLabel = computed(() => {
@@ -101,10 +80,10 @@ function showBadgeLabel(badge: string) {
   });
 }
 
-function openSelectedMutualRoom() {
-  const roomId = String(selectedMutualRoom.value || "").trim();
-  if (!roomId) return;
-  props.messenger.selectConversation?.(roomId);
+function openMutualRoom(roomId: string) {
+  const id = String(roomId || "").trim();
+  if (!id) return;
+  props.messenger.selectConversation?.(id);
   emit("close");
 }
 
@@ -139,10 +118,6 @@ function initialsFor(name: string) {
   const parts = clean.split(/[\s\-_]+/).filter(Boolean).slice(0, 2);
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return clean.slice(0, 2).toUpperCase() || "?";
-}
-
-function selectMutual(roomId: string) {
-  selectedMutualRoom.value = roomId;
 }
 
 // ── Markdown léger (gras, italique, citation `>`, lien) ──────────────────────
@@ -375,47 +350,33 @@ function renderProfileMarkdown(value: unknown) {
           </div>
         </div>
 
-        <aside v-if="!isSelf && !isSystem" class="profile-card__mutual">
-            <div class="profile-card__mutual-head">
-              <h4>{{ t('profile.mutualRooms') }}</h4>
-              <span class="profile-card__mutual-count">{{ mutualRoomOptions.length }}</span>
-            </div>
+        <aside class="profile-card__mutual">
+          <template v-if="isSelf">
+            <h4 class="profile-card__mutual-title">{{ t('profile.thisIsYou') }}</h4>
+            <p class="profile-card__note">{{ t('profile.selfNote') }}</p>
+          </template>
 
-            <template v-if="mutualRoomOptions.length">
-              <ul class="profile-card__mutual-list" role="list">
-                <li v-for="room in mutualRoomOptions" :key="room.roomId">
-                  <button type="button" class="profile-card__mutual-room"
-                    :class="{ 'is-active': selectedRoom?.roomId === room.roomId }" @click="selectMutual(room.roomId)">
-                    <span v-if="room.previewSrc" class="profile-card__mutual-room-media">
-                      <img :src="room.previewSrc" alt="" />
-                    </span>
-                    <span v-else class="profile-card__mutual-room-fallback">{{ room.label.slice(0, 1).toUpperCase() || '#' }}</span>
-                    <span class="profile-card__mutual-room-meta">
-                      <span class="profile-card__mutual-room-name">{{ room.label }}</span>
-                      <span class="profile-card__mutual-room-members">{{ room.members }} {{ t('profile.members') }}</span>
-                    </span>
-                  </button>
-                </li>
-              </ul>
+          <template v-else-if="isSystem">
+            <h4 class="profile-card__mutual-title">{{ t('profile.systemTitle') }}</h4>
+            <p class="profile-card__note">{{ t('profile.systemNote') }}</p>
+          </template>
 
-              <div v-if="selectedRoom" class="profile-card__viewer">
-                <span v-if="selectedRoom.previewSrc" class="profile-card__viewer-media">
-                  <img :src="selectedRoom.previewSrc" alt="" />
-                </span>
-                <span v-else class="profile-card__viewer-fallback">{{ selectedRoom.label.slice(0, 1).toUpperCase() || '#' }}</span>
-                <div class="profile-card__viewer-body">
-                  <div class="profile-card__viewer-head">
-                    <strong>{{ selectedRoom.label }}</strong>
-                    <span v-if="selectedRoom.kind === 'community'" class="profile-card__viewer-kind">{{ t('profile.community') }}</span>
-                  </div>
-                  <p v-if="selectedRoom.description" class="profile-card__viewer-desc">{{ selectedRoom.description }}</p>
-                  <span class="profile-card__viewer-members">{{ selectedRoom.members }} {{ t('profile.members') }}</span>
-                </div>
-                <button type="button" class="profile-card__viewer-open" @click="openSelectedMutualRoom">{{ t('profile.openRoom') }}</button>
-              </div>
-            </template>
+          <template v-else>
+            <h4 class="profile-card__mutual-title">{{ t('profile.mutualRooms') }}</h4>
+            <ul v-if="mutualRoomOptions.length" class="profile-card__mutual-list" role="list">
+              <li v-for="room in mutualRoomOptions" :key="room.roomId">
+                <button type="button" class="profile-card__mutual-room" @click="openMutualRoom(room.roomId)">
+                  <span v-if="room.previewSrc" class="profile-card__mutual-room-media">
+                    <img :src="room.previewSrc" alt="" />
+                  </span>
+                  <span v-else class="profile-card__mutual-room-fallback">{{ room.label.slice(0, 1).toUpperCase() || '#' }}</span>
+                  <span class="profile-card__mutual-room-name">{{ room.label }}</span>
+                </button>
+              </li>
+            </ul>
             <p v-else class="profile-card__empty">{{ t('profile.noMutualRooms') }}</p>
-          </aside>
+          </template>
+        </aside>
       </div>
     </section>
   </div>

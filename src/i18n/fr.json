@@ -133,7 +133,11 @@
         "community": "Communauté",
         "openRoom": "Ouvrir le salon",
         "previous": "Précédent",
-        "next": "Suivant"
+        "next": "Suivant",
+        "thisIsYou": "C'est vous",
+        "selfNote": "Vous consultez votre propre profil. Vous pouvez le modifier dans les Réglages.",
+        "systemTitle": "Système QxChat",
+        "systemNote": "Compte système officiel de QxChat."
     },
     "thread": {
         "back": "Retour aux conversations",

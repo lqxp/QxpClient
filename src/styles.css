@@ -1670,7 +1670,7 @@ textarea {
 
 .profile-card__panel {
   position: relative;
-  width: min(720px, calc(100vw - 28px));
+  width: min(900px, calc(100vw - 32px));
   max-height: calc(100vh - 36px);
   overflow-y: auto;
   overflow-x: hidden;
@@ -2150,32 +2150,18 @@ textarea {
   padding: 28px 28px 32px;
 }
 
-.profile-card__mutual-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.profile-card__mutual-head h4 {
-  margin: 0;
+.profile-card__mutual-title {
+  margin: 0 0 14px;
   color: var(--text);
   font-size: 13px;
   font-weight: 800;
 }
 
-.profile-card__mutual-count {
-  min-width: 20px;
-  height: 20px;
-  display: grid;
-  place-items: center;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 800;
+.profile-card__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 .profile-card__mutual-list {
@@ -2188,24 +2174,6 @@ textarea {
 
 .profile-card__mutual-room {
   cursor: pointer;
-}
-
-.profile-card__mutual-room.is-active {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface-2));
-}
-
-.profile-card__mutual-room-meta {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.profile-card__mutual-room-members {
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 600;
 }
 
 .profile-card__member-since {
@@ -2247,102 +2215,6 @@ textarea {
 .profile-card__description.markdown em {
   font-style: italic;
 }
-
-/* Mutual room viewer (selected server details) */
-.profile-card__viewer {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-  margin-top: 16px;
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: var(--surface-2);
-}
-
-.profile-card__viewer-media,
-.profile-card__viewer-fallback {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-}
-
-.profile-card__viewer-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.profile-card__viewer-fallback {
-  background: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
-  font-weight: 800;
-}
-
-.profile-card__viewer-body {
-  min-width: 0;
-}
-
-.profile-card__viewer-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.profile-card__viewer-head strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 15px;
-}
-
-.profile-card__viewer-kind {
-  flex: none;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--accent);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.profile-card__viewer-desc {
-  margin: 6px 0 0;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.45;
-}
-
-.profile-card__viewer-members {
-  display: block;
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.profile-card__viewer-open {
-  grid-column: 1 / -1;
-  margin-top: 4px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 0;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.profile-card__viewer-open:hover {
-  background: color-mix(in srgb, var(--accent) 85%, black 15%);
-}
-
-
 
 .thread__head {
   display: flex;
