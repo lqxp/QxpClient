@@ -903,6 +903,8 @@ function defaultPersisted(overrides: Record<string, unknown> = {}) {
     usersByRoom: {},
     profilesByUser: {},
     createdAtByUser: {},
+    friendRoomIdsByRoom: {},
+    friendRoomsByRoom: {},
     publicProfileFetchedAtByUser: {},
     badgesByUser: {},
     messagesByRoom: {},
@@ -2785,6 +2787,8 @@ export function useMessenger() {
     usersByRoom: persisted.usersByRoom,
     profilesByUser: { ...persisted.profilesByUser },
     createdAtByUser: { ...(persisted as any).createdAtByUser },
+    friendRoomIdsByRoom: {},
+    friendRoomsByRoom: {},
     publicProfileFetchedAtByUser: {
       ...(persisted as any).publicProfileFetchedAtByUser,
     },
@@ -3008,6 +3012,7 @@ export function useMessenger() {
     const query = state.searchTerm.trim().toLowerCase();
     return state.rooms
       .slice()
+      .filter((r) => !state.friendRoomIdsByRoom[sanitizeRoomId(r.roomId)])
       .map((r) => {
         const latest = latestSidebarRoomMessage(
           state.messagesByRoom[r.roomId] || [],
@@ -7200,6 +7205,42 @@ export function useMessenger() {
     return [...platforms].map(sanitizePlatform).filter(Boolean).sort();
   }
 
+  // ── Salons DM ami (scindés dans la liste ami, pas dans la liste des salons) ──
+  function registerFriendRoom(roomId: string, peerDisplayName?: string): void {
+    const id = sanitizeRoomId(roomId);
+    if (!id || !isValidRoomId(id)) return;
+    state.friendRoomIdsByRoom[id] = true;
+    const name = String(peerDisplayName || "").trim();
+    if (name) state.friendRoomsByRoom[id] = name;
+  }
+
+  function unregisterFriendRoom(roomId: string): void {
+    const id = sanitizeRoomId(roomId);
+    if (!id) return;
+    delete state.friendRoomIdsByRoom[id];
+    delete state.friendRoomsByRoom[id];
+  }
+
+  function isFriendRoom(roomId: string): boolean {
+    const id = sanitizeRoomId(roomId);
+    return !!id && !!state.friendRoomIdsByRoom[id];
+  }
+
+  function friendNameForRoom(roomId: string): string {
+    const id = sanitizeRoomId(roomId);
+    const name = id ? String(state.friendRoomsByRoom[id] || "") : "";
+    if (name) return name;
+    return displayRoomName(id);
+  }
+
+  function friendAvatarForRoom(roomId: string): string {
+    const id = sanitizeRoomId(roomId);
+    const name = id ? String(state.friendRoomsByRoom[id] || "") : "";
+    if (!name) return "";
+    const profile = profileFor(name);
+    return profileImageSrc(profile?.avatar, "avatar");
+  }
+
   function mutualRoomsWith(username) {
     const target = sanitizeUsername(username);
     const me = sanitizeUsername(state.username);
@@ -9553,6 +9594,11 @@ export function useMessenger() {
     platformsForUser,
     userIdForUsername,
     mutualRoomsWith,
+    registerFriendRoom,
+    unregisterFriendRoom,
+    isFriendRoom,
+    friendNameForRoom,
+    friendAvatarForRoom,
     apiRequest,
     send,
     roomKeyFor,

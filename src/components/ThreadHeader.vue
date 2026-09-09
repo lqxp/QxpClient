@@ -14,7 +14,16 @@ defineEmits(["back"]);
 
 const callAccessOpen = ref(false);
 
-const name = computed(() => props.messenger.displayRoomNameBeautified(props.messenger.state.activeRoom));
+const isFriendRoom = computed(() => {
+  const id = String(props.messenger.state.activeRoom || "");
+  return !!id && !!props.messenger.isFriendRoom?.(id);
+});
+const name = computed(() => {
+  if (isFriendRoom.value) {
+    return props.messenger.friendNameForRoom?.(props.messenger.state.activeRoom) || props.messenger.displayRoomNameBeautified(props.messenger.state.activeRoom);
+  }
+  return props.messenger.displayRoomNameBeautified(props.messenger.state.activeRoom);
+});
 const accent = computed(() => props.messenger.activeConversation.value?.accent || "slate");
 
 const initials = computed(() => {
@@ -24,10 +33,15 @@ const initials = computed(() => {
   return n.slice(0, 2).toUpperCase() || "?";
 });
 
-const roomIcon = computed(() => props.messenger.roomIcon?.(props.messenger.state.activeRoom) || "");
+const roomIcon = computed(() => {
+  if (isFriendRoom.value) {
+    return props.messenger.friendAvatarForRoom?.(props.messenger.state.activeRoom) || "";
+  }
+  return props.messenger.roomIcon?.(props.messenger.state.activeRoom) || "";
+});
 const roomIconIsImage = computed(() => {
   const icon = String(roomIcon.value || "").trim();
-  return !!icon && !icon.startsWith("data:");
+  return !!icon && (icon.startsWith("data:image/") || !icon.startsWith("data:"));
 });
 const callActiveHere = computed(() =>
   props.messenger.state.inCall && props.messenger.state.callRoom === props.messenger.state.activeRoom

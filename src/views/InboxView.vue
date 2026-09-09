@@ -136,9 +136,16 @@ const callRoomLabel = computed(() => messenger.displayRoomName(callRoom.value));
 const callRoomDifferent = computed(() => inCall.value && callRoom.value !== messenger.state.activeRoom);
 const callElapsed = computed(() => messenger.formatDuration(messenger.state.callElapsed));
 const desktopConversationSelected = computed(() => !!String(messenger.state.activeRoom || "").trim());
+const desktopIsFriendRoom = computed(() =>
+  desktopConversationSelected.value && !!messenger.isFriendRoom?.(messenger.state.activeRoom),
+);
 const desktopTitle = computed(() => {
   if (messenger.state.settingsOpen) return t("settings.title");
-  return desktopConversationSelected.value ? messenger.displayRoomNameBeautified(messenger.state.activeRoom) : "QxChat";
+  if (!desktopConversationSelected.value) return "QxChat";
+  if (desktopIsFriendRoom.value) {
+    return messenger.friendNameForRoom?.(messenger.state.activeRoom) || messenger.displayRoomNameBeautified(messenger.state.activeRoom);
+  }
+  return messenger.displayRoomNameBeautified(messenger.state.activeRoom);
 });
 const desktopAccent = computed(() => messenger.activeConversation.value?.accent || "slate");
 const desktopInitials = computed(() => {
@@ -147,10 +154,15 @@ const desktopInitials = computed(() => {
   if (parts.length === 2 && parts[1]) return (parts[0][0] + parts[1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase() || "?";
 });
-const desktopRoomIcon = computed(() => messenger.roomIcon?.(messenger.state.activeRoom) || "");
+const desktopRoomIcon = computed(() => {
+  if (desktopIsFriendRoom.value) {
+    return messenger.friendAvatarForRoom?.(messenger.state.activeRoom) || "";
+  }
+  return messenger.roomIcon?.(messenger.state.activeRoom) || "";
+});
 const desktopRoomIconIsImage = computed(() => {
   const icon = String(desktopRoomIcon.value || "").trim();
-  return !!icon && !icon.startsWith("data:");
+  return !!icon && (icon.startsWith("data:image/") || !icon.startsWith("data:"));
 });
 
 const isMobile = computed(() =>

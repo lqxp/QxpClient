@@ -54,6 +54,8 @@ export interface PhantomMessengerCtx {
   };
   requestJoin: (roomId: string) => void;
   setLocalRoomTitle?: (roomId: string, name: string) => void;
+  registerFriendRoom?: (roomId: string, peerDisplayName?: string) => void;
+  unregisterFriendRoom?: (roomId: string) => void;
   mutualRoomsWith: (
     username: string,
   ) => Array<{ roomId: string; name: string; icon: string }>;
@@ -313,6 +315,7 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
       ctx.importRoomKey(inner.welcome.roomId, inner.welcome.roomKey);
       ctx.requestJoin(inner.welcome.roomId);
       ctx.setLocalRoomTitle?.(inner.welcome.roomId, inner.sender.displayName);
+      ctx.registerFriendRoom?.(inner.welcome.roomId, inner.sender.displayName);
       state.friendsByUser[inner.sender.displayName] = {
         peerFp: inner.sender.prekeyFp,
         peerDisplayName: inner.sender.displayName,
@@ -595,6 +598,7 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
 
     state.pendingIncoming.splice(index, 1);
     ctx.setLocalRoomTitle?.(roomId, incoming.sender.displayName);
+    ctx.registerFriendRoom?.(roomId, incoming.sender.displayName);
     state.friendsByUser[incoming.sender.displayName] = {
       peerFp: incoming.sender.prekeyFp,
       peerDisplayName: incoming.sender.displayName,
@@ -626,8 +630,12 @@ export function usePhantom(ctx: PhantomMessengerCtx) {
 
   function removeFriendLocal(prekeyFp: string): void {
     for (const [name, friend] of Object.entries(state.friendsByUser)) {
-      if ((friend as any)?.peerFp === prekeyFp)
+      if ((friend as any)?.peerFp === prekeyFp) {
+        if ((friend as any)?.roomId) {
+          ctx.unregisterFriendRoom?.((friend as any).roomId);
+        }
         delete state.friendsByUser[name];
+      }
     }
   }
 
