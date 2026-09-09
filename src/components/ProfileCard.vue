@@ -89,7 +89,7 @@ const activeTab = ref<"friends" | "rooms">("rooms");
 // Mes salons rejoints (vue « soi-même »).
 const myRooms = computed(() =>
   (props.messenger.state.rooms || [])
-    .filter((r: any) => r?.roomId)
+    .filter((r: any) => r?.roomId && !props.messenger.isFriendRoom?.(r.roomId))
     .map((r: any) => ({
       roomId: String(r.roomId),
       label: props.messenger.displayRoomName?.(r.roomId) || String(r.roomId),
