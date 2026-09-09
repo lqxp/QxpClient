@@ -137,7 +137,15 @@
         "thisIsYou": "This is you",
         "selfNote": "You're viewing your own profile. You can edit it in Settings.",
         "systemTitle": "QxChat System",
-        "systemNote": "Official QxChat system account."
+        "systemNote": "Official QxChat system account.",
+        "addFriend": "Add friend",
+        "requestSent": "Request sent",
+        "block": "Block",
+        "unblock": "Unblock",
+        "friends": "Friends",
+        "rooms": "Rooms",
+        "noFriendsHere": "No friends to show.",
+        "noRoomsHere": "No rooms to show."
     },
     "thread": {
         "back": "Back to conversations",

@@ -2175,12 +2175,126 @@ textarea {
   line-height: 1.55;
 }
 
+.profile-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.profile-card__action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-3, var(--surface-2));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.profile-card__action-btn:hover {
+  background: var(--surface-hover);
+}
+
+.profile-card__action-btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.profile-card__action-btn--primary:hover {
+  background: color-mix(in srgb, var(--accent) 85%, black 15%);
+}
+
+.profile-card__action-btn--danger {
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 40%, transparent);
+}
+
+.profile-card__action-btn--danger:hover {
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+}
+
+.profile-card__action-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .profile-card__mutual-list {
   list-style: none;
   margin: 0;
   padding: 0;
   max-height: 260px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-card__tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.profile-card__tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.profile-card__tab:hover {
+  color: var(--text);
+}
+
+.profile-card__tab.is-active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.profile-card__tab-count {
+  min-width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.profile-card__mutual-room-media--round,
+.profile-card__mutual-room-fallback--round {
+  border-radius: 50%;
+}
+
+.profile-card__list-empty {
+  list-style: none;
+  padding: 12px 4px;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .profile-card__mutual-room {

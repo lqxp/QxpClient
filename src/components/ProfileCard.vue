@@ -3,6 +3,7 @@ import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "@/composables/useI18n";
 
 const { t, locale } = inject<ReturnType<typeof useI18n>>("i18n") ?? useI18n();
+const phantom = inject<any>("phantom", null);
 
 const props = defineProps({
   messenger: { type: Object, required: true },
@@ -55,6 +56,93 @@ const memberSinceLabel = computed(() => {
 const descriptionHtml = computed(() => renderProfileMarkdown(profile.value.description || ""));
 const isMobileProfile = ref(false);
 let mobileMedia: MediaQueryList | null = null;
+
+// ── Relations ami / bloqué (via phantom) ────────────────────────────────────
+const friends = computed<any[]>(() => Object.values(phantom?.state?.friendsByUser || {}) as any[]);
+const isFriend = computed(() =>
+  friends.value.some((f) => String(f?.peerDisplayName || "").trim().toLowerCase() === props.username.trim().toLowerCase())
+);
+const friendFp = computed(() => friends.value.find((f) => String(f?.peerDisplayName || "").trim().toLowerCase() === props.username.trim().toLowerCase())?.peerFp || "");
+const isBlocked = computed(() => {
+  const blockList: string[] = phantom?.state?.blockList || [];
+  const fp = friendFp.value;
+  return fp ? blockList.includes(fp) : false;
+});
+const sending = ref(false);
+const sent = ref(false);
+
+// ── Onglets de la colonne droite ────────────────────────────────────────────
+const activeTab = ref<"friends" | "rooms">("rooms");
+
+// Mes salons rejoints (vue « soi-même »).
+const myRooms = computed(() =>
+  (props.messenger.state.rooms || [])
+    .filter((r: any) => r?.roomId)
+    .map((r: any) => ({
+      roomId: String(r.roomId),
+      label: props.messenger.displayRoomName?.(r.roomId) || String(r.roomId),
+      previewSrc: props.messenger.roomIcon?.(r.roomId) || "",
+    }))
+);
+
+// Amis affichés : pour soi-même = mes amis, sinon = amis en commun.
+const tabFriends = computed<any[]>(() => {
+  if (isSelf.value) return friends.value;
+  return friends.value.filter((f) =>
+    mutualRoomOptions.value.some(
+      (room) => room.roomId === f?.roomId,
+    ),
+  );
+});
+
+// Salons affichés : pour soi-même = mes salons, sinon = salons en commun.
+const tabRooms = computed(() =>
+  isSelf.value ? myRooms.value : mutualRoomOptions.value,
+);
+
+function openFriend(friend: any) {
+  const roomId = String(friend?.roomId || "").trim();
+  if (!roomId) return;
+  props.messenger.selectConversation?.(roomId);
+  emit("close");
+}
+
+function friendAvatar(friend: any) {
+  const p = props.messenger.profileFor?.(friend.peerDisplayName);
+  return props.messenger.profileImageSrc?.(p?.avatar, "avatar") || "";
+}
+
+async function addFriend() {
+  if (!phantom || sending.value) return;
+  sending.value = true;
+  try {
+    const mutual = mutualRoomOptions.value[0];
+    const ok = mutual?.roomId
+      ? await phantom.sendIntroByContext(props.username, mutual.roomId, "Hi!")
+      : await phantom.sendIntroByUsername(props.username, "Hi!");
+    sent.value = Boolean(ok);
+  } catch {
+    sent.value = false;
+  } finally {
+    sending.value = false;
+  }
+}
+
+async function toggleBlock() {
+  if (!phantom) return;
+  if (isBlocked.value) {
+    if (!friendFp.value) return;
+    await phantom.unblockUser(friendFp.value);
+  } else if (friendFp.value) {
+    await phantom.blockUser(friendFp.value);
+  }
+}
+
+function addFriendLabel() {
+  if (sending.value) return "…";
+  if (sent.value) return t('profile.requestSent');
+  return t('profile.addFriend');
+}
 
 function updateMobileProfile() {
   isMobileProfile.value = typeof window !== "undefined" && window.matchMedia("(max-width: 820px)").matches;
@@ -342,6 +430,22 @@ function renderProfileMarkdown(value: unknown) {
             </svg>
             <span>{{ t('profile.memberSince') }} {{ memberSinceLabel }}</span>
           </div>
+
+          <div v-if="!isSelf && !isSystem" class="profile-card__actions">
+            <button v-if="!isFriend" type="button" class="profile-card__action-btn profile-card__action-btn--primary"
+              :disabled="sending || sent" @click="addFriend">
+              <svg v-if="!sent" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M19 8v6" />
+                <path d="M22 11h-6" />
+              </svg>
+              {{ addFriendLabel() }}
+            </button>
+            <button type="button" class="profile-card__action-btn profile-card__action-btn--danger" @click="toggleBlock">
+              {{ isBlocked ? t('profile.unblock') : t('profile.block') }}
+            </button>
+          </div>
         </div>
 
             <div class="profile-card__section">
@@ -353,20 +457,40 @@ function renderProfileMarkdown(value: unknown) {
         </div>
 
         <aside class="profile-card__mutual">
-          <template v-if="isSelf">
-            <h4 class="profile-card__mutual-title">{{ t('profile.thisIsYou') }}</h4>
-            <p class="profile-card__note">{{ t('profile.selfNote') }}</p>
-          </template>
-
-          <template v-else-if="isSystem">
+          <template v-if="isSystem">
             <h4 class="profile-card__mutual-title">{{ t('profile.systemTitle') }}</h4>
             <p class="profile-card__note">{{ t('profile.systemNote') }}</p>
           </template>
 
           <template v-else>
-            <h4 class="profile-card__mutual-title">{{ t('profile.mutualRooms') }}</h4>
-            <ul v-if="mutualRoomOptions.length" class="profile-card__mutual-list" role="list">
-              <li v-for="room in mutualRoomOptions" :key="room.roomId">
+            <div class="profile-card__tabs" role="tablist">
+              <button type="button" role="tab" class="profile-card__tab"
+                :class="{ 'is-active': activeTab === 'friends' }" :aria-selected="activeTab === 'friends'"
+                @click="activeTab = 'friends'">
+                {{ t('profile.friends') }}<span v-if="tabFriends.length" class="profile-card__tab-count">{{ tabFriends.length }}</span>
+              </button>
+              <button type="button" role="tab" class="profile-card__tab"
+                :class="{ 'is-active': activeTab === 'rooms' }" :aria-selected="activeTab === 'rooms'"
+                @click="activeTab = 'rooms'">
+                {{ t('profile.rooms') }}<span v-if="tabRooms.length" class="profile-card__tab-count">{{ tabRooms.length }}</span>
+              </button>
+            </div>
+
+            <ul v-if="activeTab === 'friends'" class="profile-card__mutual-list" role="list">
+              <li v-for="friend in tabFriends" :key="friend.peerFp || friend.peerDisplayName">
+                <button type="button" class="profile-card__mutual-room" @click="openFriend(friend)">
+                  <span v-if="friendAvatar(friend)" class="profile-card__mutual-room-media profile-card__mutual-room-media--round">
+                    <img :src="friendAvatar(friend)" alt="" />
+                  </span>
+                  <span v-else class="profile-card__mutual-room-fallback profile-card__mutual-room-fallback--round">{{ (friend.peerDisplayName || '?').slice(0, 1).toUpperCase() }}</span>
+                  <span class="profile-card__mutual-room-name">{{ friend.peerDisplayName }}</span>
+                </button>
+              </li>
+              <li v-if="!tabFriends.length" class="profile-card__list-empty">{{ t('profile.noFriendsHere') }}</li>
+            </ul>
+
+            <ul v-else class="profile-card__mutual-list" role="list">
+              <li v-for="room in tabRooms" :key="room.roomId">
                 <button type="button" class="profile-card__mutual-room" @click="openMutualRoom(room.roomId)">
                   <span v-if="room.previewSrc" class="profile-card__mutual-room-media">
                     <img :src="room.previewSrc" alt="" />
@@ -375,8 +499,8 @@ function renderProfileMarkdown(value: unknown) {
                   <span class="profile-card__mutual-room-name">{{ room.label }}</span>
                 </button>
               </li>
+              <li v-if="!tabRooms.length" class="profile-card__list-empty">{{ t('profile.noRoomsHere') }}</li>
             </ul>
-            <p v-else class="profile-card__empty">{{ t('profile.noMutualRooms') }}</p>
           </template>
         </aside>
       </div>
