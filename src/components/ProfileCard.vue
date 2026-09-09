@@ -454,8 +454,8 @@ function renderProfileMarkdown(value: unknown) {
           </div>
         </div>
 
+            <h4 class="profile-card__section-title">{{ t('profile.about') }}</h4>
             <div class="profile-card__section">
-              <h4>{{ t('profile.about') }}</h4>
               <div v-if="profile.description" class="profile-card__description markdown" v-html="descriptionHtml"></div>
               <p v-else class="profile-card__empty">{{ t('profile.noDescription') }}</p>
             </div>

@@ -1728,7 +1728,8 @@ textarea {
 
 .profile-card__avatar {
   position: relative;
-  margin: -60px 0 0 16px;
+  left: 16px;
+  margin: -60px 0 0 0;
   width: 116px;
   height: 116px;
   border: 6px solid var(--surface);
@@ -1800,7 +1801,7 @@ textarea {
 
 .profile-card__identity {
   min-width: 0;
-  margin-top: 20px;
+  margin-top: 6px;
 }
 
 .profile-card__identity strong,
@@ -1984,8 +1985,16 @@ textarea {
   color: var(--text);
 }
 
+.profile-card__section-title {
+  margin: 20px 0 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
 .profile-card__section {
-  margin-top: 34px;
+  margin-top: 0;
   padding-left: 16px;
   border-left: 5px solid color-mix(in srgb, var(--accent) 45%, transparent);
 }
@@ -2137,15 +2146,23 @@ textarea {
   }
 
   .profile-card__identity,
-  .profile-card__section {
+  .profile-card__section,
+  .profile-card__section-title {
     padding-left: 18px;
     padding-right: 18px;
   }
 
   .profile-card__section {
-    margin-top: 24px;
+    margin-top: 0;
     border-left: 0;
     padding-left: 18px;
+  }
+
+  .profile-card__section-title {
+    margin-top: 24px;
+    margin-bottom: 10px;
+    padding-left: 18px;
+    padding-right: 18px;
   }
 
   .profile-card__joined {
